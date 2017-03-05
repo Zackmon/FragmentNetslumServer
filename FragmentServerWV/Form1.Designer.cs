@@ -38,6 +38,7 @@
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dumpDecoderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rtb1 = new System.Windows.Forms.RichTextBox();
+            this.startProxyModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,7 +57,8 @@
             // serverToolStripMenuItem
             // 
             this.serverToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.startToolStripMenuItem});
+            this.startToolStripMenuItem,
+            this.startProxyModeToolStripMenuItem});
             this.serverToolStripMenuItem.Name = "serverToolStripMenuItem";
             this.serverToolStripMenuItem.Size = new System.Drawing.Size(51, 20);
             this.serverToolStripMenuItem.Text = "Server";
@@ -64,7 +66,7 @@
             // startToolStripMenuItem
             // 
             this.startToolStripMenuItem.Name = "startToolStripMenuItem";
-            this.startToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.startToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.startToolStripMenuItem.Text = "Start";
             this.startToolStripMenuItem.Click += new System.EventHandler(this.startToolStripMenuItem_Click);
             // 
@@ -129,6 +131,13 @@
             this.rtb1.Text = "";
             this.rtb1.WordWrap = false;
             // 
+            // startProxyModeToolStripMenuItem
+            // 
+            this.startProxyModeToolStripMenuItem.Name = "startProxyModeToolStripMenuItem";
+            this.startProxyModeToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.startProxyModeToolStripMenuItem.Text = "Start Proxy Mode";
+            this.startProxyModeToolStripMenuItem.Click += new System.EventHandler(this.startProxyModeToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -159,6 +168,7 @@
         private System.Windows.Forms.ToolStripMenuItem level5FewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem dumpDecoderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem startProxyModeToolStripMenuItem;
     }
 }
 

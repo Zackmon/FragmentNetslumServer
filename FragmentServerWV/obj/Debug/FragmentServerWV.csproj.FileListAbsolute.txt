@@ -17,3 +17,4 @@ D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.Form
 D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.Properties.Resources.resources
 D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.csproj.GenerateResource.Cache
 D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\Debug\FragmentServerWV.pdb
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.csprojResolveAssemblyReference.cache

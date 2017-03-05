@@ -57,7 +57,7 @@ namespace FragmentServerWV
             string text;
             text = "Client #" + index + " : " + action + " (code 0x" + code.ToString("X4") + ", checksums 0x" + check1.ToString("X4") + "-0x" + check2.ToString("X4") + ")";
             Writeline(text, 2);
-            Writeline("Hexdump :\n"+ HexDump(data), 0);
+            Writeline("Hexdump :\r\n"+ HexDump(data), 0);
             string path;
             if (code != 0x30)
                 path = "log\\" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + ".bin";
