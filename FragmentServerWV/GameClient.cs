@@ -204,13 +204,17 @@ namespace FragmentServerWV
                 case 0x7019:
                     SendPacket30(0x701C, new byte[] { 0x02, 0x11 });
                     break;
+                case 0x7406:
+                    SendPacket30(0x7407, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    SendPacket30(0x7407, new byte[] { 0x00, 0x01, 0x00, 0x00 });
+                    break;
                 case 0x7423:
                     SendPacket30(0x7424, new byte[] { 0x78, 0x94 });
                     break;
                 case 0x7426:
                     m = new MemoryStream();
                     m.Write(BitConverter.GetBytes((int)0), 0, 4);
-                    byte[] buff = Encoding.ASCII.GetBytes("Welcome to\n Netslum...\n\nCurrent Status:\n Warranty is voided....");
+                    byte[] buff = Encoding.ASCII.GetBytes(File.ReadAllText("welcome.txt"));
                     m.WriteByte((byte)(buff.Length - 1));
                     m.Write(buff, 0, buff.Length);
                     while (m.Length < 0x200)

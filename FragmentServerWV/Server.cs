@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,8 +26,10 @@ namespace FragmentServerWV
                 clients = new List<GameClient>();
                 lobbyChatRooms = new List<LobbyChatRoom>();
                 ushort count = 0;
-                lobbyChatRooms.Add(new LobbyChatRoom("Main Lobby", count++, 0x7403));
-                lobbyChatRooms.Add(new LobbyChatRoom("Test Lobby", count++, 0x7403));
+                string[] lines = File.ReadAllLines("lobbies.txt");
+                foreach (string name in lines)
+                    if (name.Trim() != "")
+                        lobbyChatRooms.Add(new LobbyChatRoom(name, count++, 0x7403));
                 t = new Thread(MainThread);
                 t.Start();
             }
