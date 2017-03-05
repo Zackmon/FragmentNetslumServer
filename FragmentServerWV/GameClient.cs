@@ -154,6 +154,7 @@ namespace FragmentServerWV
             arglen -= 2;
             ushort code = swap16(BitConverter.ToUInt16(data, 8));
             MemoryStream m = new MemoryStream();
+            LobbyChatRoom room;
             m.Write(data, 10, arglen);
             byte[] argument = m.ToArray();
             switch (code)
@@ -169,7 +170,7 @@ namespace FragmentServerWV
                     break;
                 case 0x7006:
                     room_index = (short)swap16(BitConverter.ToUInt16(data, 0xA));
-                    LobbyChatRoom room = Server.lobbyChatRooms[room_index];
+                    room = Server.lobbyChatRooms[room_index];
                     room.Users.Add(this.index);
                     Log.Writeline("Client #" + this.index + " : Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
                     SendPacket30(0x7007, new byte[] { 0x00, 0x00 });
@@ -219,6 +220,15 @@ namespace FragmentServerWV
                 case 0x742B:
                     ExtractCharacterData(argument);
                     SendPacket30(0x742C, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x7444:
+                    if (room_index != -1)
+                    {
+                        room = Server.lobbyChatRooms[room_index];
+                        room.Users.Remove(this.index);
+                        Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                    }
+                    SendPacket30(0x7445, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x744a:
                     SendPacket30(0x744b, new byte[] { 0x00, 0x00 });
