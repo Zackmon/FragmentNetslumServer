@@ -23,14 +23,13 @@ namespace FragmentServerWV
         private void startToolStripMenuItem_Click(object sender, EventArgs e)
         {
             startToolStripMenuItem.Enabled = false;
-            stopToolStripMenuItem.Enabled = true;
             Server.Start();
         }
 
        
         private void level1AllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Log.LogLevel = 0;
+            Log.LogTreshold = 0;
             level3MediumToolStripMenuItem.Checked =
             level5FewToolStripMenuItem.Checked = false;
             level1AllToolStripMenuItem.Checked = true;
@@ -38,7 +37,7 @@ namespace FragmentServerWV
 
         private void level3MediumToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Log.LogLevel = 2;
+            Log.LogTreshold = 2;
             level1AllToolStripMenuItem.Checked =
             level5FewToolStripMenuItem.Checked = false;
             level3MediumToolStripMenuItem.Checked = true;
@@ -46,17 +45,10 @@ namespace FragmentServerWV
 
         private void level5FewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Log.LogLevel = 4;
+            Log.LogTreshold = 4;
             level1AllToolStripMenuItem.Checked =
             level3MediumToolStripMenuItem.Checked = false;
             level5FewToolStripMenuItem.Checked = true;
-        }
-
-        private void stopToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            startToolStripMenuItem.Enabled = true;
-            stopToolStripMenuItem.Enabled = false;
-            Server.Stop();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

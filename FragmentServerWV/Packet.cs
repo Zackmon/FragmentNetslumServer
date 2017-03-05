@@ -19,27 +19,38 @@ namespace FragmentServerWV
         public Packet(NetworkStream ns, Crypto crypto)
         {
             byte[] buff = new byte[2];
-            ns.Read(buff, 0, 2);
-            datalen = (ushort)((buff[0] << 8) + buff[1]);
-            data = new byte[datalen];
-            ns.Read(data, 0, datalen);
-            if (datalen > 1)
+            datalen = 0;
+            if (!ns.DataAvailable)
+                return;
+            try
             {
-                code = (ushort)((data[0] << 8) + data[1]);
-                if (datalen > 9)
+                int read = ns.Read(buff, 0, 2);
+                if (read == 0)
+                    return;
+                datalen = (ushort)((buff[0] << 8) + buff[1]);
+                data = new byte[datalen];
+                ns.Read(data, 0, datalen);
+                if (datalen > 1)
                 {
-                    MemoryStream m = new MemoryStream();
-                    datalen -= 2;
-                    m.Write(data, 2, datalen);
-                    data = crypto.Decrypt(m.ToArray());
-                    checksum_inpacket = (ushort)((data[0] << 8) + data[1]);
-                    m = new MemoryStream();
-                    m.Write(data, 2, datalen - 2);
-                    checksum_ofpacket = Crypto.Checksum(m.ToArray());
+                    code = (ushort)((data[0] << 8) + data[1]);
+                    if (datalen > 9)
+                    {
+                        MemoryStream m = new MemoryStream();
+                        datalen -= 2;
+                        m.Write(data, 2, datalen);
+                        data = crypto.Decrypt(m.ToArray());
+                        checksum_inpacket = (ushort)((data[0] << 8) + data[1]);
+                        m = new MemoryStream();
+                        m.Write(data, 2, datalen - 2);
+                        checksum_ofpacket = Crypto.Checksum(m.ToArray());
+                    }
                 }
+                else
+                    code = 0;
             }
-            else
-                code = 0;
+            catch (Exception ex)
+            {
+            }
         }
     }
 }

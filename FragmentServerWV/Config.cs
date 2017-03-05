@@ -21,7 +21,7 @@ namespace FragmentServerWV
                     {
                         string[] parts = line.Split('=');
                         if (parts.Length == 2)
-                            configs.Add(parts[0], parts[1]);
+                            configs.Add(parts[0].Trim().ToLower(), parts[1].Trim());
                     }
             }
         }

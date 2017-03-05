@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
@@ -43,13 +44,19 @@ namespace FragmentServerWV
         public uint char_GP;
         public ushort online_god_counter;
         public ushort offline_godcounter;
+        public Stopwatch pingtimer;
+        
 
         public GameClient(TcpClient c, int idx)
         {
+            pingtimer = new Stopwatch();
+            pingtimer.Restart();
             isAreaServer = false;
             server_seq_nr = 0xe;
             client = c;
             ns = client.GetStream();
+            ns.ReadTimeout = 100;
+            ns.WriteTimeout = 100;
             index = idx;
             to_crypto = new Crypto();
             from_crypto = new Crypto();
@@ -68,6 +75,7 @@ namespace FragmentServerWV
         public void Handler(object obj)
         {
             bool run = true;
+            int pingdelay = Convert.ToInt32(Config.configs["ping"]);
             while (run)
             {
                 lock (_sync)
@@ -76,44 +84,57 @@ namespace FragmentServerWV
                 }
                 MemoryStream m;
                 Packet p = new Packet(ns, from_crypto);
-                switch (p.code)
+                if(p.datalen != 0)
+                    switch (p.code)
+                    {
+                        case 0x0002:
+                            break;
+                        case 0x34:
+                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            m = new MemoryStream();
+                            m.Write(p.data, 4, 16);
+                            from_key = m.ToArray();
+                            to_key = new byte[16];
+                            Random rnd = new Random();
+                            for (int i = 0; i < 16; i++)
+                                to_key[i] = (byte)rnd.Next(256);
+                            m = new MemoryStream();
+                            m.WriteByte(0);
+                            m.WriteByte(0x10);
+                            m.Write(from_key, 0, 16);
+                            m.WriteByte(0);
+                            m.WriteByte(0x10);
+                            m.Write(to_key, 0, 16);
+                            m.Write(new byte[] { 0, 0, 0, 0xe, 0, 0, 0, 0, 0, 0 }, 0, 10);
+                            uint checksum = Crypto.Checksum(m.ToArray());
+                            SendPacket(0x35, m.ToArray(), checksum);
+                            break;
+                        case 0x36:
+                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            from_crypto = new Crypto(from_key);
+                            to_crypto = new Crypto(to_key);
+                            break;
+                        case 0x30:
+                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            HandlerPacket30(p.data, index, to_crypto);
+                            break;
+                        default:
+                            Log.Writeline("Client Handler #" + index + " : Received packet with unknown code");
+                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            run = false;
+                            break;
+                    }
+                if (pingtimer.ElapsedMilliseconds > 10000)
                 {
-                    case 0x0002:
-                        break;
-                    case 0x34:
-                        Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
-                        m = new MemoryStream();
-                        m.Write(p.data, 4, 16);
-                        from_key = m.ToArray();
-                        to_key = new byte[16];
-                        Random rnd = new Random();
-                        for (int i = 0; i < 16; i++)
-                            to_key[i] = (byte)rnd.Next(256);
-                        m = new MemoryStream();
-                        m.WriteByte(0);
-                        m.WriteByte(0x10);
-                        m.Write(from_key, 0, 16);
-                        m.WriteByte(0);
-                        m.WriteByte(0x10);
-                        m.Write(to_key, 0, 16);
-                        m.Write(new byte[] { 0, 0, 0, 0xe, 0, 0, 0, 0, 0, 0}, 0, 10);
-                        uint checksum = Crypto.Checksum(m.ToArray());
-                        SendPacket(0x35, m.ToArray(), checksum);
-                        break;
-                    case 0x36:
-                        Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
-                        from_crypto = new Crypto(from_key);
-                        to_crypto = new Crypto(to_key);
-                        break;
-                    case 0x30:
-                        Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
-                        HandlerPacket30(p.data, index, to_crypto);
-                        break;
-                    default:
-                        Log.Writeline("Client Handler #" + index + " : Received packet with unknown code");
-                        Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                    try
+                    {
+                        SendPacket30(2, new byte[0]);
+                        pingtimer.Restart();
+                    }
+                    catch (Exception)
+                    {
                         run = false;
-                        break;
+                    }
                 }
             }
             Log.Writeline("Client Handler #" + index + " exited");
@@ -137,6 +158,12 @@ namespace FragmentServerWV
             byte[] argument = m.ToArray();
             switch (code)
             {
+                case 2:
+                case 0x7881:
+                case 0x7887:
+                case 0x741D:
+                case 0x78A7:
+                    break;
                 case 0x7000:
                     SendPacket30(0x7001, new byte[] { 0x02, 0x10 });
                     break;
@@ -144,7 +171,7 @@ namespace FragmentServerWV
                     room_index = (short)swap16(BitConverter.ToUInt16(data, 0xA));
                     LobbyChatRoom room = Server.lobbyChatRooms[room_index];
                     room.Users.Add(this.index);
-                    Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                    Log.Writeline("Client #" + this.index + " : Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
                     SendPacket30(0x7007, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x7009:
@@ -162,7 +189,7 @@ namespace FragmentServerWV
                     break;
                 case 0x7013:
                     ipdata = argument;
-                    Log.Writeline("IP:" +
+                    Log.Writeline("Client #" + this.index + " : IP=" +
                                   ipdata[3] + "." +
                                   ipdata[2] + "." +
                                   ipdata[1] + "." +
@@ -172,6 +199,9 @@ namespace FragmentServerWV
                     break;
                 case 0x7016:
                     SendPacket30(0x7017, new byte[] { 0xDE, 0xAD });
+                    break;
+                case 0x7019:
+                    SendPacket30(0x701C, new byte[] { 0x02, 0x11 });
                     break;
                 case 0x7423:
                     SendPacket30(0x7424, new byte[] { 0x78, 0x94 });
@@ -189,6 +219,9 @@ namespace FragmentServerWV
                 case 0x742B:
                     ExtractCharacterData(argument);
                     SendPacket30(0x742C, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x744a:
+                    SendPacket30(0x744b, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x7500:
                     GetLobbyMenu();
@@ -232,18 +265,21 @@ namespace FragmentServerWV
                 case 0x78AB:
                     if (argument[1] == 0x31)
                     {
-                        Log.Writeline("New Area Server Joined");
+                        Log.Writeline("Client #" + this.index + " : New Area Server Joined");
                         isAreaServer = true;
                         SendPacket30(0x78AC, new byte[] { 0xDE, 0xAD });
                     }
                     else
                     {
-                        Log.Writeline("New Game Client Joined");
+                        Log.Writeline("Client #" + this.index + " : New Game Client Joined");
                         SendPacket30(0x7001, new byte[] { 0x74, 0x32 });
                     }
                     break;
                 case 0x78AE:
                     SendPacket30(0x78AF, new byte[] { 0x00, 0x00 });
+                    break;
+                default:
+                    Log.Writeline("Client #" + this.index + " : \n !!!UNKNOWN DATA CODE RECEIVED, PLEASE REPORT : 0x" + code.ToString("X4") + "!!!\n");
                     break;
             }
         }

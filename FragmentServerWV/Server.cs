@@ -46,6 +46,8 @@ namespace FragmentServerWV
         {
             listener = new TcpListener(IPAddress.Parse(Config.configs["ip"]), Convert.ToUInt16(Config.configs["port"]));
             Log.Writeline("Server started on " + Config.configs["ip"] + ":" + Config.configs["port"]);
+            Log.Writeline(" Log Size = " + Convert.ToInt32(Config.configs["logsize"]));
+            Log.Writeline(" Ping Delay = " + Convert.ToInt32(Config.configs["ping"]) + "ms");
             listener.Start();
             bool run = true;
             int count = 1;
@@ -53,8 +55,8 @@ namespace FragmentServerWV
             {
                 while (run)
                 {
-                    clients.Add(new GameClient(listener.AcceptTcpClient(), count++));
-                    Log.Writeline("New client connected");
+                    clients.Add(new GameClient(listener.AcceptTcpClient(), count));
+                    Log.Writeline("New client connected with ID #" + count++);
                     lock (_sync)
                     {
                         run = !_exit;

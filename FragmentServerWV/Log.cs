@@ -12,11 +12,13 @@ namespace FragmentServerWV
     {
         public static RichTextBox box = null;
         public static readonly object _sync = new object();
-        public static int LogLevel = 0;
+        public static int LogTreshold = 0;
         public static int PacketCount = 0;
+        public static int LogSize;
 
         public static void InitLogs(RichTextBox b)
         {
+            LogSize = Convert.ToInt32(Config.configs["logsize"]);
             box = b;
             if (!Directory.Exists("log"))
                 Directory.CreateDirectory("log");
@@ -31,7 +33,7 @@ namespace FragmentServerWV
             {
                 try
                 {
-                    if (box != null && level >= LogLevel)
+                    if (box != null && level >= LogTreshold)
                         box.Invoke((MethodInvoker)delegate()
                         {
                             string text = DateTime.Now.ToLongTimeString() + ":" + s + "\r\n";
@@ -39,6 +41,8 @@ namespace FragmentServerWV
                             sw.Write(text);
                             sw.Close();
                             box.AppendText(text);
+                            if (box.Text.Length > LogSize)
+                                box.Text = box.Text.Substring(box.Text.Length - LogSize);
                             box.SelectionStart = box.Text.Length;
                             box.ScrollToCaret();
                         });
@@ -48,16 +52,12 @@ namespace FragmentServerWV
             }
         }
 
-        public static void LogData(byte[] data, ushort code, int index, string action, ushort check1, ushort check2, int level = 2)
+        public static void LogData(byte[] data, ushort code, int index, string action, ushort check1, ushort check2)
         {
             string text;
-            text = action + " (client #" + 
-                    index + ", code 0x" + 
-                    code.ToString("X4") + 
-                    ", checksums 0x" + check1.ToString("X4") + 
-                    "-0x" + check2.ToString("X4") +
-                    ") :\r\n" + HexDump(data);
-            Writeline(text, level);
+            text = "Client #" + index + " : " + action + " (code 0x" + code.ToString("X4") + ", checksums 0x" + check1.ToString("X4") + "-0x" + check2.ToString("X4") + ")";
+            Writeline(text, 2);
+            Writeline("Hexdump :\n"+ HexDump(data), 0);
             string path;
             if (code != 0x30)
                 path = "log\\" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + ".bin";

@@ -31,14 +31,13 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.serverToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.level1AllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.level3MediumToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.level5FewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rtb1 = new System.Windows.Forms.RichTextBox();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dumpDecoderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.rtb1 = new System.Windows.Forms.RichTextBox();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,8 +56,7 @@
             // serverToolStripMenuItem
             // 
             this.serverToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.startToolStripMenuItem,
-            this.stopToolStripMenuItem});
+            this.startToolStripMenuItem});
             this.serverToolStripMenuItem.Name = "serverToolStripMenuItem";
             this.serverToolStripMenuItem.Size = new System.Drawing.Size(51, 20);
             this.serverToolStripMenuItem.Text = "Server";
@@ -66,17 +64,9 @@
             // startToolStripMenuItem
             // 
             this.startToolStripMenuItem.Name = "startToolStripMenuItem";
-            this.startToolStripMenuItem.Size = new System.Drawing.Size(98, 22);
+            this.startToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.startToolStripMenuItem.Text = "Start";
             this.startToolStripMenuItem.Click += new System.EventHandler(this.startToolStripMenuItem_Click);
-            // 
-            // stopToolStripMenuItem
-            // 
-            this.stopToolStripMenuItem.Enabled = false;
-            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(98, 22);
-            this.stopToolStripMenuItem.Text = "Stop";
-            this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
             // 
             // logToolStripMenuItem
             // 
@@ -111,6 +101,21 @@
             this.level5FewToolStripMenuItem.Text = "Level 5 - few";
             this.level5FewToolStripMenuItem.Click += new System.EventHandler(this.level5FewToolStripMenuItem_Click);
             // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.dumpDecoderToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // dumpDecoderToolStripMenuItem
+            // 
+            this.dumpDecoderToolStripMenuItem.Name = "dumpDecoderToolStripMenuItem";
+            this.dumpDecoderToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.dumpDecoderToolStripMenuItem.Text = "Dump Decoder";
+            this.dumpDecoderToolStripMenuItem.Click += new System.EventHandler(this.dumpDecoderToolStripMenuItem_Click);
+            // 
             // rtb1
             // 
             this.rtb1.DetectUrls = false;
@@ -123,21 +128,6 @@
             this.rtb1.TabIndex = 1;
             this.rtb1.Text = "";
             this.rtb1.WordWrap = false;
-            // 
-            // toolsToolStripMenuItem
-            // 
-            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.dumpDecoderToolStripMenuItem});
-            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.toolsToolStripMenuItem.Text = "Tools";
-            // 
-            // dumpDecoderToolStripMenuItem
-            // 
-            this.dumpDecoderToolStripMenuItem.Name = "dumpDecoderToolStripMenuItem";
-            this.dumpDecoderToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.dumpDecoderToolStripMenuItem.Text = "Dump Decoder";
-            this.dumpDecoderToolStripMenuItem.Click += new System.EventHandler(this.dumpDecoderToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -167,7 +157,6 @@
         private System.Windows.Forms.ToolStripMenuItem level1AllToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem level3MediumToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem level5FewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem dumpDecoderToolStripMenuItem;
     }

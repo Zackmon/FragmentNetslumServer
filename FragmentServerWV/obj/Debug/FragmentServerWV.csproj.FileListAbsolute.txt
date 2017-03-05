@@ -8,3 +8,13 @@ D:\CODE\c#\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.csproj.G
 D:\CODE\c#\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.exe
 D:\CODE\c#\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.pdb
 D:\CODE\c#\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.DumpDecoder.resources
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\Debug\FragmentServerWV.exe.config
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.exe
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.pdb
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\Debug\FragmentServerWV.exe
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.csprojResolveAssemblyReference.cache
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.DumpDecoder.resources
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.Form1.resources
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.Properties.Resources.resources
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\Debug\FragmentServerWV.csproj.GenerateResource.Cache
+D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\Debug\FragmentServerWV.pdb
