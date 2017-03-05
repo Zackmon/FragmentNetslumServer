@@ -31,6 +31,7 @@ namespace FragmentServerWV
         public byte[] ipdata;
         public byte[] publish_data_1;
         public byte[] publish_data_2;
+        public ushort as_usernum;
 
         public byte save_slot;
         public byte[] save_id;
@@ -160,9 +161,9 @@ namespace FragmentServerWV
             switch (code)
             {
                 case 2:
+                case 0x7858:
                 case 0x7881:
                 case 0x7887:
-                case 0x741D:
                 case 0x78A7:
                     break;
                 case 0x7000:
@@ -207,6 +208,9 @@ namespace FragmentServerWV
                 case 0x7406:
                     SendPacket30(0x7407, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
                     SendPacket30(0x7407, new byte[] { 0x00, 0x01, 0x00, 0x00 });
+                    break;
+                case 0x741D:
+                    as_usernum = swap16(BitConverter.ToUInt16(argument, 2));
                     break;
                 case 0x7423:
                     SendPacket30(0x7424, new byte[] { 0x78, 0x94 });
@@ -336,6 +340,12 @@ namespace FragmentServerWV
                         MemoryStream m = new MemoryStream();
                         m.WriteByte(0);
                         m.Write(client.ipdata, 0, 6);
+                        byte[] buff = BitConverter.GetBytes(swap16(client.as_usernum));
+                        int pos = 0;
+                        while (client.publish_data_1[pos++] != 0) ;
+                        pos += 4;
+                        client.publish_data_1[pos++] = buff[0];
+                        client.publish_data_1[pos++] = buff[1];
                         m.Write(client.publish_data_1, 0, client.publish_data_1.Length);
                         while (m.Length < 45)
                             m.WriteByte(0);

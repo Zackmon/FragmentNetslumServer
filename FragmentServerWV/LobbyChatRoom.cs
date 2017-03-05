@@ -38,6 +38,14 @@ namespace FragmentServerWV
             foreach (GameClient client in Server.clients)
                 if (!client.isAreaServer && !client._exited && client.room_index == ID && client.index != who)
                         client.SendPacket30(0x7862, data);
+                else if (client.index == who)
+                {
+                    byte[] temp = new byte[data.Length];
+                    data.CopyTo(temp, 0);
+                    temp[0] = 0xff;
+                    temp[1] = 0xff;
+                    client.SendPacket30(0x7862, temp);
+                }
         }
     }
 }
