@@ -36,7 +36,7 @@ namespace FragmentServerWV
             lobbyChatRooms = new List<LobbyChatRoom>();
             if (!_proxymode)
             {
-                ushort count = 0;
+                ushort count = 1;
                 string[] lines = File.ReadAllLines("lobbies.txt");
                 foreach (string name in lines)
                     if (name.Trim() != "")

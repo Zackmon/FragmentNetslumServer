@@ -31,6 +31,7 @@ namespace FragmentServerWV
         public byte[] ipdata;
         public byte[] publish_data_1;
         public byte[] publish_data_2;
+        public byte[] last_status;
         public ushort as_usernum;
 
         public byte save_slot;
@@ -171,13 +172,14 @@ namespace FragmentServerWV
                     break;
                 case 0x7006:
                     room_index = (short)swap16(BitConverter.ToUInt16(data, 0xA));
-                    room = Server.lobbyChatRooms[room_index];
+                    room = Server.lobbyChatRooms[room_index - 1];
+                    SendPacket30(0x7007, BitConverter.GetBytes(swap16((ushort)room.Users.Count)));
                     room.Users.Add(this.index);
                     Log.Writeline("Client #" + this.index + " : Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
-                    SendPacket30(0x7007, new byte[] { 0x00, 0x00 });
+                    room.DispatchAllStatus(this.index);
                     break;
                 case 0x7009:
-                    Server.lobbyChatRooms[room_index].DispatchStatus(argument, this.index);
+                    Server.lobbyChatRooms[room_index - 1].DispatchStatus(argument, this.index);
                     break;
                 case 0x7011:
                     int end = argument.Length - 1;
@@ -232,7 +234,7 @@ namespace FragmentServerWV
                 case 0x7444:
                     if (room_index != -1)
                     {
-                        room = Server.lobbyChatRooms[room_index];
+                        room = Server.lobbyChatRooms[room_index - 1];
                         room.Users.Remove(this.index);
                         Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
                     }
@@ -260,7 +262,7 @@ namespace FragmentServerWV
                     SendPacket30(0x785C, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x7862:
-                    Server.lobbyChatRooms[room_index].DispatchBroadcast(argument, this.index);
+                    Server.lobbyChatRooms[room_index - 1].DispatchPublicBroadcast(argument, this.index);
                     break;
                 case 0x7867:
                     SendPacket30(0x7868, new byte[] { 0x00, 0x01 });
@@ -273,6 +275,10 @@ namespace FragmentServerWV
                     break;
                 case 0x7876:
                     SendPacket30(0x7877, new byte[] { 0xDE, 0xAD });
+                    break;
+                case 0x788C:
+                    ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
+                    Server.lobbyChatRooms[room_index - 1].DispatchPrivateBroadcast(argument, this.index, destid);
                     break;
                 case 0x789f:
                     SendPacket30(0x78A0, new byte[] { 0x00, 0x00 });
