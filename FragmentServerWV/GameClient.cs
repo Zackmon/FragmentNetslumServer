@@ -232,6 +232,9 @@ namespace FragmentServerWV
                     ExtractCharacterData(argument);
                     SendPacket30(0x742C, new byte[] { 0x00, 0x00 });
                     break;
+                case 0x7432:
+                    SendPacket30(0x7433, new byte[] { 0x00, 0x00 });
+                    break;
                 case 0x7444:
                     if (room_index != -1)
                     {
