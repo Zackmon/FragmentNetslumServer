@@ -1,9 +1,0 @@
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\x86\Release\FragmentServerWV.exe.config
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\x86\Release\FragmentServerWV.exe
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\bin\x86\Release\FragmentServerWV.pdb
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\x86\Release\FragmentServerWV.DumpDecoder.resources
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\x86\Release\FragmentServerWV.Form1.resources
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\x86\Release\FragmentServerWV.Properties.Resources.resources
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\x86\Release\FragmentServerWV.csproj.GenerateResource.Cache
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\x86\Release\FragmentServerWV.exe
-D:\CODE\GitHub\FragmentServerWV\FragmentServerWV\obj\x86\Release\FragmentServerWV.pdb

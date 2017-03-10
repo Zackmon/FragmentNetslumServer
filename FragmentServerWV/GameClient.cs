@@ -159,6 +159,7 @@ namespace FragmentServerWV
             LobbyChatRoom room;
             m.Write(data, 10, arglen);
             byte[] argument = m.ToArray();
+            ushort u;
             switch (code)
             {
                 case 2:
@@ -246,17 +247,63 @@ namespace FragmentServerWV
                 case 0x7500:
                     GetLobbyMenu();
                     break;
+                case 0x7800:
+                    m = new MemoryStream();
+                    while (ns.DataAvailable) m.WriteByte((byte)ns.ReadByte());
+                    Log.LogData(m.ToArray(), 0xFFFF, this.index, "Recv Mail Data", 0, 0);
+                    SendPacket30(0x7801, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x7803:
+                    SendPacket30(0x7804, new byte[] { 0x00, 0x06 });
+                    break;
                 case 0x7506:
                     GetServerList(argument);                    
                     break;
+                case 0x7733:
+                    u = swap16(BitConverter.ToUInt16(argument, 0));
+                    if (u == 0)
+                        SendPacket30(0x7734, new byte[] { 0x00, 0x00 });
+                    else
+                        SendPacket30(0x7737, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x7722:
+                    u = swap16(BitConverter.ToUInt16(argument, 0));
+                    if (u == 0)
+                        SendPacket30(0x7723, new byte[] { 0x00, 0x00 });
+                    else
+                        SendPacket30(0x7725, new byte[] { 0x00, 0x00 });
+                    break;
                 case 0x780C:
                     publish_data_2 = argument;
+                    break;
+                case 0x780f:
+                    SendPacket30(0x7810, new byte[] { 0x01, 0x92 });
+                    break;
+                case 0x7812:
+                    SendPacket30(0x7813, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x7832:
+                    u = swap16(BitConverter.ToUInt16(argument, 0));
+                    if (u == 0)
+                        SendPacket30(0x7833, new byte[] { 0x00, 0x00 });
+                    else
+                        SendPacket30(0x7836, new byte[] { 0x00, 0x00, 0x00, 0x00 });
                     break;
                 case 0x7841:
                     SendPacket30(0x7842, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x7844:
                     SendPacket30(0x7845, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x7848:
+                    u = swap16(BitConverter.ToUInt16(argument, 0));
+                    if (u == 0)
+                        SendPacket30(0x7849, new byte[] { 0x00, 0x00 });
+                    else
+                        SendPacket30(0x784c, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x784E:
+                    SendPacket30(0x784F, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x785B:
                     SendPacket30(0x785C, new byte[] { 0x00, 0x00 });
@@ -275,6 +322,9 @@ namespace FragmentServerWV
                     break;
                 case 0x7876:
                     SendPacket30(0x7877, new byte[] { 0xDE, 0xAD });
+                    break;
+                case 0x787E:
+                    SendPacket30(0x787F, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x788C:
                     ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
