@@ -262,12 +262,8 @@ namespace FragmentServerWV
                 case 0x7506:
                     GetServerList(argument);                    
                     break;
-                case 0x7733:
-                    u = swap16(BitConverter.ToUInt16(argument, 0));
-                    if (u == 0)
-                        SendPacket30(0x7734, new byte[] { 0x00, 0x00 });
-                    else
-                        SendPacket30(0x7737, new byte[] { 0x00, 0x00 });
+                case 0x771E:
+                    SendPacket30(0x771F, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x7722:
                     u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -275,6 +271,13 @@ namespace FragmentServerWV
                         SendPacket30(0x7723, new byte[] { 0x00, 0x00 });
                     else
                         SendPacket30(0x7725, new byte[] { 0x00, 0x00 });
+                    break;
+                case 0x7733:
+                    u = swap16(BitConverter.ToUInt16(argument, 0));
+                    if (u == 0)
+                        SendPacket30(0x7734, new byte[] { 0x00, 0x00 });
+                    else
+                        SendPacket30(0x7737, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x780C:
                     publish_data_2 = argument;
