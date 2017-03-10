@@ -142,7 +142,7 @@ namespace FragmentServerWV
             Log.Writeline("Client Handler #" + index + " exited");
             if (room_index != -1)
             {
-                LobbyChatRoom room = Server.lobbyChatRooms[room_index];
+                LobbyChatRoom room = Server.lobbyChatRooms[room_index - 1];
                 room.Users.Remove(this.index);
                 Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
             }
