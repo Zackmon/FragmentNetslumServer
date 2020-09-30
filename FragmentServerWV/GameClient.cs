@@ -91,7 +91,7 @@ namespace FragmentServerWV
                     {
                         case 0x0002:
                             break;
-                        case 0x34:
+                        case OpCodes.OPCODE_KEY_EXCHANGE_REQUEST:
                             Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             m = new MemoryStream();
                             m.Write(p.data, 4, 16);
@@ -111,7 +111,7 @@ namespace FragmentServerWV
                             uint checksum = Crypto.Checksum(m.ToArray());
                             SendPacket(0x35, m.ToArray(), checksum);
                             break;
-                        case 0x36:
+                        case OpCodes.OPCODE_KEY_EXCHANGE_ACKNOWLEDGMENT:
                             Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             from_crypto = new Crypto(from_key);
                             to_crypto = new Crypto(to_key);
@@ -163,18 +163,18 @@ namespace FragmentServerWV
             switch (code)
             {
                 case 2:
-                case 0x7858:
-                case 0x7881:
-                case 0x7887:
+                case OpCodes.OPCODE_DATA_LOBBY_FAVORITES_AS_INQUIRY:
+                case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS3:
+                case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS4:
                 case 0x78A7:
                     break;
-                case 0x7000:
-                    SendPacket30(0x7001, new byte[] { 0x02, 0x10 });
+                case OpCodes.OPCODE_DATA_LOGON_REPEAT:
+                    SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] { 0x02, 0x10 });
                     break;
-                case 0x7006:
+                case OpCodes.OPCODE_DATA_LOBBY_ENTERROOM:
                     room_index = (short)swap16(BitConverter.ToUInt16(data, 0xA));
                     room = Server.lobbyChatRooms[room_index - 1];
-                    SendPacket30(0x7007, BitConverter.GetBytes(swap16((ushort)room.Users.Count)));
+                    SendPacket30(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Users.Count)));
                     room.Users.Add(this.index);
                     Log.Writeline("Client #" + this.index + " : Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
                     room.DispatchAllStatus(this.index);
@@ -182,7 +182,7 @@ namespace FragmentServerWV
                 case 0x7009:
                     Server.lobbyChatRooms[room_index - 1].DispatchStatus(argument, this.index);
                     break;
-                case 0x7011:
+                case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
                     int end = argument.Length - 1;
                     while (argument[end] == 0)
                         end--;
@@ -190,9 +190,9 @@ namespace FragmentServerWV
                     m = new MemoryStream();
                     m.Write(argument, 65, end - 65);
                     publish_data_1 = m.ToArray();
-                    SendPacket30(0x7012, new byte[] { 0x00, 0x01 });
+                    SendPacket30(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1_OK, new byte[] { 0x00, 0x01 });
                     break;
-                case 0x7013:
+                case OpCodes.OPCODE_DATA_AS_IPPORT:
                     ipdata = argument;
                     Log.Writeline("Client #" + this.index + " : IP=" +
                                   ipdata[3] + "." +
@@ -200,25 +200,25 @@ namespace FragmentServerWV
                                   ipdata[1] + "." +
                                   ipdata[0] + " Port:" +
                                   swap16(BitConverter.ToUInt16(ipdata, 4)));
-                    SendPacket30(0x7014, new byte[] { 0x00, 0x00 });
+                    SendPacket30(OpCodes.OPCODE_DATA_AS_IPPORT_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7016:
-                    SendPacket30(0x7017, new byte[] { 0xDE, 0xAD });
+                case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2:
+                    SendPacket30(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2_OK, new byte[] { 0xDE, 0xAD });
                     break;
-                case 0x7019:
+                case OpCodes.OPCODE_DATA_LOGON_AS2:
                     SendPacket30(0x701C, new byte[] { 0x02, 0x11 });
                     break;
-                case 0x7406:
-                    SendPacket30(0x7407, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
-                    SendPacket30(0x7407, new byte[] { 0x00, 0x01, 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_LOBBY_CHATROOM_GETLIST:
+                    SendPacket30(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    SendPacket30(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY, new byte[] { 0x00, 0x01, 0x00, 0x00 });
                     break;
-                case 0x741D:
+                case OpCodes.OPCODE_DATA_AS_UPDATE_USERNUM:
                     as_usernum = swap16(BitConverter.ToUInt16(argument, 2));
                     break;
-                case 0x7423:
-                    SendPacket30(0x7424, new byte[] { 0x78, 0x94 });
+                case OpCodes.OPCODE_DATA_DISKID:
+                    SendPacket30(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] { 0x78, 0x94 });
                     break;
-                case 0x7426:
+                case OpCodes.OPCODE_DATA_SAVEID:
                     m = new MemoryStream();
                     m.Write(BitConverter.GetBytes((int)0), 0, 4);
                     byte[] buff = Encoding.ASCII.GetBytes(File.ReadAllText("welcome.txt"));
@@ -228,38 +228,38 @@ namespace FragmentServerWV
                         m.WriteByte(0);
                     SendPacket30(0x742A, m.ToArray());
                     break;
-                case 0x742B:
+                case OpCodes.OPCODE_DATA_REGISTER_CHAR:
                     ExtractCharacterData(argument);
-                    SendPacket30(0x742C, new byte[] { 0x00, 0x00 });
+                    SendPacket30(OpCodes.OPCODE_DATA_REGISTER_CHAROK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7432:
-                    SendPacket30(0x7433, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_UNREGISTER_CHAR:
+                    SendPacket30(OpCodes.OPCODE_DATA_UNREGISTER_CHAROK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7444:
+                case OpCodes.OPCODE_DATA_LOBBY_EXITROOM:
                     if (room_index != -1)
                     {
                         room = Server.lobbyChatRooms[room_index - 1];
                         room.Users.Remove(this.index);
                         Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
                     }
-                    SendPacket30(0x7445, new byte[] { 0x00, 0x00 });
+                    SendPacket30(OpCodes.OPCODE_DATA_LOBBY_EXITROOM_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x744a:
-                    SendPacket30(0x744b, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_RETURN_DESKTOP:
+                    SendPacket30(OpCodes.OPCODE_DATA_RETURN_DESKTOP_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7500:
+                case OpCodes.OPCODE_DATA_LOBBY_GETMENU:
                     GetLobbyMenu();
                     break;
-                case 0x7800:
+                case OpCodes.OPCODE_DATA_MAIL_SEND:
                     m = new MemoryStream();
                     while (ns.DataAvailable) m.WriteByte((byte)ns.ReadByte());
                     Log.LogData(m.ToArray(), 0xFFFF, this.index, "Recv Mail Data", 0, 0);
-                    SendPacket30(0x7801, new byte[] { 0x00, 0x00 });
+                    SendPacket30(OpCodes.OPCODE_DATA_MAIL_SEND_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7803:
-                    SendPacket30(0x7804, new byte[] { 0x00, 0x06 });
+                case OpCodes.OPCODE_DATA_MAIL_GET:
+                    SendPacket30(OpCodes.OPCODE_DATA_MAIL_GETOK, new byte[] { 0x00, 0x06 });
                     break;
-                case 0x7506:
+                case OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_GETLIST:
                     GetServerList(argument);                    
                     break;
                 case 0x771E:
@@ -279,13 +279,13 @@ namespace FragmentServerWV
                     else
                         SendPacket30(0x7737, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x780C:
+                case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
                     publish_data_2 = argument;
                     break;
                 case 0x780f:
                     SendPacket30(0x7810, new byte[] { 0x01, 0x92 });
                     break;
-                case 0x7812:
+                case OpCodes.OPCODE_DATA_BBS_POST:
                     SendPacket30(0x7813, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x7832:
@@ -295,39 +295,39 @@ namespace FragmentServerWV
                     else
                         SendPacket30(0x7836, new byte[] { 0x00, 0x00, 0x00, 0x00 });
                     break;
-                case 0x7841:
-                    SendPacket30(0x7842, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_LOBBY_GETSERVERS:
+                    SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7844:
-                    SendPacket30(0x7845, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_EXIT:
+                    SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_EXIT_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7848:
+                case OpCodes.OPCODE_DATA_BBS_GETMENU:
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
-                        SendPacket30(0x7849, new byte[] { 0x00, 0x00 });
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
                     else
-                        SendPacket30(0x784c, new byte[] { 0x00, 0x00 });
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x784E:
-                    SendPacket30(0x784F, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_NEWS_GETMENU:
+                    SendPacket30(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x785B:
-                    SendPacket30(0x785C, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_AS_DISKID:
+                    SendPacket30(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7862:
+                case OpCodes.OPCODE_DATA_LOBBY_EVENT:
                     Server.lobbyChatRooms[room_index - 1].DispatchPublicBroadcast(argument, this.index);
                     break;
-                case 0x7867:
-                    SendPacket30(0x7868, new byte[] { 0x00, 0x01 });
+                case OpCodes.OPCODE_DATA_MAILCHECK:
+                    SendPacket30(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] { 0x00, 0x01 });
                     break;
-                case 0x786A:
+                case OpCodes.OPCODE_DATA_BBS_GET_UPDATES:
                     SendPacket30(0x786b, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x786D:
-                    SendPacket30(0x786E, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_NEWCHECK:
+                    SendPacket30(OpCodes.OPCODE_DATA_NEWCHECK_OK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x7876:
-                    SendPacket30(0x7877, new byte[] { 0xDE, 0xAD });
+                case OpCodes.OPCODE_DATA_COM:
+                    SendPacket30(OpCodes.OPCODE_DATA_COM_OK, new byte[] { 0xDE, 0xAD });
                     break;
                 case 0x787E:
                     SendPacket30(0x787F, new byte[] { 0x00, 0x00 });
@@ -336,13 +336,13 @@ namespace FragmentServerWV
                     ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
                     Server.lobbyChatRooms[room_index - 1].DispatchPrivateBroadcast(argument, this.index, destid);
                     break;
-                case 0x789f:
-                    SendPacket30(0x78A0, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_SELECT_CHAR:
+                    SendPacket30(OpCodes.OPCODE_DATA_SELECT_CHAROK, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x78a2:
-                    SendPacket30(0x78a3, new byte[] { 0x30, 0x30, 0x30, 0x30});
+                case OpCodes.OPCODE_DATA_SELECT2_CHAR:
+                    SendPacket30(OpCodes.OPCODE_DATA_SELECT2_CHAROK, new byte[] { 0x30, 0x30, 0x30, 0x30});
                     break;
-                case 0x78AB:
+                case OpCodes.OPCODE_DATA_LOGON:
                     if (argument[1] == 0x31)
                     {
                         Log.Writeline("Client #" + this.index + " : New Area Server Joined");
@@ -352,11 +352,11 @@ namespace FragmentServerWV
                     else
                     {
                         Log.Writeline("Client #" + this.index + " : New Game Client Joined");
-                        SendPacket30(0x7001, new byte[] { 0x74, 0x32 });
+                        SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] { 0x74, 0x32 });
                     }
                     break;
-                case 0x78AE:
-                    SendPacket30(0x78AF, new byte[] { 0x00, 0x00 });
+                case OpCodes.OPCODE_DATA_AS_PUBLISH:
+                    SendPacket30(OpCodes.OPCODE_DATA_AS_PUBLISH_OK, new byte[] { 0x00, 0x00 });
                     break;
                 default:
                     Log.Writeline("Client #" + this.index + " : \n !!!UNKNOWN DATA CODE RECEIVED, PLEASE REPORT : 0x" + code.ToString("X4") + "!!!\n");
@@ -366,7 +366,7 @@ namespace FragmentServerWV
 
         public void GetLobbyMenu()
         {
-            SendPacket30(0x7504, BitConverter.GetBytes(swap16((ushort)Server.lobbyChatRooms.Count())));            
+            SendPacket30(OpCodes.OPCODE_DATA_LOBBY_LOBBYLIST, BitConverter.GetBytes(swap16((ushort)Server.lobbyChatRooms.Count())));            
             foreach (LobbyChatRoom room in Server.lobbyChatRooms)
             {
                 MemoryStream m = new MemoryStream();
@@ -378,7 +378,7 @@ namespace FragmentServerWV
                 m.Write(BitConverter.GetBytes(swap16((ushort)(room.Users.Count() + 1))), 0, 2);
                 while (((m.Length + 2) % 8) != 0)
                     m.WriteByte(0);
-                SendPacket30(0x7505, m.ToArray());
+                SendPacket30(OpCodes.OPCODE_DATA_LOBBY_ENTRY_LOBBY, m.ToArray());
             }            
         }
         
@@ -386,8 +386,8 @@ namespace FragmentServerWV
         {
             if (data[1] == 0)
             {
-                SendPacket30(0x7507, new byte[] { 0x00, 0x01 });
-                SendPacket30(0x7509, new byte[] { 0x00, 0x01, 0x4D, 0x41, 0x49, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6E, 0x65 });
+                SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_CATEGORYLIST, new byte[] { 0x00, 0x01 });
+                SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_CATEGORY, new byte[] { 0x00, 0x01, 0x4D, 0x41, 0x49, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6E, 0x65 });
             }
             else
             {
@@ -395,7 +395,7 @@ namespace FragmentServerWV
                 foreach (GameClient client in Server.clients)
                     if (client.isAreaServer)
                         count++;
-                SendPacket30(0x750A, BitConverter.GetBytes(swap16(count)));
+                SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
                 foreach (GameClient client in Server.clients)
                     if (client.isAreaServer)
                     {
@@ -411,7 +411,7 @@ namespace FragmentServerWV
                         m.Write(client.publish_data_1, 0, client.publish_data_1.Length);
                         while (m.Length < 45)
                             m.WriteByte(0);
-                        SendPacket30(0x750B, m.ToArray());
+                        SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
                     }
             }
         }
@@ -461,7 +461,7 @@ namespace FragmentServerWV
             uint checksum = Crypto.Checksum(m.ToArray());
             while (((m.Length + 2)& 7) != 0)
                 m.WriteByte(0);
-            SendPacket(0x30, m.ToArray(), checksum);
+            SendPacket(OpCodes.OPCODE_DATA, m.ToArray(), checksum);
         }
 
         public void SendPacket(ushort code, byte[] data, uint checksum)
