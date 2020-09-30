@@ -1,9 +1,0 @@
-#edit to your local ip
-ip = 192.168.178.48
-port = 49000
-
-#"is alive"-ping delay in ms
-ping = 5000
-
-#maximum log text length
-logsize = 100000
