@@ -304,9 +304,33 @@ namespace FragmentServerWV
                 case OpCodes.OPCODE_DATA_BBS_GETMENU:
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
-                        SendPacket30(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
+                    {
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, new byte[] {0x00, 0x01});
+
+                        /*m = new MemoryStream();
+                        m.Write(BitConverter.GetBytes((int)0), 0, 4);
+                        byte[] buff2 = Encoding.ASCII.GetBytes(File.ReadAllText("welcome.txt"));
+                        m.WriteByte((byte)(buff2.Length - 1));
+                        m.Write(buff2, 0, buff2.Length);
+                        while (m.Length < 0x200)
+                            m.WriteByte(0);*/
+                        
+                        /*
+                         * Steps to make it work
+                         * Array of ushort size of 36
+                         * first elemnt is 0
+                         * second element is 
+                         */
+                        
+                       // SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, m.ToArray());
+                    }
+
                     else
-                        SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] { 0x00, 0x00 });
+                    {
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] { 0x00, 0x00 });    
+                    }
+
+                    
                     break;
                 case OpCodes.OPCODE_DATA_NEWS_GETMENU:
                     SendPacket30(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
