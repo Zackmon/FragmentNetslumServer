@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FragmentServerWV", "FragmentServerWV\FragmentServerWV.csproj", "{E24F2253-4792-4DB6-AA71-7262CA891A3C}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30406.217
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FragmentServerWV", "FragmentServerWV\FragmentServerWV.csproj", "{E24F2253-4792-4DB6-AA71-7262CA891A3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2CCF6F06-C7E8-47F1-A7C5-39C6ED7CC7D7}
 	EndGlobalSection
 EndGlobal
