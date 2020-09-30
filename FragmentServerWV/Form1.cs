@@ -65,13 +65,13 @@ namespace FragmentServerWV
 
         private void startProxyModeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string input = Microsoft.VisualBasic.Interaction.InputBox("Please enter target IP", "Proxy Mode", "192.3.139.22");
+            /*string input = Microsoft.VisualBasic.Interaction.InputBox("Please enter target IP", "Proxy Mode", "192.3.139.22");
             if (input != "")
             {
                 startToolStripMenuItem.Enabled =
                 startProxyModeToolStripMenuItem.Enabled = false;
                 Server.StartProxy(input);
-            }
+            }*/
         }
     }
 }
