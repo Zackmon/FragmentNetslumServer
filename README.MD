@@ -1,9 +1,9 @@
 a private lobby emulator for the game .hack//frägment
 
-credits go to NCDyson for the actual help, thank you alot!
+credits go to WV(Warranty Voider) for the baseCode of this Repo 
 
-this is essentially an implementation in C# of this: https://github.com/Lord-Ptolemy/lobbyemu
+this is a reimplemntation in C# for  https://github.com/Lord-Ptolemy/lobbyemu
 
-in action: https://www.youtube.com/watch?v=VErjuUM4AQM
 
-(30/09/2020) Migarted to .NetCore
+in action: https://www.youtube.com/watch?v=VErjuUM4AQM (Credit to Warranty Voider for the video )
+
