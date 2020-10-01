@@ -310,20 +310,23 @@ namespace FragmentServerWV
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
                     {
+                        // second value determine how many Categories are expected to come 
                         SendPacket30(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, new byte[] {0x00, 0x03});
 
                         m = new MemoryStream();
-                        
+                        //set the ID of the Category to 1 (256)
                         m.Write(BitConverter.GetBytes((int)1), 0, 2);
                         byte[] buff2 = Encoding.ASCII.GetBytes("First Category ");
                         m.WriteByte((byte)(buff2.Length - 1));
                         m.Write(buff2, 0, buff2.Length);
+                        //must fill with empty bytes until 0x24
                         while (m.Length < 0x24)
                             m.WriteByte(0);
                         
                         SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, m.ToArray());
                         
                         m = new MemoryStream();
+                        //set the ID of the category to 2 (512)
                         m.Write(BitConverter.GetBytes((int)2), 0, 2);
                         byte[] buff3 = Encoding.ASCII.GetBytes("this is the second category");
                         m.WriteByte((byte)(buff3.Length - 1));
@@ -338,6 +341,7 @@ namespace FragmentServerWV
                         
                         
                         m = new MemoryStream();
+                        //set the ID of the Category to 3 (768)
                         m.Write(BitConverter.GetBytes((int)3), 0, 2);
                         buff3 = Encoding.ASCII.GetBytes("third I guess :)");
                         m.WriteByte((byte)(buff3.Length - 1));
