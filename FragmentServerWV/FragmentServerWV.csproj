@@ -1,14 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <OutputType>WinExe</OutputType>
-    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
+  
 
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>FragmentServerWV</AssemblyName>
     <RootNamespace>FragmentServerWV</RootNamespace>
   </PropertyGroup>
 
+<!--
 <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
@@ -19,6 +20,6 @@
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.1" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
-
+-->
   
 </Project>

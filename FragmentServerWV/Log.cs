@@ -2,24 +2,31 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+
+
 
 namespace FragmentServerWV
 {
     public static class Log
     {
-        public static RichTextBox box = null;
+
+      
         public static readonly object _sync = new object();
         public static int LogTreshold = 0;
         public static int PacketCount = 0;
         public static int LogSize;
+        public static LogEventDelegate LogEventDelegate;
 
-        public static void InitLogs(RichTextBox b)
+        public static void InitLogs(LogEventDelegate logEventDelegate)
         {
             LogSize = Convert.ToInt32(Config.configs["logsize"]);
-            box = b;
+
+            LogEventDelegate = logEventDelegate;
+
             if (!Directory.Exists("log"))
                 Directory.CreateDirectory("log");
             string[] files = Directory.GetFiles("log\\");
@@ -27,25 +34,27 @@ namespace FragmentServerWV
                 File.Delete(file);
         }
 
+
         public static void Writeline(string s, int level = 4)
         {
             lock (_sync)
             {
                 try
                 {
-                    if (box != null && level >= LogTreshold)
-                        box.Invoke((MethodInvoker)delegate()
-                        {
-                            string text = DateTime.Now.ToLongTimeString() + ":" + s + "\r\n";
-                            StreamWriter sw = File.AppendText("log\\log.txt");
-                            sw.Write(text);
-                            sw.Close();
-                            box.AppendText(text);
-                            if (box.Text.Length > LogSize)
-                                box.Text = box.Text.Substring(box.Text.Length - LogSize);
-                            box.SelectionStart = box.Text.Length;
-                            box.ScrollToCaret();
-                        });
+
+                    if (level >= LogTreshold)
+                    {
+                        string text = DateTime.Now.ToLongTimeString() + ":" + s + "\r\n";
+                        StreamWriter sw = File.AppendText("log\\log.txt");
+                        sw.Write(text);
+                        sw.Close();
+
+                        //Trigger logging event
+                        LogEventDelegate.LogRequestResponse(text, LogSize);
+
+                    }
+
+
                 }
                 catch (Exception)
                 { }

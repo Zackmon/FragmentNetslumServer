@@ -1,4 +1,4 @@
-﻿namespace FragmentServerWV
+﻿namespace FragmentServerWV_WinForm
 {
     partial class DumpDecoder
     {
