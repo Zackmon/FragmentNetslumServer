@@ -29,7 +29,7 @@ namespace FragmentServerWV
 
             if (!Directory.Exists("log"))
                 Directory.CreateDirectory("log");
-            string[] files = Directory.GetFiles("log\\");
+            string[] files = Directory.GetFiles("log/");
             foreach (string file in files)
                 File.Delete(file);
         }
@@ -69,10 +69,10 @@ namespace FragmentServerWV
             Writeline("Hexdump :\r\n"+ HexDump(data), 0);
             string path;
             if (code != 0x30)
-                path = "log\\" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + ".bin";
+                path = "log/" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + ".bin";
             else
             {
-                path = "log\\" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + "-code0x" + data[8].ToString("X2") + data[9].ToString("X2") + ".bin";
+                path = "log/" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + "-code0x" + data[8].ToString("X2") + data[9].ToString("X2") + ".bin";
             }
             File.WriteAllBytes(path, data);
         }

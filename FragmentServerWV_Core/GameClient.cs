@@ -226,7 +226,11 @@ namespace FragmentServerWV
                     m.Write(buff, 0, buff.Length);
                     while (m.Length < 0x200)
                         m.WriteByte(0);
-                    SendPacket30(0x742A, m.ToArray());
+
+                    byte[] response = m.ToArray();
+                    String responseString  = BitConverter.ToString(response);
+                    
+                    SendPacket30(0x742A, response);
                     break;
                 case OpCodes.OPCODE_DATA_REGISTER_CHAR:
                     ExtractCharacterData(argument);
@@ -302,31 +306,57 @@ namespace FragmentServerWV
                     SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_EXIT_OK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_BBS_GETMENU:
+                    
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
                     {
-                        SendPacket30(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, new byte[] {0x00, 0x01});
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, new byte[] {0x00, 0x03});
 
-                        /*m = new MemoryStream();
-                        m.Write(BitConverter.GetBytes((int)0), 0, 4);
-                        byte[] buff2 = Encoding.ASCII.GetBytes(File.ReadAllText("welcome.txt"));
+                        m = new MemoryStream();
+                        
+                        m.Write(BitConverter.GetBytes((int)1), 0, 2);
+                        byte[] buff2 = Encoding.ASCII.GetBytes("This is not a real cat bro ");
                         m.WriteByte((byte)(buff2.Length - 1));
                         m.Write(buff2, 0, buff2.Length);
-                        while (m.Length < 0x200)
-                            m.WriteByte(0);*/
+                        while (m.Length < 0x24)
+                            m.WriteByte(0);
                         
-                        /*
-                         * Steps to make it work
-                         * Array of ushort size of 36
-                         * first elemnt is 0
-                         * second element is 
-                         */
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, m.ToArray());
                         
-                       // SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, m.ToArray());
+                        m = new MemoryStream();
+                        m.Write(BitConverter.GetBytes((int)2), 0, 2);
+                        byte[] buff3 = Encoding.ASCII.GetBytes("this is the second category");
+                        m.WriteByte((byte)(buff3.Length - 1));
+                        m.Write(buff3, 0, buff3.Length);
+                        
+                        while (m.Length < 0x24)
+                            m.WriteByte(0);
+
+                        
+                        
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, m.ToArray());
+                        
+                        
+                        m = new MemoryStream();
+                        m.Write(BitConverter.GetBytes((int)3), 0, 2);
+                        buff3 = Encoding.ASCII.GetBytes("this is the third category");
+                        m.WriteByte((byte)(buff3.Length - 1));
+                        m.Write(buff3, 0, buff3.Length);
+                        
+                        while (m.Length < 0x24)
+                            m.WriteByte(0);
+                        
+                        SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, m.ToArray());
+
+
                     }
 
                     else
                     {
+                        Console.WriteLine("value of argument " + argument);
+                        Console.WriteLine("Value of u" + u);
+                        Console.WriteLine("Value of u after converting to int32 " + Convert.ToInt32(u));
+                        
                         SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] { 0x00, 0x00 });    
                     }
 
