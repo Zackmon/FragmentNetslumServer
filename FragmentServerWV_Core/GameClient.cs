@@ -315,7 +315,7 @@ namespace FragmentServerWV
                         m = new MemoryStream();
                         
                         m.Write(BitConverter.GetBytes((int)1), 0, 2);
-                        byte[] buff2 = Encoding.ASCII.GetBytes("This is not a real cat bro ");
+                        byte[] buff2 = Encoding.ASCII.GetBytes("First Category ");
                         m.WriteByte((byte)(buff2.Length - 1));
                         m.Write(buff2, 0, buff2.Length);
                         while (m.Length < 0x24)
@@ -339,7 +339,7 @@ namespace FragmentServerWV
                         
                         m = new MemoryStream();
                         m.Write(BitConverter.GetBytes((int)3), 0, 2);
-                        buff3 = Encoding.ASCII.GetBytes("this is the third category");
+                        buff3 = Encoding.ASCII.GetBytes("third I guess :)");
                         m.WriteByte((byte)(buff3.Length - 1));
                         m.Write(buff3, 0, buff3.Length);
                         
