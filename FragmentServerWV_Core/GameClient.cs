@@ -737,7 +737,7 @@ namespace FragmentServerWV
                 m.WriteByte(0);
 
 
-            SendPacket30(0x781a, m.ToArray());
+            SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_POST_META, m.ToArray());
         }
 
         public void createPostBody()
