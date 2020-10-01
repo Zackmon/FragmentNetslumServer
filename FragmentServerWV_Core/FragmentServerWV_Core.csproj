@@ -5,7 +5,7 @@
   
 
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyName>FragmentServerWV</AssemblyName>
+    <AssemblyName>FragmentServerWV_Core</AssemblyName>
     <RootNamespace>FragmentServerWV</RootNamespace>
   </PropertyGroup>
 

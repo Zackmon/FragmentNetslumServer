@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FragmentServerWV\FragmentServerWV.csproj" />
+    <ProjectReference Include="..\FragmentServerWV_Core\FragmentServerWV_Core.csproj" />
   </ItemGroup>
 
 </Project>
