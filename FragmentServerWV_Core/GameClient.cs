@@ -357,15 +357,124 @@ namespace FragmentServerWV
 
                     else
                     {
-                        Console.WriteLine("value of argument " + argument);
-                        Console.WriteLine("Value of u" + u);
-                        Console.WriteLine("Value of u after converting to int32 " + Convert.ToInt32(u));
-                        
-                        SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] { 0x00, 0x00 });    
+                        // assuming cat 1 has 5 threads , cat 2 has 3 threads , cat 3 has 1 thread 
+                        int categoryID = Convert.ToInt32(u) / 256;
+
+                        if (categoryID == 1)
+                        {
+                            SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] {0x00, 0x05});
+                            
+                            
+                        }
+                        else if (categoryID == 2)
+                        {
+                            SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] {0x00, 0x03});
+                        }
+                        else if (categoryID == 3)
+                        {
+                            SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] {0x00, 0x01});
+                            
+                            m = new MemoryStream();
+                            m.Write(BitConverter.GetBytes(1),0,3);
+                            byte[] threadTitle = Encoding.ASCII.GetBytes("cat 3 thread 1");
+                            m.WriteByte((byte) (threadTitle.Length - 1));
+                            m.Write(threadTitle,0,threadTitle.Length);
+                            while (m.Length < 0x26)
+                                m.WriteByte(0);
+                            SendPacket30(OpCodes.OPCODE_DATA_BBS_ENTRY_THREAD,m.ToArray());
+                            
+                        }
+                        else
+                        {
+                            SendPacket30(OpCodes.OPCODE_DATA_BBS_THREADLIST, new byte[] {0x00, 0x00});
+                        }
                     }
 
                     
                     break;
+                case OpCodes.OPCODE_DATA_BBS_THREAD_GETMENU:
+
+                    
+                    SendPacket30(OpCodes.OPCODE_DATA_BBS_THREAD_LIST, BitConverter.GetBytes(1).Reverse().ToArray());
+                  
+                    createPostsMetaData(m,0,1,0,DateTime.Now.Ticks,"Zackmon","Subtitle","Title","unk3");
+                    
+                    /*m = new MemoryStream();
+                    m.Write(BitConverter.GetBytes(0),0,4);//unk
+                    m.Write(BitConverter.GetBytes(1),0,4);//postid
+                    m.Write(BitConverter.GetBytes(0),0,4);//unk2
+                    long currentDate = DateTime.Now.Ticks;
+                    Console.WriteLine("Current Date is " + currentDate);
+                    byte[] dateByte = BitConverter.GetBytes(currentDate);
+                    m.Write(dateByte,0,4);//date
+                    
+                    // Setting the username
+                    String username = "this is the username";
+                    if (username.Length > 15)//if the lenghth is more than 15 char then truncate 
+                    {
+                        username = username.Substring(0, 15);
+                    }
+                    
+                    byte[] usernameBytes = Encoding.ASCII.GetBytes(username);
+                    m.WriteByte((byte) (username.Length - 1));
+                    m.Write(usernameBytes,0,usernameBytes.Length);//username
+                    while (m.Length < 0x20)
+                        m.WriteByte(0);
+
+                    //setting the Subtitle
+                    String subtitle = "this is the subtitle";
+                    if (subtitle.Length > 17) //if the lengh is more than 17 then truncate
+                    {
+                        subtitle = subtitle.Substring(0, 17);
+                    }
+
+                    byte[] subtitleBytes = Encoding.ASCII.GetBytes(subtitle);
+                    m.WriteByte((byte) (subtitleBytes.Length - 1));
+                    m.Write(subtitleBytes,0,subtitleBytes.Length);// subtitles
+                    while (m.Length < 0x32)
+                        m.WriteByte(0);
+                    
+                    
+                  //  m.Write(BitConverter.GetBytes(10),0,45); // unk3
+                    while (m.Length < 0x5F)
+                        m.WriteByte(0);
+                    
+                        //setting the Subtitle
+                    String title = "this is the title of the thread";
+                    if (title.Length > 32) //if the lengh is more than 17 then truncate
+                    {
+                        title = title.Substring(0, 32);
+                    }
+
+                    byte[] titleBytes = Encoding.ASCII.GetBytes(title);
+                    m.WriteByte((byte) (titleBytes.Length - 1));
+                    m.Write(titleBytes,0,titleBytes.Length);// title
+                    
+                    while(m.Length < 0x80)
+                        m.WriteByte(0);
+                    
+                    
+                    SendPacket30(0x781a,m.ToArray());*/
+
+                    break;
+                
+                case 0x781c:
+                    /*byte[] postData =
+                    {
+                        0x00, 0x00, 0x00, 0x00, 0x54, 0x48, 0x49, 0x53, 0x20, 0x49, 0x53, 0x20, 0x41, 0x20, 0x54, 0x45,
+                        0x53, 0x54, 0x20, 0x50, 0x4f, 0x53, 0x54, 0x21, 0x0a, 0x42, 0x49, 0x54, 0x43, 0x48, 0x45, 0x53,
+                        0x21, 0x00, 0x42, 0x49, 0x54, 0x43, 0x48, 0x45, 0x53, 0x21, 0x00, 0x54, 0x48, 0x49, 0x53, 0x00
+                    };*/
+                    m = new MemoryStream();
+                    m.Write(BitConverter.GetBytes(0),0,4);
+                    String body = "this is the body of the post XD ,  now to figure out how to make it dynamic and why is the date coming incorrectly";
+                    byte[] bodyBytes = Encoding.ASCII.GetBytes(body);
+                    //m.WriteByte((byte) (bodyBytes.Length - 1));
+                    m.Write(bodyBytes,0,body.Length);// message body 
+                    
+                    SendPacket30(0x781d,m.ToArray());
+                    break;
+                    
                 case OpCodes.OPCODE_DATA_NEWS_GETMENU:
                     SendPacket30(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
                     break;
@@ -557,6 +666,82 @@ namespace FragmentServerWV
             result |= (uint)(((data >> 16) & 0xFF) << 8);
             result |= (uint)((data >> 24) & 0xFF);
             return result;
+        }
+
+        public void createThreads()
+        {
+            
+        }
+
+        public void createPostsMetaData(MemoryStream m, int unk, int postID, int unk2, long date,
+            String username, String subtitle, String title, String unk3)
+        {
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(unk), 0, 4); //unk
+            m.Write(BitConverter.GetBytes(postID).Reverse().ToArray(), 0, 4); //postid
+            m.Write(BitConverter.GetBytes(unk2), 0, 4); //unk2
+            m.Write(BitConverter.GetBytes(date), 0, 4); //date
+
+            // Setting the username
+            if (username.Length > 15) //if the lenghth is more than 15 char then truncate 
+            {
+                username = username.Substring(0, 15);
+            }
+
+            byte[] usernameBytes = Encoding.ASCII.GetBytes(username);
+            //m.WriteByte((byte) (username.Length - 1));
+            m.Write(usernameBytes, 0, usernameBytes.Length); //username
+            while (m.Length < 0x20)
+                m.WriteByte(0);
+
+
+            //setting the Subtitle
+            if (subtitle.Length > 17) //if the lengh is more than 17 then truncate
+            {
+                subtitle = subtitle.Substring(0, 17);
+            }
+
+            byte[] subtitleBytes = Encoding.ASCII.GetBytes(subtitle);
+            //m.WriteByte((byte) (subtitleBytes.Length - 1));
+            m.Write(subtitleBytes, 0, subtitleBytes.Length); // subtitles
+            while (m.Length < 0x32)
+                m.WriteByte(0);
+
+
+            //setting unk3
+            if (unk3.Length > 45)
+            {
+                unk3 = unk3.Substring(0, 45);
+            }
+
+            byte[] unk3Bytes = Encoding.ASCII.GetBytes(unk3);
+            m.Write(unk3Bytes,0,unk3.Length);
+            
+            while (m.Length < 0x60)
+                m.WriteByte(0);
+
+
+            //setting the title
+
+            if (title.Length > 32) //if the length is more than 17 then truncate
+            {
+                title = title.Substring(0, 32);
+            }
+
+            byte[] titleBytes = Encoding.ASCII.GetBytes(title);
+            // m.WriteByte((byte) (titleBytes.Length - 1));
+            m.Write(titleBytes, 0, titleBytes.Length); // title
+
+            while (m.Length < 0x80)
+                m.WriteByte(0);
+
+
+            SendPacket30(0x781a, m.ToArray());
+        }
+
+        public void createPostBody()
+        {
         }
     }
 }
