@@ -253,7 +253,7 @@ struct registerChar
 
         public const ushort OPCODE_DATA_BBS_THREAD_GETMENU = 0x7818;
         public const ushort OPCODE_DATA_BBS_THREAD_LIST = 0x7819;
-        public const ushort OPCODE_DATA_BBS_THREAD_GETMENU_FAILED = 0x781a;
+        public const ushort OPCODE_DATA_BBS_ENTRY_POST_META = 0x781a;
 
         public const ushort OPCODE_DATA_BBS_THREAD_ENTRY_POST = 0x781b;
 //7819

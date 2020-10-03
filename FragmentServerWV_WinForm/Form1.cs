@@ -1,23 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
+using FragmentServerWV;
 
-namespace FragmentServerWV
+namespace FragmentServerWV_WinForm
 {
     public partial class Form1 : Form
     {
+        private static Form1 instance = null;
+
+        public static Form1 getInstance()
+        {
+            if (instance == null)
+            {
+                instance = new Form1();
+            }
+
+            return instance;
+        }
+
         public Form1()
         {
             InitializeComponent();
+            LogEventDelegate logEventDelegate = new LogEventDelegate();
+            logEventDelegate.Logging += WriteToRtb1;
             Config.Load();
-            Log.InitLogs(rtb1);
+            //Log.InitLogs(rtb1);
+            Log.InitLogs(logEventDelegate);
         }
 
         private void startToolStripMenuItem_Click(object sender, EventArgs e)
@@ -73,5 +82,18 @@ namespace FragmentServerWV
                 Server.StartProxy(input);
             }*/
         }
+
+        public void WriteToRtb1(String text, int LogSize)
+        {
+            rtb1.Invoke((MethodInvoker) delegate()
+            {
+                rtb1.AppendText(text);
+                if (rtb1.Text.Length > LogSize)
+                    rtb1.Text = rtb1.Text.Substring(rtb1.Text.Length - LogSize);
+                rtb1.SelectionStart = rtb1.Text.Length;
+                rtb1.ScrollToCaret();
+            });
+        }
+        
     }
 }

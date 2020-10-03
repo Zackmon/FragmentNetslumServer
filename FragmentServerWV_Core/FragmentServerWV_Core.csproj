@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Library</OutputType>
+  
+
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>FragmentServerWV_Core</AssemblyName>
+    <RootNamespace>FragmentServerWV</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.21" />
+    <PackageReference Include="NHibernate" Version="5.3.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Models\BbsCategoryModel.hbm.xml" />
+    <None Remove="hibernate.cfg.xml" />
+    <Content Include="hibernate.cfg.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Models\Mapping\BbsCategoryModel.hbm.xml" />
+    <None Remove="Models\Mapping\BbsThreadModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsThreadModel.hbm.xml" />
+    <None Remove="Models\Mapping\BbsPostMetaModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsPostMetaModel.hbm.xml" />
+    <None Remove="Models\Mapping\BbsPostBody.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsPostBody.hbm.xml" />
+  </ItemGroup>
+
+<!--
+<ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+<ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="3.1.6" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.1" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
+-->
+  
+</Project>

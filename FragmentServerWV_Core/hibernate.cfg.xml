@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
+    <!-- an ISessionFactory instance -->
+    <session-factory>
+        <!-- properties -->
+        <property name="connection.provider">
+            NHibernate.Connection.DriverConnectionProvider
+        </property>
+        <property name="connection.driver_class">
+            NHibernate.Driver.MySqlDataDriver
+        </property>
+        <property name="connection.connection_string">
+            Server=localhost;Database=fragment_schema;User ID=fragment;Password=test;
+        </property>
+        <property name="dialect">
+            NHibernate.Dialect.MySQL5Dialect
+        </property>
+        <!-- mapping files -->
+        
+        
+    </session-factory>
+</hibernate-configuration>
