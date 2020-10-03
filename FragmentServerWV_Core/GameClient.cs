@@ -623,7 +623,7 @@ namespace FragmentServerWV
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16((ushort) categoryModel.categoryID)), 0, 2);
             byte[] buff2 = Encoding.ASCII.GetBytes(categoryModel.categoryName);
-            m.WriteByte((byte) (buff2.Length - 1));
+           // m.WriteByte((byte) (buff2.Length - 1));
             m.Write(buff2, 0, buff2.Length);
             //must fill with empty bytes until 0x24
             while (m.Length < 0x24)
@@ -637,7 +637,7 @@ namespace FragmentServerWV
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap32((ushort) threadModel.threadID)), 0, 4);
             byte[] threadTitleBytes = Encoding.ASCII.GetBytes(threadModel.threadTitle);
-            m.WriteByte((byte) (threadTitleBytes.Length - 1));
+           // m.WriteByte((byte) (threadTitleBytes.Length - 1));
             m.Write(threadTitleBytes, 0, threadTitleBytes.Length);
             while (m.Length < 0x26)
                 m.WriteByte(0);
@@ -650,7 +650,12 @@ namespace FragmentServerWV
             m.Write(BitConverter.GetBytes(swap32((uint) postMetaModel.unk0)), 0, 4); //unk
             m.Write(BitConverter.GetBytes(swap32((uint) postMetaModel.postID)), 0, 4); //postid
             m.Write(BitConverter.GetBytes(swap32((uint) postMetaModel.unk2)), 0, 4); //unk2
-            m.Write(BitConverter.GetBytes(swap32((uint) postMetaModel.date.Millisecond)), 0, 4); //date
+            Console.WriteLine("The date and time is " + postMetaModel.date);
+            
+            TimeSpan t = postMetaModel.date - new DateTime(1970, 1, 1);
+            int secondsSinceEpoch = (int)t.TotalSeconds;
+            //Console.WriteLine(secondsSinceEpoch);
+            m.Write(BitConverter.GetBytes(swap32((uint) secondsSinceEpoch)), 0, 4); //date
 
             // Setting the username
             if (postMetaModel.username.Length > 15) //if the lenghth is more than 15 char then truncate 
