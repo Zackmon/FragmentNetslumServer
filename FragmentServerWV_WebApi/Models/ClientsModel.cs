@@ -5,6 +5,7 @@ namespace FragmentServerWV_WebApi.Models
         public int save_slot;
         public string save_id;
         public string char_id;
+        public string char_name;
         public int char_class;
         public int char_level;
         public string greeting;
@@ -20,11 +21,12 @@ namespace FragmentServerWV_WebApi.Models
         {
         }
 
-        public ClientsModel(int saveSlot, string saveId, string charId, int charClass, int charLevel, string greeting, int charModel, int charHp, int charSp, int charGp, int onlineGodCounter, int offlineGodcounter)
+        public ClientsModel(int saveSlot, string saveId, string charId,string charName, int charClass, int charLevel, string greeting, int charModel, int charHp, int charSp, int charGp, int onlineGodCounter, int offlineGodcounter)
         {
             save_slot = saveSlot;
             save_id = saveId;
             char_id = charId;
+            char_name = charName;
             char_class = charClass;
             char_level = charLevel;
             this.greeting = greeting;
