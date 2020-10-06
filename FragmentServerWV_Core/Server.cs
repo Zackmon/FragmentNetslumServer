@@ -59,6 +59,7 @@ namespace FragmentServerWV
         public static void MainThread(object obj)
         {
             string ip = Config.configs["ip"];
+            //string any = IPAddress.Loopback.ToString();
             listener = new TcpListener(IPAddress.Parse(Config.configs["ip"]), Convert.ToUInt16(Config.configs["port"]));
             Log.Writeline("Server started on " + ip + ":" + Config.configs["port"]);
             Log.Writeline(" Log Size = " + Convert.ToInt32(Config.configs["logsize"]));

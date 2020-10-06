@@ -49,7 +49,7 @@ namespace FragmentServerWV
         public uint char_GP;
         public ushort online_god_counter;
         public ushort offline_godcounter;
-        public Stopwatch pingtimer;
+        public Stopwatch pingtimer; 
 
 
         public GameClient(TcpClient c, int idx)
