@@ -20,7 +20,9 @@ namespace FragmentServerWV_Console
             Log.InitLogs(logEventDelegate);
             Server.Start();
             CreateHostBuilder(args).Build().Run();
-            
+
+
+
             /*DBAcess dbAcess = DBAcess.getInstance();
 
             List<BbsCategoryModel> bbsCategoryModels= dbAcess.GetListOfBbsCategory();

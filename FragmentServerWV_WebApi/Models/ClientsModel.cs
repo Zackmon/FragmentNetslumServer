@@ -1,3 +1,8 @@
+
+using System;
+using System.Text;
+using FragmentServerWV.Models;
+
 namespace FragmentServerWV_WebApi.Models
 {
     public class ClientsModel
@@ -6,7 +11,7 @@ namespace FragmentServerWV_WebApi.Models
         public string save_id;
         public string char_id;
         public string char_name;
-        public int char_class;
+        public string char_class;
         public int char_level;
         public string greeting;
         public int char_model;
@@ -21,7 +26,7 @@ namespace FragmentServerWV_WebApi.Models
         {
         }
 
-        public ClientsModel(int saveSlot, string saveId, string charId,string charName, int charClass, int charLevel, string greeting, int charModel, int charHp, int charSp, int charGp, int onlineGodCounter, int offlineGodcounter)
+        public ClientsModel(int saveSlot, string saveId, string charId,string charName, string charClass, int charLevel, string greeting, int charModel, int charHp, int charSp, int charGp, int onlineGodCounter, int offlineGodcounter)
         {
             save_slot = saveSlot;
             save_id = saveId;
@@ -36,6 +41,38 @@ namespace FragmentServerWV_WebApi.Models
             char_GP = charGp;
             online_god_counter = onlineGodCounter;
             offline_godcounter = offlineGodcounter;
+        }
+
+        public static ClientsModel ConvertData(FragmentServerWV.GameClient client)
+        {
+            ClientsModel model = new ClientsModel();
+            
+            /*
+             *
+             *Console.WriteLine("Character Date \n save_slot "+ save_slot + "\n char_id " +Encoding.ASCII.GetString(save_id) + " \n char_name " + Encoding.ASCII.GetString(char_id) +
+                              "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting "+ Encoding.ASCII.GetString(greeting) +"\n charmodel " +char_model + "\n char_hp " + char_HP+
+                              "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter "+ online_god_counter + "\n offline god counter "+ offline_godcounter +"\n\n\n\n full byte araray " + BitConverter.ToString(data));
+             * 
+             */
+
+            model.save_slot = client.save_slot;
+            model.save_id = Encoding.ASCII.GetString(client.save_id);
+            model.char_id = Encoding.ASCII.GetString(client.char_id);
+            model.char_name = Encoding.ASCII.GetString(client.char_name);
+            PlayerClass playerClass = (PlayerClass) client.char_class;
+            model.char_class = playerClass.ToString();
+            model.char_level = client.char_class;
+            model.greeting = Encoding.ASCII.GetString(client.greeting);
+            model.char_model = Convert.ToInt32(client.char_model);
+            model.char_HP = Convert.ToInt32(client.char_HP);
+            model.char_SP = Convert.ToInt32(client.char_SP);
+            model.char_GP = Convert.ToInt32(client.char_GP);
+            model.online_god_counter = Convert.ToInt32(client.online_god_counter);
+            model.offline_godcounter = Convert.ToInt32(client.offline_godcounter);
+
+            return model;
+
+
         }
 
         public int SaveSlot
@@ -56,7 +93,7 @@ namespace FragmentServerWV_WebApi.Models
             set => char_id = value;
         }
 
-        public int CharClass
+        public string CharClass
         {
             get => char_class;
             set => char_class = value;
