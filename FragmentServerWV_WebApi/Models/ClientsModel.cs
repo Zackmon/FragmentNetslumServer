@@ -55,6 +55,12 @@ namespace FragmentServerWV_WebApi.Models
              * 
              */
 
+            if (null == client.save_slot || null == client.save_id || null == client.char_id ||
+                null == client.char_name || null == client.char_class || null == client.greeting
+                || null == client.char_model || null == client.char_HP || null == client.char_SP ||
+                null == client.char_GP || null == client.offline_godcounter || null == client.online_god_counter)
+                return null;
+            
             model.save_slot = client.save_slot;
             model.save_id = Encoding.ASCII.GetString(client.save_id);
             model.char_id = Encoding.ASCII.GetString(client.char_id);
@@ -62,7 +68,7 @@ namespace FragmentServerWV_WebApi.Models
             PlayerClass playerClass = (PlayerClass) client.char_class;
             model.char_class = playerClass.ToString();
             model.char_level = client.char_class;
-            model.greeting = Encoding.ASCII.GetString(client.greeting);
+            model.greeting = Encoding.UTF8.GetString(client.greeting);
             model.char_model = Convert.ToInt32(client.char_model);
             model.char_HP = Convert.ToInt32(client.char_HP);
             model.char_SP = Convert.ToInt32(client.char_SP);

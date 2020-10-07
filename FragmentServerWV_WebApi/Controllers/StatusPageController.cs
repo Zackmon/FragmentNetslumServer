@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using FragmentServerWV;
 using FragmentServerWV_WebApi.Models;
@@ -28,10 +29,18 @@ namespace FragmentServerWV_WebApi.Controllers
 
             foreach (GameClient client in Server.clients)
             {
-                if (!client.isAreaServer)
+                if (!client._exited)
                 {
-                    ClientsModel model = ClientsModel.ConvertData(client);
-                    clientList.Add(model);
+                    if (client.isAreaServer)
+                    {
+                        Console.WriteLine("Area Server Status to be Implmented");
+                    }
+                    else
+                    {
+                        ClientsModel model = ClientsModel.ConvertData(client);
+                        if (model != null)
+                            clientList.Add(model);
+                    }
                 }
             }
 
