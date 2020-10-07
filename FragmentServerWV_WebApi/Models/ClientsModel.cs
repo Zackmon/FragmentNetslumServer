@@ -11,8 +11,10 @@ namespace FragmentServerWV_WebApi.Models
         public string save_id;
         public string char_id;
         public string char_name;
+        public int charClassInt;
         public string char_class;
         public int char_level;
+        public byte[] greetingBytes;
         public string greeting;
         public int char_model;
         public int char_HP;
@@ -65,16 +67,18 @@ namespace FragmentServerWV_WebApi.Models
             model.save_id = Encoding.ASCII.GetString(client.save_id);
             model.char_id = Encoding.ASCII.GetString(client.char_id);
             model.char_name = Encoding.ASCII.GetString(client.char_name);
+            model.charClassInt = client.char_class;
             PlayerClass playerClass = (PlayerClass) client.char_class;
             model.char_class = playerClass.ToString();
             model.char_level = client.char_class;
-            model.greeting = Encoding.UTF8.GetString(client.greeting);
-            model.char_model = Convert.ToInt32(client.char_model);
-            model.char_HP = Convert.ToInt32(client.char_HP);
-            model.char_SP = Convert.ToInt32(client.char_SP);
-            model.char_GP = Convert.ToInt32(client.char_GP);
-            model.online_god_counter = Convert.ToInt32(client.online_god_counter);
-            model.offline_godcounter = Convert.ToInt32(client.offline_godcounter);
+            model.greetingBytes = client.greeting;
+            model.greeting = Encoding.ASCII.GetString(client.greeting);
+            model.char_model = (int) client.char_model;
+            model.char_HP = client.char_HP;
+            model.char_SP = client.char_SP;
+            model.char_GP = (int) client.char_GP;
+            model.online_god_counter = client.online_god_counter;
+            model.offline_godcounter = client.offline_godcounter;
 
             return model;
 
@@ -151,6 +155,24 @@ namespace FragmentServerWV_WebApi.Models
         {
             get => offline_godcounter;
             set => offline_godcounter = value;
+        }
+
+        public string CharName
+        {
+            get => char_name;
+            set => char_name = value;
+        }
+
+        public byte[] GreetingBytes
+        {
+            get => greetingBytes;
+            set => greetingBytes = value;
+        }
+
+        public int CharClassInt
+        {
+            get => charClassInt;
+            set => charClassInt = value;
         }
     }
 }

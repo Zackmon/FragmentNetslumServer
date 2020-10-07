@@ -523,7 +523,13 @@ namespace FragmentServerWV
                         m.Write(client.publish_data_1, 0, client.publish_data_1.Length);
                         while (m.Length < 45)
                             m.WriteByte(0);
-                        SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
+
+                        string usr = Encoding.ASCII.GetString(BitConverter.GetBytes(swap16(client.as_usernum)));
+                        string pup1 = Encoding.ASCII.GetString(client.publish_data_1);
+                        string pup2 = Encoding.ASCII.GetString(client.publish_data_2);
+                        Console.WriteLine(pup1 +"\n" +pup2+ "\n" + client.as_usernum + "\n");
+                        
+                            SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
                     }
             }
         }
@@ -532,9 +538,9 @@ namespace FragmentServerWV
         {
             save_slot = data[0];
             char_id = ReadByteString(data, 1);
-            int pos = 1 + save_id.Length;
+            int pos = 1 + char_id.Length;
             char_name = ReadByteString(data, pos);
-            pos += char_id.Length;
+            pos += char_name.Length;
             char_class = data[pos++];
             char_level = swap16(BitConverter.ToUInt16(data, pos));
             pos += 2;
