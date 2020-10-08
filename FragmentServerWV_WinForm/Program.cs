@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using FragmentServerWV_WebApi;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace FragmentServerWV_WinForm
 {
@@ -20,7 +23,13 @@ namespace FragmentServerWV_WinForm
             
             Form1 form1 = Form1.getInstance();
             
+            CreateHostBuilder(new []{""}).Build().Run();
+            
             Application.Run(form1);
         }
+        
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }
