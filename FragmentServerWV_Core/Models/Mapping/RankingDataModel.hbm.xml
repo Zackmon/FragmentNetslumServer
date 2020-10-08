@@ -3,7 +3,7 @@
 <hibernate-mapping xmlns = "urn:nhibernate-mapping-2.2">
 
     <class name = "FragmentServerWV.Models.RankingDataModel, FragmentServerWV_Core"
-           table = "ranking_date">
+           table = "ranking_data">
 
         <id name = "id" column = "ID" type = "int">
             <generator class="native"/>

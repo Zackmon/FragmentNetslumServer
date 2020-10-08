@@ -197,7 +197,7 @@ namespace FragmentServerWV.Services
             
             model.antiCheatEngineResult = "LEGIT";
             model.loginTime = dateTime.ToString("ddd MMM dd hh:mm:ss yyyy");
-                
+            model.diskID = "0000000000000000000000000000000000000000000000000000000000000000";
             model.saveID = Encoding.GetEncoding("Shift-JIS").GetString(client.save_id,0,client.save_id.Length-1);
             model.characterSaveID = Encoding.GetEncoding("Shift-JIS").GetString(client.char_id,0,client.char_id.Length-1);
             model.characterName = Encoding.GetEncoding("Shift-JIS").GetString(client.char_name,0,client.char_name.Length-1);

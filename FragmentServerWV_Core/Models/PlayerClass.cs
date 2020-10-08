@@ -6,6 +6,7 @@ namespace FragmentServerWV.Models
         TwinBlade,
         BladeMaster,
         HeavyBlade,
+        HeavyAxe,
         LongArm,
         WaveMaster
     }
