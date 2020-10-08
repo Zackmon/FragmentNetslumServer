@@ -574,6 +574,7 @@ namespace FragmentServerWV
             offline_godcounter = swap16(BitConverter.ToUInt16(data, pos));
             pos += 2;
             
+            DBAcess.getInstance().PlayerLogin(this);
             
             
             Console.WriteLine("Character Date \n save_slot "+ save_slot + "\n char_id " +Encoding.ASCII.GetString(save_id) + " \n char_name " + Encoding.ASCII.GetString(char_id) +

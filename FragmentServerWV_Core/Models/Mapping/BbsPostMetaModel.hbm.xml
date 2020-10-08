@@ -6,7 +6,7 @@
            table = "BBS_Post_Meta">
 
         <id name = "postID" column = "postID" type = "int">
-           
+            
         </id>
         <property name = "unk0" column = "unk0" type = "int"/>
         <property name = "unk2" column = "unk2" type = "int"/>

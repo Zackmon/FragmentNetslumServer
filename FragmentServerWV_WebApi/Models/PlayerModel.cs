@@ -47,7 +47,7 @@ namespace FragmentServerWV_WebApi.Models
            
             PlayerClass playerClass = (PlayerClass) client.char_class;
             model.char_class = playerClass.ToString();
-            model.char_level = client.char_class;
+            model.char_level = client.char_level;
 
             model.greeting = Encoding.GetEncoding("Shift-JIS").GetString(client.greeting,0,client.greeting.Length-1);
             model.char_model = (int) client.char_model;
