@@ -19,12 +19,12 @@ namespace FragmentServerWV_WebApi.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<ClientsModel> Get()
+        public ClientsModel Get()
         {
             // ClientsModel test = new ClientsModel(0, "13041305062c00000631", "130413072018000064e2","Zackmon", "1", 1, "よろしく", 1,
             //     200, 100, 1000, 0, 0);
 
-            List<ClientsModel> clientList = new List<ClientsModel>();
+            ClientsModel clientList = new ClientsModel();
             // clientList.Add(test);
 
             foreach (GameClient client in Server.clients)
@@ -33,17 +33,18 @@ namespace FragmentServerWV_WebApi.Controllers
                 {
                     if (client.isAreaServer)
                     {
-                        Console.WriteLine("Area Server Status to be Implmented");
+                        AreaServerModel model = AreaServerModel.ConvertDate(client);
+                        if (model!= null)
+                                clientList._areaServerList.Add(model);
                     }
                     else
                     {
-                        ClientsModel model = ClientsModel.ConvertData(client);
+                        PlayerModel model = PlayerModel.ConvertData(client);
                         if (model != null)
-                            clientList.Add(model);
+                            clientList.PlayerList.Add(model);
                     }
                 }
             }
-
 
             return clientList;
         }

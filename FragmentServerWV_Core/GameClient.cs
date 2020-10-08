@@ -36,6 +36,9 @@ namespace FragmentServerWV
         public byte[] publish_data_2;
         public byte[] last_status;
         public ushort as_usernum;
+        public byte[] areaServerName;
+        public ushort areaServerLevel;
+        public byte areaServerStatus;
 
         public byte save_slot;
         public byte[] save_id;
@@ -300,6 +303,7 @@ namespace FragmentServerWV
                     break;
                 case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
                     publish_data_2 = argument;
+                    ExtractAreaServerData(argument);
                     break;
                 case 0x780f:
                     SendPacket30(0x7810, new byte[] {0x01, 0x92});
@@ -532,6 +536,17 @@ namespace FragmentServerWV
                             SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
                     }
             }
+        }
+
+
+        public void ExtractAreaServerData(byte[] data)
+        {
+            int pos = 67;
+            areaServerName = ReadByteString(data, pos);
+            pos += areaServerName.Length;
+            areaServerLevel = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 4;
+            areaServerStatus = data[pos++];
         }
 
         public void ExtractCharacterData(byte[] data)
