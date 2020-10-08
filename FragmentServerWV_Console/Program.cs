@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using FragmentServerWV;
+using FragmentServerWV_WebApi;
 using FragmentServerWV.Models;
 using FragmentServerWV.Services;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 
 namespace FragmentServerWV_Console
@@ -16,7 +19,10 @@ namespace FragmentServerWV_Console
             Config.Load();
             Log.InitLogs(logEventDelegate);
             Server.Start();
-            
+            CreateHostBuilder(args).Build().Run();
+
+
+
             /*DBAcess dbAcess = DBAcess.getInstance();
 
             List<BbsCategoryModel> bbsCategoryModels= dbAcess.GetListOfBbsCategory();
@@ -32,5 +38,9 @@ namespace FragmentServerWV_Console
         {
             Console.WriteLine(text);
         }
+        
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }

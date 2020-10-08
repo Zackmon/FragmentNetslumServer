@@ -133,6 +133,8 @@ namespace FragmentServerWV.Services
                         transaction.Commit();
                         
                     }
+                    
+                    session.Close();
                 }
             }
             else
@@ -173,6 +175,7 @@ namespace FragmentServerWV.Services
                     session.Save(body);
                     transaction.Commit();
                 }
+                session.Close();
             }
 
             {
@@ -184,5 +187,44 @@ namespace FragmentServerWV.Services
             Console.WriteLine("post Title " + postTitle);
             Console.WriteLine("post Body " + postBody);
         }
+
+        public void PlayerLogin(GameClient client)
+        {
+            RankingDataModel model = new RankingDataModel();
+            
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            DateTime dateTime = DateTime.Now;
+            
+            model.antiCheatEngineResult = "LEGIT";
+            model.loginTime = dateTime.ToString("ddd MMM dd hh:mm:ss yyyy");
+            model.diskID = "0000000000000000000000000000000000000000000000000000000000000000";
+            model.saveID = Encoding.GetEncoding("Shift-JIS").GetString(client.save_id,0,client.save_id.Length-1);
+            model.characterSaveID = Encoding.GetEncoding("Shift-JIS").GetString(client.char_id,0,client.char_id.Length-1);
+            model.characterName = Encoding.GetEncoding("Shift-JIS").GetString(client.char_name,0,client.char_name.Length-1);
+           
+            PlayerClass playerClass = (PlayerClass) client.char_class;
+            model.characterClassName = playerClass.ToString();
+            model.characterLevel = client.char_level;
+            
+            model.characterHP = client.char_HP;
+            model.characterSP = client.char_SP;
+            model.characterGP = (int) client.char_GP;
+            model.godStatusCounterOnline = client.online_god_counter;
+            model.averageFieldLevel = client.offline_godcounter;
+
+            using (ISession session = _sessionFactory.OpenSession())
+            {
+                using (ITransaction transaction = session.BeginTransaction())
+                {
+                    session.Save(model);
+                    transaction.Commit();
+                }
+
+                session.Close();
+            }
+        }
     }
+    
+    
+    
 }

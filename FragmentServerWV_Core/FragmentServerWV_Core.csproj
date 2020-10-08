@@ -27,6 +27,8 @@
     <EmbeddedResource Include="Models\Mapping\BbsPostMetaModel.hbm.xml" />
     <None Remove="Models\Mapping\BbsPostBody.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\BbsPostBody.hbm.xml" />
+    <None Remove="Models\Mapping\RankingDataModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\RankingDataModel.hbm.xml" />
   </ItemGroup>
 
 <!--

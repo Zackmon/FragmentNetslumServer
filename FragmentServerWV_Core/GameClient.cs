@@ -36,9 +36,13 @@ namespace FragmentServerWV
         public byte[] publish_data_2;
         public byte[] last_status;
         public ushort as_usernum;
+        public byte[] areaServerName;
+        public ushort areaServerLevel;
+        public byte areaServerStatus;
 
         public byte save_slot;
         public byte[] save_id;
+        public byte[] char_name;
         public byte[] char_id;
         public byte char_class;
         public ushort char_level;
@@ -49,7 +53,7 @@ namespace FragmentServerWV
         public uint char_GP;
         public ushort online_god_counter;
         public ushort offline_godcounter;
-        public Stopwatch pingtimer;
+        public Stopwatch pingtimer; 
 
 
         public GameClient(TcpClient c, int idx)
@@ -229,6 +233,9 @@ namespace FragmentServerWV
                     SendPacket30(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] {0x78, 0x94});
                     break;
                 case OpCodes.OPCODE_DATA_SAVEID:
+
+                    byte[] saveID = ReadByteString(argument,0);
+                    this.save_id = saveID;
                     m = new MemoryStream();
                     m.Write(BitConverter.GetBytes((int) 0), 0, 4);
                     byte[] buff = Encoding.ASCII.GetBytes(File.ReadAllText("welcome.txt"));
@@ -296,6 +303,7 @@ namespace FragmentServerWV
                     break;
                 case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
                     publish_data_2 = argument;
+                    ExtractAreaServerData(argument);
                     break;
                 case 0x780f:
                     SendPacket30(0x7810, new byte[] {0x01, 0x92});
@@ -519,18 +527,35 @@ namespace FragmentServerWV
                         m.Write(client.publish_data_1, 0, client.publish_data_1.Length);
                         while (m.Length < 45)
                             m.WriteByte(0);
-                        SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
+
+                        string usr = Encoding.ASCII.GetString(BitConverter.GetBytes(swap16(client.as_usernum)));
+                        string pup1 = Encoding.ASCII.GetString(client.publish_data_1);
+                        string pup2 = Encoding.ASCII.GetString(client.publish_data_2);
+                        Console.WriteLine(pup1 +"\n" +pup2+ "\n" + client.as_usernum + "\n");
+                        
+                            SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
                     }
             }
+        }
+
+
+        public void ExtractAreaServerData(byte[] data)
+        {
+            int pos = 67;
+            areaServerName = ReadByteString(data, pos);
+            pos += areaServerName.Length;
+            areaServerLevel = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 4;
+            areaServerStatus = data[pos++];
         }
 
         public void ExtractCharacterData(byte[] data)
         {
             save_slot = data[0];
-            save_id = ReadByteString(data, 1);
-            int pos = 1 + save_id.Length;
-            char_id = ReadByteString(data, pos);
-            pos += char_id.Length;
+            char_id = ReadByteString(data, 1);
+            int pos = 1 + char_id.Length;
+            char_name = ReadByteString(data, pos);
+            pos += char_name.Length;
             char_class = data[pos++];
             char_level = swap16(BitConverter.ToUInt16(data, pos));
             pos += 2;
@@ -548,6 +573,13 @@ namespace FragmentServerWV
             pos += 2;
             offline_godcounter = swap16(BitConverter.ToUInt16(data, pos));
             pos += 2;
+            
+            DBAcess.getInstance().PlayerLogin(this);
+            
+            
+            Console.WriteLine("Character Date \n save_slot "+ save_slot + "\n char_id " +Encoding.ASCII.GetString(save_id) + " \n char_name " + Encoding.ASCII.GetString(char_id) +
+                              "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting "+ Encoding.ASCII.GetString(greeting) +"\n charmodel " +char_model + "\n char_hp " + char_HP+
+                              "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter "+ online_god_counter + "\n offline god counter "+ offline_godcounter +"\n\n\n\n full byte araray " + BitConverter.ToString(data));
         }
 
         public byte[] ReadByteString(byte[] data, int pos)

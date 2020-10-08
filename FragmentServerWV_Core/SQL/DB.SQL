@@ -59,3 +59,21 @@ create table BBS_Post_Body
 alter table BBS_Post_Body
     add primary key (postBodyID);
 
+
+CREATE TABLE `ranking_data` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `AntiCheatEngineResult` tinytext NOT NULL,
+  `loginTime` text NOT NULL,
+  `DiskID` text NOT NULL,
+  `SaveID` text NOT NULL,
+  `CharacterSaveID` text NOT NULL,
+  `CharacterName` text NOT NULL,
+  `CharacterLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `CharacterClassName` text NOT NULL,
+  `CharacterHP` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `CharacterSP` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `CharacterGP` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `GodStatueCounterOnline` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `AverageFieldLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`)
+) AUTO_INCREMENT=40820 DEFAULT CHARSET=utf8mb4;
