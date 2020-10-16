@@ -235,7 +235,9 @@ struct registerChar
 
         public const ushort OPCODE_DATA_MAIL_GET = 0x7803;
         public const ushort OPCODE_DATA_MAIL_GETOK = 0x7804;
-
+        public const ushort OPCODE_DATA_MAIL_GET_NEWMAIL_HEADER = 0x788a;
+        public const ushort OPCODE_DATA_MAIL_GET_MAIL_BODY = 0x7806;
+        public const ushort OPCODE_DATA_MAIL_GET_MAIL_BODY_RESPONSE = 0x7807;
 
 //BBS	POSTING	STUFF
         public const ushort OPCODE_DATA_BBS_GETMENU = 0x7848;
