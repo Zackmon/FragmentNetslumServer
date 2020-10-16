@@ -15,6 +15,7 @@ namespace FragmentServerWV
         public ushort checksum_inpacket;
         public ushort checksum_ofpacket;
         public byte[] data;
+        public byte[] encryptedData;
 
         public Packet(NetworkStream ns, Crypto crypto)
         {
@@ -29,6 +30,7 @@ namespace FragmentServerWV
                     return;
                 datalen = (ushort)((buff[0] << 8) + buff[1]);
                 data = new byte[datalen];
+                encryptedData = new byte[datalen];
                 ns.Read(data, 0, datalen);
                 if (datalen > 1)
                 {
@@ -38,6 +40,7 @@ namespace FragmentServerWV
                         MemoryStream m = new MemoryStream();
                         datalen -= 2;
                         m.Write(data, 2, datalen);
+                        encryptedData = m.ToArray();
                         data = crypto.Decrypt(m.ToArray());
                         checksum_inpacket = (ushort)((data[0] << 8) + data[1]);
                         m = new MemoryStream();

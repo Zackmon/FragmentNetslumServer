@@ -126,7 +126,7 @@ namespace FragmentServerWV
                             break;
                         case 0x30:
                             Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
-                            HandlerPacket30(p.data, index, to_crypto);
+                            HandlerPacket30(p.data, index, to_crypto,p.encryptedData);
                             break;
                         default:
                             Log.Writeline("Client Handler #" + index + " : Received packet with unknown code");
@@ -160,7 +160,7 @@ namespace FragmentServerWV
             _exited = true;
         }
 
-        public void HandlerPacket30(byte[] data, int index, Crypto crypto)
+        public void HandlerPacket30(byte[] data, int index, Crypto crypto,byte[] encryptedData)
         {
             client_seq_nr = swap16(BitConverter.ToUInt16(data, 2));
             ushort arglen = swap16(BitConverter.ToUInt16(data, 6));
@@ -171,6 +171,7 @@ namespace FragmentServerWV
             m.Write(data, 10, arglen);
             byte[] argument = m.ToArray();
             ushort u;
+            Log.LogData(data, code, index, "Recv Data 0X30", 0, 0);
             switch (code)
             {
                 case 2:
@@ -230,12 +231,12 @@ namespace FragmentServerWV
                     as_usernum = swap16(BitConverter.ToUInt16(argument, 2));
                     break;
                 case OpCodes.OPCODE_DATA_DISKID:
-                    SendPacket30(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] {0x78, 0x94});
+                    SendPacket30(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] {0x36,0x36,0x31,0x36});
                     break;
                 case OpCodes.OPCODE_DATA_SAVEID:
-
+                    Console.WriteLine("Data Save ID Arguments \n" + BitConverter.ToString(argument));
                     byte[] saveID = ReadByteString(argument,0);
-                    this.save_id = saveID;
+                    this.save_id = saveID; 
                     m = new MemoryStream();
                     m.Write(BitConverter.GetBytes((int) 0), 0, 4);
                     byte[] buff = Encoding.ASCII.GetBytes(File.ReadAllText("welcome.txt"));
@@ -250,6 +251,7 @@ namespace FragmentServerWV
                     SendPacket30(0x742A, response);
                     break;
                 case OpCodes.OPCODE_DATA_REGISTER_CHAR:
+                    Log.LogData(argument,0xFFFF,this.index,"charachter data",0,0);
                     ExtractCharacterData(argument);
                     SendPacket30(OpCodes.OPCODE_DATA_REGISTER_CHAROK, new byte[] {0x00, 0x00});
                     break;
@@ -274,11 +276,26 @@ namespace FragmentServerWV
                     break;
                 case OpCodes.OPCODE_DATA_MAIL_SEND:
                     m = new MemoryStream();
+                    //Packet packet = new Packet(ns,from_crypto);
                     while (ns.DataAvailable) m.WriteByte((byte) ns.ReadByte());
+                    
+                    //Log.LogData(data, 0xFFFF, this.index, " RAW Mail Data", 0, 0);
+                    
+                    
+                    Log.LogData(encryptedData, 0xFFFF, this.index, "Encrypted Mail Data", 0, 0);
                     Log.LogData(m.ToArray(), 0xFFFF, this.index, "Recv Mail Data", 0, 0);
+                    
+                    
+                    
+                    //Packet mail = new Packet(ns,from_crypto);
+                    
+                   // Log.LogData(mail.data, mail.code, index, "Recv Mail Data", mail.checksum_inpacket, mail.checksum_ofpacket);
+                    ExtractMailData(argument,m.ToArray() , encryptedData);
+                    
                     SendPacket30(OpCodes.OPCODE_DATA_MAIL_SEND_OK, new byte[] {0x00, 0x00});
                     break;
                 case OpCodes.OPCODE_DATA_MAIL_GET:
+                    Log.LogData(argument, 0xFFFF, this.index, "Mail OK Sent", 0, 0);
                     SendPacket30(OpCodes.OPCODE_DATA_MAIL_GETOK, new byte[] {0x00, 0x06});
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_GETLIST:
@@ -287,14 +304,14 @@ namespace FragmentServerWV
                 case 0x771E:
                     SendPacket30(0x771F, new byte[] {0x00, 0x00});
                     break;
-                case 0x7722:
+                case 0x7722: // GUILD Shop
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
                         SendPacket30(0x7723, new byte[] {0x00, 0x00});
                     else
                         SendPacket30(0x7725, new byte[] {0x00, 0x00});
                     break;
-                case 0x7733:
+                case 0x7733: //Guild
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
                         SendPacket30(0x7734, new byte[] {0x00, 0x00});
@@ -305,7 +322,7 @@ namespace FragmentServerWV
                     publish_data_2 = argument;
                     ExtractAreaServerData(argument);
                     break;
-                case 0x780f:
+                case 0x780f: // Create Thread Request 
                     SendPacket30(0x7810, new byte[] {0x01, 0x92});
                     break;
                 case OpCodes.OPCODE_DATA_BBS_POST:
@@ -317,7 +334,7 @@ namespace FragmentServerWV
                     SendPacket30(0x7813, new byte[] {0x00, 0x00});
                     break;
 
-                case 0x7832:
+                case 0x7832: // ranking
                     u = swap16(BitConverter.ToUInt16(argument, 0));
                     if (u == 0)
                         SendPacket30(0x7833, new byte[] {0x00, 0x00});
@@ -436,7 +453,7 @@ namespace FragmentServerWV
                 case OpCodes.OPCODE_DATA_COM:
                     SendPacket30(OpCodes.OPCODE_DATA_COM_OK, new byte[] {0xDE, 0xAD});
                     break;
-                case 0x787E:
+                case 0x787E:// enter ranking screen
                     SendPacket30(0x787F, new byte[] {0x00, 0x00});
                     break;
                 case 0x788C:
@@ -549,6 +566,74 @@ namespace FragmentServerWV
             areaServerStatus = data[pos++];
         }
 
+        public void ExtractMailData(byte[] data,byte[] extra, byte[] encrypyedData)
+        {
+            byte[] unknown = new byte[8];
+            byte[] reciver = new byte[16];
+            byte[] sender = new byte[16];
+            byte[] title = new byte[32];
+            byte[] body = new byte[1200];
+            byte[] face = new byte[16];
+            byte[] smthn1 = new byte[40];
+            byte[] smthn2 = new byte[extra.Length+12];
+            byte[] one_p_two = new byte [smthn1.Length + smthn2.Length];
+            byte[] smthn3 = new byte[encrypyedData.Length];
+            int encLenght = encrypyedData.Length;
+            int pos = encrypyedData.Length - extra.Length - 36;
+            Console.WriteLine("pos = "+ pos + "\nencLenght  = "+ encLenght);
+            Buffer.BlockCopy(data, 0, unknown,0 ,8);
+            Buffer.BlockCopy(data, 8, reciver,0 ,16);
+            Buffer.BlockCopy(data, 30, sender,0 ,16);
+            Buffer.BlockCopy(data, 48, title,0 ,32);
+            Buffer.BlockCopy(data, 176, body,0 ,1200);
+            Buffer.BlockCopy(data, 1378, face,0 ,16);
+            Buffer.BlockCopy(encrypyedData, pos, smthn1,0 ,36);
+            Buffer.BlockCopy(extra, 0, smthn2,0 ,extra.Length);
+            Buffer.BlockCopy(encrypyedData,0,smthn3,0,encrypyedData.Length);
+            Buffer.BlockCopy(smthn1,0,one_p_two,0,smthn1.Length);
+            Buffer.BlockCopy(smthn2,0,one_p_two,smthn1.Length-4,smthn2.Length);
+            
+           Buffer.BlockCopy(extra,0,smthn3,encrypyedData.Length - extra.Length,extra.Length);
+            
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            one_p_two = ReadByteStringNoNull(one_p_two, 0);
+            
+            Console.WriteLine("unknown " + Encoding.GetEncoding("Shift-JIS").GetString(unknown));
+            Console.WriteLine("reciver " + Encoding.GetEncoding("Shift-JIS").GetString(reciver));
+            Console.WriteLine("sender " + Encoding.GetEncoding("Shift-JIS").GetString(sender));
+            Console.WriteLine("title " + Encoding.GetEncoding("Shift-JIS").GetString(title));
+            Console.WriteLine("body " + Encoding.GetEncoding("Shift-JIS").GetString(body));
+            Console.WriteLine("face " + Encoding.GetEncoding("Shift-JIS").GetString(face));
+            Console.WriteLine("smthn1 " + Encoding.GetEncoding("Shift-JIS").GetString(smthn1));
+            Console.WriteLine("smthn2 " + Encoding.GetEncoding("Shift-JIS").GetString(smthn2));
+            Console.WriteLine("one_p_two " + Encoding.GetEncoding("Shift-JIS").GetString(one_p_two));
+            Console.WriteLine("smthn3 " + Encoding.GetEncoding("Shift-JIS").GetString(smthn3));
+            
+            
+            
+            Log.LogData(unknown, 0xFFFF, this.index, "unknown", 0, 0);
+            Log.LogData(smthn1, 0xFFFF, this.index, "smthn1", 0, 0);
+            Log.LogData(smthn2, 0xFFFF, this.index, "smthn2", 0, 0);
+            Log.LogData(one_p_two, 0xFFFF, this.index, "one_p_two", 0, 0);
+            Log.LogData(smthn3, 0xFFFF, this.index, "smthn3", 0, 0);
+            
+            byte[] unkdec = from_crypto.Decrypt(unknown);
+            byte[] smthn1dec = from_crypto.Decrypt(smthn1);
+            byte[] smthn2dec = from_crypto.Decrypt(smthn2);
+            byte[] one_p_dec = from_crypto.Decrypt(one_p_two);
+            byte[] fata = from_crypto.Decrypt(encrypyedData);
+            byte[] smthn3dec = from_crypto.Decrypt(smthn3);
+            
+            Log.LogData(unkdec, 0xFFFF, this.index, "unkdec dec", 0, 0);
+            Log.LogData(smthn1dec, 0xFFFF, this.index, "smthn1dec dec", 0, 0);
+            Log.LogData(smthn2dec, 0xFFFF, this.index, "smthn2dec dec", 0, 0);
+            Log.LogData(one_p_dec, 0xFFFF, this.index, "one_p_dec dec", 0, 0);
+            Log.LogData(fata, 0xFFFF, this.index, "fata dec", 0, 0);
+            Log.LogData(smthn3dec, 0xFFFF, this.index, "smthn3 dec", 0, 0);
+
+        }
+
         public void ExtractCharacterData(byte[] data)
         {
             save_slot = data[0];
@@ -591,6 +676,23 @@ namespace FragmentServerWV
                 m.WriteByte(b);
                 if (b == 0)
                     break;
+                if (pos >= data.Length)
+                    break;
+            }
+
+            return m.ToArray();
+        }
+        
+        public byte[] ReadByteStringNoNull(byte[] data, int pos)
+        {
+            MemoryStream m = new MemoryStream();
+            while (true)
+            {
+                byte b = data[pos++];
+                if (b == 0)
+                    break;
+                m.WriteByte(b);
+                
                 if (pos >= data.Length)
                     break;
             }
