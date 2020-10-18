@@ -1,32 +1,30 @@
+
+################################################Create BBS Tables #####################################################
 create table BBS_Category
 (
-    categoryID   int         not null,
+    categoryID   int         auto_increment,
     categoryName varchar(33) not null,
+    PRIMARY KEY (categoryID),
     constraint BBS_Category_categoryID_uindex
         unique (categoryID)
 );
 
-alter table BBS_Category
-    add primary key (categoryID);
-
 create table BBS_Threads
 (
-    threadID    int default 1 not null,
+    threadID  int             auto_increment,
     threadTitle varchar(37)   not null,
     categoryID  int           not null,
+    PRIMARY KEY (threadID),
     constraint BBS_Threads_threadID_uindex
         unique (threadID),
     constraint BBS_Threads_BBS_Category_categoryID_fk
         foreign key (categoryID) references BBS_Category (categoryID)
 );
 
-alter table BBS_Threads
-    add primary key (threadID);
-
 create table BBS_Post_Meta
 (
     unk0     int           not null,
-    postID   int default 1 not null,
+    postID   int           auto_increment,
     unk2     int           not null,
     Date     datetime      not null,
     username varchar(20)   not null,
@@ -34,6 +32,7 @@ create table BBS_Post_Meta
     title    varchar(37)   not null,
     unk3     varchar(44)   not null,
     threadID int           not null,
+    PRIMARY KEY (postID),
     constraint BBS_Post_Meta_postID_uindex
         unique (postID),
     constraint BBS_Post_Meta_unk0_uindex
@@ -42,24 +41,61 @@ create table BBS_Post_Meta
         foreign key (threadID) references BBS_Threads (threadID)
 );
 
-alter table BBS_Post_Meta
-    add primary key (postID);
 
 create table BBS_Post_Body
 (
-    postBodyID int default 1 not null,
+    postBodyID int           auto_increment,
     postBody   varchar(600)  not null,
     postID     int           not null,
+    PRIMARY KEY (postBodyID),
     constraint BBS_Post_Body_postBodyID_uindex
         unique (postBodyID),
     constraint BBS_Post_Body_BBS_Post_Meta_postID_fk
         foreign key (postID) references BBS_Post_Meta (postID)
 );
 
-alter table BBS_Post_Body
-    add primary key (postBodyID);
+################################################Create BBS Tables #####################################################
 
 
+
+
+
+################################################Create Mail Tables #####################################################
+create table MAIL_META
+(
+    MAIL_ID             int auto_increment,
+    RECEIVER_ACCOUNT_ID int          not null,
+    DATE                datetime     not null,
+    SENDER_ACCOUNT_ID   int          not null,
+    SENDER_NAME         varchar(18)  null,
+    RECEIVER_NAME       varchar(18)  not null,
+    MAIL_SUBJECT        varchar(128) not null,
+    PRIMARY KEY (MAIL_ID),
+    constraint MAIL_META_MAIL_ID_uindex
+        unique (MAIL_ID)
+);
+
+
+create table MAIL_BODY
+(
+    MAIL_BODY_ID int auto_increment,
+    MAIL_ID   int   not null ,
+    MAIL_BODY varchar(1200) null,
+    FACE_ID   varchar(30)   not null,
+    PRIMARY KEY (MAIL_BODY_ID),
+    constraint MAIL_BODY_MAIL_ID_uindex
+        unique (MAIL_ID),
+    constraint MAIL_BODY_MAIL_META_MAIL_ID_fk
+        foreign key (MAIL_ID) references MAIL_META (MAIL_ID)
+);
+
+################################################Create Mail Tables #####################################################
+
+
+
+
+
+################################################Create Ranking Tables #####################################################
 CREATE TABLE `ranking_data` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `AntiCheatEngineResult` tinytext NOT NULL,
@@ -77,3 +113,5 @@ CREATE TABLE `ranking_data` (
   `AverageFieldLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
 ) AUTO_INCREMENT=40820 DEFAULT CHARSET=utf8mb4;
+
+################################################Create Ranking Tables #####################################################

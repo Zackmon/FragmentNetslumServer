@@ -6,7 +6,7 @@
            table = "BBS_Post_Body">
 
         <id name = "postBodyID" column = "postBodyID" type = "int">
-            
+            <generator class="native"/>
         </id>
         
         <property name = "postBody" column = "postBody" type = "String"/>

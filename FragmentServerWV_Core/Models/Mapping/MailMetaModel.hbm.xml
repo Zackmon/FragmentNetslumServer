@@ -1,0 +1,21 @@
+﻿<?xml version = "1.0" encoding = "utf-8" ?>
+
+<hibernate-mapping xmlns = "urn:nhibernate-mapping-2.2">
+
+    <class name = "FragmentServerWV.Models.MailMetaModel, FragmentServerWV_Core"
+           table = "MAIL_META">
+
+        <id name = "Mail_ID" column = "MAIL_ID" type = "int">
+            <generator class="native"/>
+        </id>
+        <property name = "Receiver_Account_ID" column = "RECEIVER_ACCOUNT_ID" type = "int"/>
+        <property name = "date" column = "Date" type = "datetime"/>
+        <property name = "Sender_Account_ID" column = "SENDER_ACCOUNT_ID" type = "int"/>
+        <property name = "Sender_Name" column = "SENDER_NAME" type = "String"/>
+        <property name = "Receiver_Name" column = "RECEIVER_NAME" type = "String"/>
+        <property name = "Mail_Subject" column = "MAIL_SUBJECT" type = "String"/>
+        
+
+    </class>
+
+</hibernate-mapping>

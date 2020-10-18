@@ -29,6 +29,10 @@
     <EmbeddedResource Include="Models\Mapping\BbsPostBody.hbm.xml" />
     <None Remove="Models\Mapping\RankingDataModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\RankingDataModel.hbm.xml" />
+    <None Remove="Models\Mapping\MailMetaModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\MailMetaModel.hbm.xml" />
+    <None Remove="Models\Mapping\MailBodyModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\MailBodyModel.hbm.xml" />
   </ItemGroup>
 
 <!--

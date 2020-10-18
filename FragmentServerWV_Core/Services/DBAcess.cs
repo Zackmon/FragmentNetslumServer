@@ -12,6 +12,7 @@ namespace FragmentServerWV.Services
     {
         private static DBAcess _instance = null;
         private ISessionFactory _sessionFactory;
+        private Encoding _encoding;
 
         public static DBAcess getInstance()
         {
@@ -28,6 +29,9 @@ namespace FragmentServerWV.Services
             var config = new Configuration().Configure();
             config.AddAssembly("FragmentServerWV_Core");
             _sessionFactory = config.BuildSessionFactory();
+            
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            _encoding = Encoding.GetEncoding("Shift-JIS");
         }
 
         public List<BbsCategoryModel> GetListOfBbsCategory()
@@ -109,10 +113,11 @@ namespace FragmentServerWV.Services
             Console.WriteLine("post Title " + BitConverter.ToString(postTitleBytes));
             Console.WriteLine("post Body " + BitConverter.ToString(postBodyBytes));
 
+            
             // int threadIDX = BitConverter.ToInt32(threadIdBytes);
-            String username = Encoding.ASCII.GetString(usernameBytes);
-            String postTitle = Encoding.ASCII.GetString(postTitleBytes);
-            String postBody = Encoding.ASCII.GetString(postBodyBytes);
+            String username = _encoding.GetString(usernameBytes);
+            String postTitle = _encoding.GetString(postTitleBytes);
+            String postBody = _encoding.GetString(postBodyBytes);
 
             int threadID = 0;
             if (u == 0)
@@ -125,13 +130,14 @@ namespace FragmentServerWV.Services
 
                 using (ISession session = _sessionFactory.OpenSession())
                 {
-                     threadID = session.Query<BbsThreadModel>().Max(x => (int?) x.threadID).Value + 1;
-                     thread.threadID = threadID;
+                     //threadID = session.Query<BbsThreadModel>().Max(x => (int?) x.threadID).Value + 1;
+                     //thread.threadID = threadID;
                     using (ITransaction transaction = session.BeginTransaction())
                     {
                         session.Save(thread);
                         transaction.Commit();
-                        
+                        threadID = thread.threadID;
+
                     }
                     
                     session.Close();
@@ -149,7 +155,7 @@ namespace FragmentServerWV.Services
 
             
             meta.unk2 = 0;
-            meta.date = DateTime.Now;
+            meta.date = DateTime.UtcNow;
             meta.username = username;
             meta.title = postTitle;
             meta.subtitle = postTitle.Substring(0, 16);
@@ -158,17 +164,16 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
-                int postID = session.Query<BbsPostMetaModel>().Max(x => (int?) x.postID).Value + 1;
-                int postBodyID = session.Query<BbsPostBody>().Max(x => (int?) x.postBodyID).Value + 1;
-                meta.postID = postID;
-                meta.unk0 = postID - 1;
+                 meta.unk0 = session.Query<BbsPostMetaModel>().Max(x => (int?) x.unk0).Value + 1;
+                //int postBodyID = session.Query<BbsPostBody>().Max(x => (int?) x.postBodyID).Value + 1;
+                //meta.postID = postID;
                 using (ITransaction transaction = session.BeginTransaction())
                 {
                     session.Save(meta);
                     //transaction.Commit();
 
                     BbsPostBody body = new BbsPostBody();
-                    body.postBodyID = postBodyID;
+                    
                     body.postBody = postBody;
                     body.postID = meta.postID;
 
@@ -177,10 +182,6 @@ namespace FragmentServerWV.Services
                 }
                 session.Close();
             }
-
-            {
-            }
-
 
             // Console.WriteLine("Thread ID  = " + threadIDX);
             Console.WriteLine("username " + username);
@@ -193,7 +194,7 @@ namespace FragmentServerWV.Services
             RankingDataModel model = new RankingDataModel();
             
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            DateTime dateTime = DateTime.Now;
+            DateTime dateTime = DateTime.UtcNow;
             
             model.antiCheatEngineResult = "LEGIT";
             model.loginTime = dateTime.ToString("ddd MMM dd hh:mm:ss yyyy");
