@@ -132,7 +132,7 @@ namespace FragmentServerWV
             byte[] result = new byte[payload.Length];
             // Invalid Payload Alignment / Size (has to be a multiple of 8)
             int payloadLength = payload.Length & 7;
-            Console.WriteLine("payload length" + payload.Length + "\t & value " + payloadLength);
+            
             if ((payload.Length & 7) != 0) return result;
             for (int i = 0; i < payload.Length; i++)
                 result[i] = payload[i];

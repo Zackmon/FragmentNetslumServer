@@ -14,7 +14,7 @@
         <property name = "Sender_Name" column = "SENDER_NAME" type = "String"/>
         <property name = "Receiver_Name" column = "RECEIVER_NAME" type = "String"/>
         <property name = "Mail_Subject" column = "MAIL_SUBJECT" type = "String"/>
-        
+        <property name = "Mail_Delivered" column = "MAIL_DELIVERED" type = "String"/>        
 
     </class>
 

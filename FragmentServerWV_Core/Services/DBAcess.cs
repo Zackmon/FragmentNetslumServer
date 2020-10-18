@@ -193,15 +193,15 @@ namespace FragmentServerWV.Services
         {
             RankingDataModel model = new RankingDataModel();
             
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            
             DateTime dateTime = DateTime.UtcNow;
             
             model.antiCheatEngineResult = "LEGIT";
             model.loginTime = dateTime.ToString("ddd MMM dd hh:mm:ss yyyy");
             model.diskID = "0000000000000000000000000000000000000000000000000000000000000000";
-            model.saveID = Encoding.GetEncoding("Shift-JIS").GetString(client.save_id,0,client.save_id.Length-1);
-            model.characterSaveID = Encoding.GetEncoding("Shift-JIS").GetString(client.char_id,0,client.char_id.Length-1);
-            model.characterName = Encoding.GetEncoding("Shift-JIS").GetString(client.char_name,0,client.char_name.Length-1);
+            model.saveID = _encoding.GetString(client.save_id,0,client.save_id.Length-1);
+            model.characterSaveID = _encoding.GetString(client.char_id,0,client.char_id.Length-1);
+            model.characterName = _encoding.GetString(client.char_name,0,client.char_name.Length-1);
            
             PlayerClass playerClass = (PlayerClass) client.char_class;
             model.characterClassName = playerClass.ToString();
@@ -223,6 +223,30 @@ namespace FragmentServerWV.Services
 
                 session.Close();
             }
+        }
+
+
+        public Boolean checkForNewMailByAccountID(int accountID)
+        {
+            return false;
+        }
+
+        public List<MailMetaModel> getAccountMail(int accountID)
+        {
+            List<MailMetaModel> metaList = new List<MailMetaModel>();
+
+            return metaList;
+        }
+
+        public MailBodyModel getMailBodyByMailID(int mail_ID)
+        {
+            
+            return new MailBodyModel();
+        }
+
+        public void createNewMail(MailMetaModel metaModel, MailBodyModel bodyModel)
+        {
+            
         }
     }
     
