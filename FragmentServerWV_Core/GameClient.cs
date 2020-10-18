@@ -242,9 +242,11 @@ namespace FragmentServerWV
                     byte[] saveID = ReadByteString(argument,0);
                     this.save_id = saveID; 
                     m = new MemoryStream();
+
+                    int playerAccountId = DBAcess.getInstance().GetPlayerAccountId(_encoding.GetString(saveID));
                     
+                    uint swapped = swap32((uint)playerAccountId);
                     
-                    uint swapped = swap32(55828740);
                     m.Write(BitConverter.GetBytes(swapped), 0, 4);
                     byte[] buff = _encoding.GetBytes(File.ReadAllText("welcome.txt"));
                     m.WriteByte((byte) (buff.Length - 1));
@@ -293,7 +295,7 @@ namespace FragmentServerWV
                 case OpCodes.OPCODE_DATA_MAIL_GET:
                     Log.LogData(argument, 0xFFFF, this.index, "ACCOUNT ID FOR MAIL HEADER", 0, 0);
 
-                    List<MailMetaModel> metaList = DBAcess.getInstance().getAccountMail(ReadAccountID(argument, 0));
+                    List<MailMetaModel> metaList = DBAcess.getInstance().GetAccountMail(ReadAccountID(argument, 0));
 
                     //send the count for the mail 
                     SendPacket30(OpCodes.OPCODE_DATA_MAIL_GETOK, BitConverter.GetBytes(swap32((uint) metaList.Count)));
@@ -316,7 +318,7 @@ namespace FragmentServerWV
                     
                     Console.WriteLine("Mail ID " + mailID);
 
-                    MailBodyModel bodyModel = DBAcess.getInstance().getMailBodyByMailID(mailID);
+                    MailBodyModel bodyModel = DBAcess.getInstance().GetMailBodyByMailId(mailID);
                     
                     SendPacket30(OpCodes.OPCODE_DATA_MAIL_GET_MAIL_BODY_RESPONSE, GetMailBody(bodyModel));
                     
@@ -355,7 +357,7 @@ namespace FragmentServerWV
 
                     Log.LogData(argument,0xFFFF,this.index,"BBS_POST_ARG,",0,0);
 
-                    DBAcess.getInstance().createNewPost(argument, id);
+                    DBAcess.getInstance().CreateNewPost(argument, id);
 
                     SendPacket30(0x7813, new byte[] {0x00, 0x00});
                     break;
@@ -428,7 +430,7 @@ namespace FragmentServerWV
 
                     int threadID = Convert.ToInt32(i);
 
-                    List<BbsPostMetaModel> postMetaList = DBAcess.getInstance().getPostsMetaByThreadID(threadID);
+                    List<BbsPostMetaModel> postMetaList = DBAcess.getInstance().GetPostsMetaByThreadId(threadID);
 
 
                     SendPacket30(OpCodes.OPCODE_DATA_BBS_THREAD_LIST,
@@ -453,7 +455,7 @@ namespace FragmentServerWV
                     int postID = Convert.ToInt32(q);
                     String body = "";
 
-                    BbsPostBody bbsPostBody = DBAcess.getInstance().getPostBodyByPostID(postID);
+                    BbsPostBody bbsPostBody = DBAcess.getInstance().GetPostBodyByPostId(postID);
                     Console.WriteLine("Queryed for the post ID number " + postID);
                     SendPostBody(m, bbsPostBody);
                     break;
@@ -639,12 +641,13 @@ namespace FragmentServerWV
             metaModel.Sender_Name = _encoding.GetString(sender);
             metaModel.Mail_Subject = _encoding.GetString(subject);
             metaModel.date = DateTime.UtcNow;
+            metaModel.Mail_Delivered = false;
             
             MailBodyModel bodyModel = new MailBodyModel();
             bodyModel.Mail_Body = _encoding.GetString(body);
             bodyModel.Mail_Face_ID = _encoding.GetString(face);
             
-            DBAcess.getInstance().createNewMail(metaModel,bodyModel);
+            DBAcess.getInstance().CreateNewMail(metaModel,bodyModel);
 
 
         }

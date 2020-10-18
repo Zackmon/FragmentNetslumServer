@@ -2,14 +2,14 @@
 
 <hibernate-mapping xmlns = "urn:nhibernate-mapping-2.2">
 
-    <class name = "FragmentServerWV.Models.MailMetaModel, FragmentServerWV_Core"
-           table = "MAIL_META">
+    <class name = "FragmentServerWV.Models.MailBodyModel, FragmentServerWV_Core"
+           table = "MAIL_BODY">
 
         <id name = "Mail_Body_ID" column = "MAIL_BODY_ID" type = "int">
             <generator class="native"/>
         </id>
         <property name = "Mail_ID" column = "MAIL_ID" type = "int"/>
-        <property name = "Mail_Body" column = "MAIL_BODY" type = "int"/>
+        <property name = "Mail_Body" column = "MAIL_BODY" type = "String"/>
         <property name = "Mail_Face_ID" column = "FACE_ID" type = "String"/>
         
 

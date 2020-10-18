@@ -29,7 +29,7 @@ namespace FragmentServerWV.Services
             var config = new Configuration().Configure();
             config.AddAssembly("FragmentServerWV_Core");
             _sessionFactory = config.BuildSessionFactory();
-            
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _encoding = Encoding.GetEncoding("Shift-JIS");
         }
@@ -40,8 +40,7 @@ namespace FragmentServerWV.Services
             using (ISession session = _sessionFactory.OpenSession())
             {
                 ICriteria criteria = session.CreateCriteria(typeof(BbsCategoryModel));
-                IList<BbsCategoryModel> bbsCategoryModels;
-                bbsCategoryModels = session.Query<BbsCategoryModel>().ToList();
+                IList<BbsCategoryModel> bbsCategoryModels = session.Query<BbsCategoryModel>().ToList();
                 categoryList.AddRange(bbsCategoryModels);
                 session.Close();
             }
@@ -67,36 +66,32 @@ namespace FragmentServerWV.Services
         }
 
 
-        public List<BbsPostMetaModel> getPostsMetaByThreadID(int threadID)
+        public List<BbsPostMetaModel> GetPostsMetaByThreadId(int threadID)
         {
             List<BbsPostMetaModel> postMetaList = new List<BbsPostMetaModel>();
-            using (ISession session = _sessionFactory.OpenSession())
-            {
-                postMetaList.AddRange(
-                    session.Query<BbsPostMetaModel>().Where
-                            (x => x.threadID == threadID)
-                        .ToList());
+            using ISession session = _sessionFactory.OpenSession();
 
-                session.Close();
-            }
+            postMetaList.AddRange(
+                session.Query<BbsPostMetaModel>().Where
+                        (x => x.threadID == threadID)
+                    .ToList());
+
+            session.Close();
 
             return postMetaList;
         }
 
 
-        public BbsPostBody getPostBodyByPostID(int postID)
+        public BbsPostBody GetPostBodyByPostId(int postID)
         {
-            BbsPostBody postBody = new BbsPostBody();
+            using ISession session = _sessionFactory.OpenSession();
 
-            using (ISession session = _sessionFactory.OpenSession())
-            {
-                postBody = session.Query<BbsPostBody>().Where(x => x.postID == postID).FirstOrDefault();
-            }
+            BbsPostBody postBody = session.Query<BbsPostBody>().SingleOrDefault(x => x.postID == postID);
 
             return postBody;
         }
 
-        public void createNewPost(byte[] argument, uint u)
+        public void CreateNewPost(byte[] argument, uint u)
         {
             byte[] threadIdBytes = new byte[4];
             byte[] usernameBytes = new byte[16];
@@ -113,7 +108,7 @@ namespace FragmentServerWV.Services
             Console.WriteLine("post Title " + BitConverter.ToString(postTitleBytes));
             Console.WriteLine("post Body " + BitConverter.ToString(postBodyBytes));
 
-            
+
             // int threadIDX = BitConverter.ToInt32(threadIdBytes);
             String username = _encoding.GetString(usernameBytes);
             String postTitle = _encoding.GetString(postTitleBytes);
@@ -130,16 +125,15 @@ namespace FragmentServerWV.Services
 
                 using (ISession session = _sessionFactory.OpenSession())
                 {
-                     //threadID = session.Query<BbsThreadModel>().Max(x => (int?) x.threadID).Value + 1;
-                     //thread.threadID = threadID;
+                    //threadID = session.Query<BbsThreadModel>().Max(x => (int?) x.threadID).Value + 1;
+                    //thread.threadID = threadID;
                     using (ITransaction transaction = session.BeginTransaction())
                     {
                         session.Save(thread);
                         transaction.Commit();
                         threadID = thread.threadID;
-
                     }
-                    
+
                     session.Close();
                 }
             }
@@ -153,7 +147,7 @@ namespace FragmentServerWV.Services
 
             BbsPostMetaModel meta = new BbsPostMetaModel();
 
-            
+
             meta.unk2 = 0;
             meta.date = DateTime.UtcNow;
             meta.username = username;
@@ -164,7 +158,7 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
-                 meta.unk0 = session.Query<BbsPostMetaModel>().Max(x => (int?) x.unk0).Value + 1;
+                meta.unk0 = session.Query<BbsPostMetaModel>().Max(x => (int?) x.unk0).Value + 1;
                 //int postBodyID = session.Query<BbsPostBody>().Max(x => (int?) x.postBodyID).Value + 1;
                 //meta.postID = postID;
                 using (ITransaction transaction = session.BeginTransaction())
@@ -173,13 +167,14 @@ namespace FragmentServerWV.Services
                     //transaction.Commit();
 
                     BbsPostBody body = new BbsPostBody();
-                    
+
                     body.postBody = postBody;
                     body.postID = meta.postID;
 
                     session.Save(body);
                     transaction.Commit();
                 }
+
                 session.Close();
             }
 
@@ -192,64 +187,141 @@ namespace FragmentServerWV.Services
         public void PlayerLogin(GameClient client)
         {
             RankingDataModel model = new RankingDataModel();
-            
-            
+
+
             DateTime dateTime = DateTime.UtcNow;
-            
+
             model.antiCheatEngineResult = "LEGIT";
             model.loginTime = dateTime.ToString("ddd MMM dd hh:mm:ss yyyy");
             model.diskID = "0000000000000000000000000000000000000000000000000000000000000000";
-            model.saveID = _encoding.GetString(client.save_id,0,client.save_id.Length-1);
-            model.characterSaveID = _encoding.GetString(client.char_id,0,client.char_id.Length-1);
-            model.characterName = _encoding.GetString(client.char_name,0,client.char_name.Length-1);
-           
+            model.saveID = _encoding.GetString(client.save_id, 0, client.save_id.Length - 1);
+            model.characterSaveID = _encoding.GetString(client.char_id, 0, client.char_id.Length - 1);
+            model.characterName = _encoding.GetString(client.char_name, 0, client.char_name.Length - 1);
+
             PlayerClass playerClass = (PlayerClass) client.char_class;
             model.characterClassName = playerClass.ToString();
             model.characterLevel = client.char_level;
-            
+
             model.characterHP = client.char_HP;
             model.characterSP = client.char_SP;
             model.characterGP = (int) client.char_GP;
             model.godStatusCounterOnline = client.online_god_counter;
             model.averageFieldLevel = client.offline_godcounter;
 
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            session.Save(model);
+            transaction.Commit();
+
+            session.Close();
+        }
+
+
+        public int GetPlayerAccountId(string saveID)
+        {
+            PlayerAccountIDModel playerAccountIdModel;
+
             using (ISession session = _sessionFactory.OpenSession())
             {
-                using (ITransaction transaction = session.BeginTransaction())
+                playerAccountIdModel = session.Query<PlayerAccountIDModel>()
+                    .SingleOrDefault(x => x.saveID == saveID);
+
+                if (playerAccountIdModel == null || playerAccountIdModel.ID == -1 || playerAccountIdModel.ID == 0)
                 {
-                    session.Save(model);
-                    transaction.Commit();
+                    Console.WriteLine("the Save ID " + saveID +
+                                      " does not have an associated account ID , creating a new Account ID");
+
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
+                        playerAccountIdModel = new PlayerAccountIDModel();
+                        playerAccountIdModel.saveID = saveID;
+
+                        session.Save(playerAccountIdModel);
+                        transaction.Commit();
+                    }
+
+                    Console.WriteLine("the new Account ID for the save " + saveID + " is " + playerAccountIdModel.ID);
                 }
 
                 session.Close();
             }
-        }
 
+            return playerAccountIdModel.ID;
+        }
 
         public Boolean checkForNewMailByAccountID(int accountID)
         {
-            return false;
+            Boolean newMail = false;
+            using (ISession session = _sessionFactory.OpenSession())
+            {
+                newMail = session.Query<MailMetaModel>()
+                    .Any(x => x.Receiver_Account_ID == accountID
+                              && x.Mail_Delivered == false);
+
+                session.Close();
+            }
+
+            return newMail;
         }
 
-        public List<MailMetaModel> getAccountMail(int accountID)
+        public List<MailMetaModel> GetAccountMail(int accountID)
         {
             List<MailMetaModel> metaList = new List<MailMetaModel>();
+
+            using ISession session = _sessionFactory.OpenSession();
+
+            metaList = session.Query<MailMetaModel>()
+                .Where(x => x.Receiver_Account_ID == accountID && x.Mail_Delivered == false)
+                .ToList();
+
+            //set the records as delivered 
+            if (metaList.Count > 0)
+            {
+                foreach (MailMetaModel meta in metaList)
+                {
+                    meta.Mail_Delivered = true;
+                }
+
+                using ITransaction transaction = session.BeginTransaction();
+
+                session.SaveOrUpdate(metaList);
+                transaction.Commit();
+            }
+
+            session.Close();
 
             return metaList;
         }
 
-        public MailBodyModel getMailBodyByMailID(int mail_ID)
+        public MailBodyModel GetMailBodyByMailId(int mail_ID)
         {
-            
-            return new MailBodyModel();
+            MailBodyModel bodyModel = new MailBodyModel();
+
+            using (ISession session = _sessionFactory.OpenSession())
+            {
+                bodyModel = session.Query<MailBodyModel>()
+                    .SingleOrDefault(x => x.Mail_ID == mail_ID);
+
+                session.Close();
+            }
+
+
+            return bodyModel;
         }
 
-        public void createNewMail(MailMetaModel metaModel, MailBodyModel bodyModel)
+        public void CreateNewMail(MailMetaModel metaModel, MailBodyModel bodyModel)
         {
-            
+            using ISession session = _sessionFactory.OpenSession();
+            using ITransaction transaction = session.BeginTransaction();
+
+            session.Save(metaModel);
+            bodyModel.Mail_ID = metaModel.Mail_ID;
+            session.Save(bodyModel);
+            transaction.Commit();
+
+            session.Close();
         }
     }
-    
-    
-    
 }

@@ -115,3 +115,16 @@ CREATE TABLE `ranking_data` (
 ) AUTO_INCREMENT=40820 DEFAULT CHARSET=utf8mb4;
 
 ################################################Create Ranking Tables #####################################################
+
+
+################################################ Player Account ID #####################################################
+create table PLAYER_ACCOUNT_ID
+(
+    ID     int auto_increment
+        primary key,
+    SAVEID varchar(100) not null,
+    constraint PLAYER_ACCOUNT_ID_SAVEID_uindex
+        unique (SAVEID)
+)AUTO_INCREMENT=1000;
+
+################################################ Player Account ID #####################################################
