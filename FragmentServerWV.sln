@@ -5,8 +5,8 @@ VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FragmentServerWV_Core", "FragmentServerWV_Core\FragmentServerWV_Core.csproj", "{E24F2253-4792-4DB6-AA71-7262CA891A3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FragmentServerWV_WinForm", "FragmentServerWV_WinForm\FragmentServerWV_WinForm.csproj", "{AEBA1F8F-E974-4860-AE97-6180C3408F29}"
-EndProject
+#Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FragmentServerWV_WinForm", "FragmentServerWV_WinForm\FragmentServerWV_WinForm.csproj", "{AEBA1F8F-E974-4860-AE97-6180C3408F29}"
+#EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FragmentServerWV_Console", "FragmentServerWV_Console\FragmentServerWV_Console.csproj", "{F1360378-9ED1-46D6-AB60-1CF4F1B79F96}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FragmentServerWV_WebApi", "FragmentServerWV_WebApi\FragmentServerWV_WebApi.csproj", "{A6BB141E-02F4-46EB-82E4-B7A02D86F1E8}"
