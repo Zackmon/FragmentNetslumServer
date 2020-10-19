@@ -61,7 +61,7 @@ namespace FragmentServerWV
         public string charModelFile;
         
         public Stopwatch pingtimer;
-        private int mailCount = 0;
+        
         
         
         
@@ -465,7 +465,7 @@ namespace FragmentServerWV
 
                     uint q= swap32(BitConverter.ToUInt32(argument, 4));
                     int postID = Convert.ToInt32(q);
-                    String body = "";
+                    
 
                     BbsPostBody bbsPostBody = DBAcess.getInstance().GetPostBodyByPostId(postID);
                     Console.WriteLine("Queryed for the post ID number " + postID);
