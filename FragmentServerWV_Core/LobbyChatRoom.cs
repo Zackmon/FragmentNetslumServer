@@ -42,7 +42,7 @@ namespace FragmentServerWV
             if(client == null)
                 return;
             foreach (GameClient c in Server.clients)
-                if (c.index != towho && c.room_index == ID)
+                if (c.index != towho && c.room_index == ID && !c._exited)
                     client.SendPacket30(0x7009, c.last_status);
         }
 

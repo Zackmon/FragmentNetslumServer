@@ -6,7 +6,7 @@
            table = "BBS_Threads">
 
         <id name = "threadID" column = "threadID" type = "int">
-           
+            <generator class="native"/>
         </id>
 
         <property name = "threadTitle" column = "threadTitle" type = "String"/>

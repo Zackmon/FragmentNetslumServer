@@ -6,7 +6,7 @@
            table = "BBS_Category">
         
         <id name = "categoryID" column = "categoryID" type = "int">
-            
+            <generator class="native"/>
         </id>
 
         <property name = "categoryName" column = "categoryName" type = "String"/>
