@@ -564,7 +564,7 @@ namespace FragmentServerWV
                         count++;
                 SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
                 foreach (GameClient client in Server.clients)
-                    if (client.isAreaServer)
+                    if (client.isAreaServer && !client._exited)
                     {
                         MemoryStream m = new MemoryStream();
                         m.WriteByte(0);
@@ -845,7 +845,19 @@ namespace FragmentServerWV
             m.WriteByte((byte) (code >> 8));
             m.WriteByte((byte) (code & 0xFF));
             m.Write(buff, 0, buff.Length);
-            ns.Write(m.ToArray(), 0, (int) m.Length);
+            try
+            {
+                ns.Write(m.ToArray(), 0, (int) m.Length);
+            }
+            catch (Exception e)
+            {
+                
+                Console.WriteLine("error sending packet to client "+ this.index +" maybe disconnected \n"+e);
+                Exit();
+                throw;
+                
+            }
+            
         }
 
         public static ushort swap16(ushort data)
