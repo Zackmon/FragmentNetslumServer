@@ -40,6 +40,7 @@ namespace FragmentServerWV
         public ushort areaServerLevel;
         public byte areaServerStatus;
 
+        public int AccountId;
         public byte save_slot;
         public byte[] save_id;
         public byte[] char_name;
@@ -55,7 +56,12 @@ namespace FragmentServerWV
         public ushort offline_godcounter;
         public Stopwatch pingtimer;
         private int mailCount = 0;
+        
+        
+        
         private Encoding _encoding;
+
+        
 
 
         public GameClient(TcpClient c, int idx)
@@ -243,9 +249,9 @@ namespace FragmentServerWV
                     this.save_id = saveID; 
                     m = new MemoryStream();
 
-                    int playerAccountId = DBAcess.getInstance().GetPlayerAccountId(_encoding.GetString(saveID));
+                     AccountId = DBAcess.getInstance().GetPlayerAccountId(_encoding.GetString(saveID));
                     
-                    uint swapped = swap32((uint)playerAccountId);
+                    uint swapped = swap32((uint)AccountId);
                     
                     m.Write(BitConverter.GetBytes(swapped), 0, 4);
                     byte[] buff = _encoding.GetBytes(File.ReadAllText("welcome.txt"));

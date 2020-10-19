@@ -16,6 +16,7 @@ namespace FragmentServerWV.Models
         public virtual int characterGP {get; set; }
         public virtual int godStatusCounterOnline {get; set; }
         public virtual int averageFieldLevel {get; set; }
+        public virtual int accountID { get; set; }
 
     }
 }

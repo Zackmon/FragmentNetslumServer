@@ -111,6 +111,7 @@ CREATE TABLE `ranking_data` (
   `CharacterGP` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `GodStatueCounterOnline` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `AverageFieldLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  'AccountID' int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
 ) AUTO_INCREMENT=40820 DEFAULT CHARSET=utf8mb4;
 
@@ -120,7 +121,7 @@ CREATE TABLE `ranking_data` (
 ################################################ Player Account ID #####################################################
 create table PLAYER_ACCOUNT_ID
 (
-    ID     int auto_increment
+    ID      int auto_increment
         primary key,
     SAVEID varchar(100) not null,
     constraint PLAYER_ACCOUNT_ID_SAVEID_uindex

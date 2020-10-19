@@ -21,6 +21,7 @@
         <property name = "characterGP" column = "CharacterGP" type = "int"/>
         <property name = "godStatusCounterOnline" column = "GodStatueCounterOnline" type = "int"/>
         <property name = "averageFieldLevel" column = "AverageFieldLevel" type = "int"/>
+        <property name = "accountID" column = "AccountID" type = "int"/>
     </class>
 
 </hibernate-mapping>

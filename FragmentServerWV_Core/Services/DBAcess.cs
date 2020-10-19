@@ -193,7 +193,7 @@ namespace FragmentServerWV.Services
 
             model.antiCheatEngineResult = "LEGIT";
             model.loginTime = dateTime.ToString("ddd MMM dd hh:mm:ss yyyy");
-            model.diskID = "0000000000000000000000000000000000000000000000000000000000000000";
+            model.diskID = "DUMMY DISK ID VALUE !";
             model.saveID = _encoding.GetString(client.save_id, 0, client.save_id.Length - 1);
             model.characterSaveID = _encoding.GetString(client.char_id, 0, client.char_id.Length - 1);
             model.characterName = _encoding.GetString(client.char_name, 0, client.char_name.Length - 1);
@@ -207,6 +207,7 @@ namespace FragmentServerWV.Services
             model.characterGP = (int) client.char_GP;
             model.godStatusCounterOnline = client.online_god_counter;
             model.averageFieldLevel = client.offline_godcounter;
+            model.accountID = client.AccountId;
 
             using ISession session = _sessionFactory.OpenSession();
 
