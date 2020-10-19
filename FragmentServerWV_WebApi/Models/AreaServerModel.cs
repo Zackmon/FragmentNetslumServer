@@ -13,7 +13,7 @@ namespace FragmentServerWV_WebApi.Models
 
         public static AreaServerModel ConvertDate(FragmentServerWV.GameClient client)
         {
-            if (null == client.areaServerName || null == client.as_usernum ||null == client.areaServerLevel || null ==client.areaServerStatus) 
+            if (null == client.areaServerName) 
                 return null;
                 
 

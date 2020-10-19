@@ -33,10 +33,8 @@ namespace FragmentServerWV_WebApi.Models
              * 
              */
 
-            if (null == client.save_slot || null == client.save_id || null == client.char_id ||
-                null == client.char_name || null == client.char_class || null == client.greeting
-                || null == client.char_model || null == client.char_HP || null == client.char_SP ||
-                null == client.char_GP || null == client.offline_godcounter || null == client.online_god_counter)
+            if (null == client.save_id || null == client.char_id ||
+                null == client.char_name ||  null == client.greeting)
                 return null;
             
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

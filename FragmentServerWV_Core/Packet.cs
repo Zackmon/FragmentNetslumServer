@@ -53,6 +53,7 @@ namespace FragmentServerWV
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
             }
         }
     }
