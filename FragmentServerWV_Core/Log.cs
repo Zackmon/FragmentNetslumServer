@@ -63,6 +63,9 @@ namespace FragmentServerWV
 
         public static void LogData(byte[] data, ushort code, int index, string action, ushort check1, ushort check2)
         {
+#if DEBUG
+            
+
             string text;
             text = "Client #" + index + " : " + action + " (code 0x" + code.ToString("X4") + ", checksums 0x" + check1.ToString("X4") + "-0x" + check2.ToString("X4") + ")";
             Writeline(text, 2);
@@ -75,6 +78,7 @@ namespace FragmentServerWV
                 path = "log/" + (PacketCount++).ToString("D8") + "_" + DateTime.Now.ToLongTimeString().Replace(":", "-") + "_cl" + index.ToString("D4") + "_" + action.Replace(" ", "-") + "-code0x" + data[8].ToString("X2") + data[9].ToString("X2") + ".bin";
             }
             File.WriteAllBytes(path, data);
+#endif
         }
 
         public static string HexDump(byte[] bytes, int bytesPerLine = 16)
