@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using FragmentServerWV.Services;
 
 namespace FragmentServerWV
 {
@@ -42,6 +43,8 @@ namespace FragmentServerWV
                     if (name.Trim() != "")
                         lobbyChatRooms.Add(new LobbyChatRoom(name, count++, 0x7403));
             }
+
+            DBAcess.getInstance().LoadMessageOfDay();
             t = new Thread(MainThread);
             t.Start();
         }
