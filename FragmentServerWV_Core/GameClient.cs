@@ -54,6 +54,12 @@ namespace FragmentServerWV
         public uint char_GP;
         public ushort online_god_counter;
         public ushort offline_godcounter;
+        public char classLetter;
+        public int modelNumber;
+        public char modelType;
+        public string colorCode;
+        public string charModelFile;
+        
         public Stopwatch pingtimer;
         private int mailCount = 0;
         
@@ -254,7 +260,7 @@ namespace FragmentServerWV
                     uint swapped = swap32((uint)AccountId);
                     
                     m.Write(BitConverter.GetBytes(swapped), 0, 4);
-                    byte[] buff = _encoding.GetBytes(File.ReadAllText("welcome.txt"));
+                    byte[] buff = _encoding.GetBytes(DBAcess.getInstance().MessageOfTheDay);
                     m.WriteByte((byte) (buff.Length - 1));
                     m.Write(buff, 0, buff.Length);
                     while (m.Length < 0x200)
@@ -773,12 +779,49 @@ namespace FragmentServerWV
             offline_godcounter = swap16(BitConverter.ToUInt16(data, pos));
             pos += 2;
             
+             classLetter = GetCharacterModelClass(char_model);
+             modelNumber = GetCharacterModelNumber(char_model);
+             modelType = GetCharacterModelType(char_model);
+             colorCode = GetCharacterModelColorCode(char_model);
+
+             charModelFile = "xf" + classLetter + modelNumber + modelType +"_"+ colorCode;
+            
             DBAcess.getInstance().PlayerLogin(this);
             
             
             Console.WriteLine("Character Date \n save_slot "+ save_slot + "\n char_id " +_encoding.GetString(save_id) + " \n char_name " + _encoding.GetString(char_id) +
                               "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting "+ _encoding.GetString(greeting) +"\n charmodel " +char_model + "\n char_hp " + char_HP+
                               "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter "+ online_god_counter + "\n offline god counter "+ offline_godcounter +"\n\n\n\n full byte araray " + BitConverter.ToString(data));
+        }
+
+
+        public char GetCharacterModelClass(uint modelNumber)
+        {
+            char[] classLetters = { 't', 'b', 'h', 'a', 'l', 'w' };
+            
+            int index = (int) (modelNumber & 0x0F);
+            
+            return classLetters[index];
+        }
+        public int GetCharacterModelNumber(uint modelNumber)
+        {
+            return (int) (modelNumber >> 4 & 0x0F) + 1;
+        }
+        public char GetCharacterModelType(uint modelNumber)
+        {
+            char[] typeLetters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' };
+            
+            int index = (int) (modelNumber >> 12) & 0x0F;
+            
+            return typeLetters[index];
+            
+        }
+        public string GetCharacterModelColorCode(uint modelNumber)
+        {
+            string[] colorCodes = { "rd", "bl", "yl", "gr", "br", "pp" };
+            
+            int index = (int) (modelNumber >> 8) & 0x0F;
+            return colorCodes[index];
         }
 
         public byte[] ReadByteString(byte[] data, int pos)

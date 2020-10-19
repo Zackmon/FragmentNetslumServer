@@ -35,6 +35,8 @@
     <EmbeddedResource Include="Models\Mapping\MailBodyModel.hbm.xml" />
     <None Remove="Models\Mapping\PlayerAccountIDModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\PlayerAccountIDModel.hbm.xml" />
+    <None Remove="Models\Mapping\MessageOfTheDayModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\MessageOfTheDayModel.hbm.xml" />
   </ItemGroup>
 
 <!--

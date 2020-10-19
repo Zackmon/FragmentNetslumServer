@@ -14,6 +14,7 @@ namespace FragmentServerWV_WebApi.Models
         public int char_level;
         public string greeting;
         public int char_model;
+        public string charModelFile;
         public int char_HP;
         public int char_SP;
         public int char_GP;
@@ -56,6 +57,7 @@ namespace FragmentServerWV_WebApi.Models
             model.char_GP = (int) client.char_GP;
             model.online_god_counter = client.online_god_counter;
             model.offline_godcounter = client.offline_godcounter;
+            model.charModelFile = client.charModelFile;
 
             return model;
         }
@@ -136,6 +138,12 @@ namespace FragmentServerWV_WebApi.Models
         {
             get => offline_godcounter;
             set => offline_godcounter = value;
+        }
+
+        public string CharModelFile
+        {
+            get => charModelFile;
+            set => charModelFile = value;
         }
     }
     

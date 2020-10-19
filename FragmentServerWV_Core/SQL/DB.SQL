@@ -129,3 +129,14 @@ create table PLAYER_ACCOUNT_ID
 )AUTO_INCREMENT=1000;
 
 ################################################ Player Account ID #####################################################
+
+
+################################################ Message Of The Day #####################################################
+
+create table MessageOfTheDay
+(
+    ID      int auto_increment
+        primary key,
+    Message varchar(500) not null
+);
+################################################ Message Of The Day #####################################################

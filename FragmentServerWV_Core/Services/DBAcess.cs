@@ -13,6 +13,7 @@ namespace FragmentServerWV.Services
         private static DBAcess _instance = null;
         private ISessionFactory _sessionFactory;
         private Encoding _encoding;
+        private string _messageOfTheDay;
 
         public static DBAcess getInstance()
         {
@@ -32,6 +33,8 @@ namespace FragmentServerWV.Services
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _encoding = Encoding.GetEncoding("Shift-JIS");
+
+            _messageOfTheDay = LoadMessageOfDay();
         }
 
         public List<BbsCategoryModel> GetListOfBbsCategory()
@@ -323,6 +326,28 @@ namespace FragmentServerWV.Services
             transaction.Commit();
 
             session.Close();
+        }
+
+        public string LoadMessageOfDay()
+        {
+            MessageOfTheDayModel messageModel = new MessageOfTheDayModel();
+
+            using (ISession session = _sessionFactory.OpenSession())
+            {
+                messageModel = session.Query<MessageOfTheDayModel>()
+                    .SingleOrDefault(x => x.Id == 1);
+
+                session.Close();
+            }
+
+
+            return messageModel.Message;
+        }
+
+        public string MessageOfTheDay
+        {
+            get => _messageOfTheDay;
+            set => _messageOfTheDay = value;
         }
     }
 }
