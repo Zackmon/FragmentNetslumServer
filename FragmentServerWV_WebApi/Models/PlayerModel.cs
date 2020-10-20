@@ -19,7 +19,7 @@ namespace FragmentServerWV_WebApi.Models
         public int char_SP;
         public int char_GP;
         public int online_god_counter;
-        public int offline_godcounter;
+        public int offline_godCounter;
         
         public static PlayerModel ConvertData(FragmentServerWV.GameClient client)
         {
@@ -54,7 +54,7 @@ namespace FragmentServerWV_WebApi.Models
             model.char_SP = client.char_SP;
             model.char_GP = (int) client.char_GP;
             model.online_god_counter = client.online_god_counter;
-            model.offline_godcounter = client.offline_godcounter;
+            model.offline_godCounter = client.offline_godcounter;
             model.charModelFile = client.charModelFile;
 
             return model;
@@ -132,10 +132,10 @@ namespace FragmentServerWV_WebApi.Models
             set => online_god_counter = value;
         }
 
-        public int OfflineGodcounter
+        public int OfflineGodCounter
         {
-            get => offline_godcounter;
-            set => offline_godcounter = value;
+            get => offline_godCounter;
+            set => offline_godCounter = value;
         }
 
         public string CharModelFile
