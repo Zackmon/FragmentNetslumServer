@@ -46,12 +46,12 @@ namespace FragmentServerWV_Console
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("http://").Append(Config.configs["ip"]).Append(":5000");
-            StringBuilder sbSecure = new StringBuilder();
-            sbSecure.Append("https://").Append(Config.configs["ip"]).Append(":5001");
+            //StringBuilder sbSecure = new StringBuilder();
+            //sbSecure.Append("https://").Append(Config.configs["ip"]).Append(":5001");
             
             return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls(sbSecure.ToString(),sb.ToString());
+                    webBuilder.UseUrls(sb.ToString());
                 });
         }
     }
