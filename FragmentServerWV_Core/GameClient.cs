@@ -651,12 +651,12 @@ namespace FragmentServerWV
             metaModel.Receiver_Name = _encoding.GetString(reciver);
             metaModel.Sender_Account_ID = (int) swap32(BitConverter.ToUInt32(sender_accountID));
             metaModel.Sender_Name = _encoding.GetString(sender);
-            metaModel.Mail_Subject = _encoding.GetString(subject);
+            metaModel.Mail_Subject = subject;
             metaModel.date = DateTime.UtcNow;
             metaModel.Mail_Delivered = false;
             
             MailBodyModel bodyModel = new MailBodyModel();
-            bodyModel.Mail_Body = _encoding.GetString(body);
+            bodyModel.Mail_Body = body;
             bodyModel.Mail_Face_ID = _encoding.GetString(face);
             
             DBAcess.getInstance().CreateNewMail(metaModel,bodyModel);
@@ -689,7 +689,7 @@ namespace FragmentServerWV
             
             List<byte> receiver_accountID = BitConverter.GetBytes(swap32((uint) metaModel.Receiver_Account_ID)).ToList();
 
-            List<byte> mail_subject = _encoding.GetBytes(metaModel.Mail_Subject).ToList();
+            List<byte> mail_subject = metaModel.Mail_Subject.ToList();
             
 
             while (mail_subject.Count<128)
@@ -736,7 +736,7 @@ namespace FragmentServerWV
             MemoryStream m = new MemoryStream();
             
             
-            List<byte> body= _encoding.GetBytes(bodyModel.Mail_Body).ToList();
+            List<byte> body= bodyModel.Mail_Body.ToList();
 
             while (body.Count<1200)
             {
@@ -946,7 +946,7 @@ namespace FragmentServerWV
         {
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap32((ushort) threadModel.threadID)), 0, 4);
-            byte[] threadTitleBytes = _encoding.GetBytes(threadModel.threadTitle);
+            byte[] threadTitleBytes = threadModel.threadTitle;
            // m.WriteByte((byte) (threadTitleBytes.Length - 1));
             m.Write(threadTitleBytes, 0, threadTitleBytes.Length);
             while (m.Length < 0x26)
@@ -1029,7 +1029,7 @@ namespace FragmentServerWV
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(0), 0, 4);
 
-            byte[] bodyBytes = _encoding.GetBytes(postBody.postBody);
+            byte[] bodyBytes = postBody.postBody;
 
             m.Write(bodyBytes, 0, bodyBytes.Length); // message body 
 

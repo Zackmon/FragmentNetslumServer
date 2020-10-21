@@ -9,7 +9,7 @@ namespace FragmentServerWV.Models
         public virtual int Sender_Account_ID { get; set; }
         public virtual string Sender_Name {get; set; }
         public virtual string Receiver_Name {get; set; }
-        public virtual string Mail_Subject {get; set; }
+        public virtual byte[] Mail_Subject {get; set; }
         public virtual Boolean Mail_Delivered { get; set; }
     }
 }

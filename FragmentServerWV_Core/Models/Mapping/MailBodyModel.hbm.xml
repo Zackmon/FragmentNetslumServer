@@ -9,7 +9,7 @@
             <generator class="native"/>
         </id>
         <property name = "Mail_ID" column = "MAIL_ID" type = "int"/>
-        <property name = "Mail_Body" column = "MAIL_BODY" type = "String"/>
+        <property name = "Mail_Body" column = "MAIL_BODY" type = "BinaryBlob"/>
         <property name = "Mail_Face_ID" column = "FACE_ID" type = "String"/>
         
 

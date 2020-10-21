@@ -123,7 +123,7 @@ namespace FragmentServerWV.Services
                 // Create a new Thread before posting 
 
                 BbsThreadModel thread = new BbsThreadModel();
-                thread.threadTitle = postTitle;
+                thread.threadTitle = postTitleBytes;
                 thread.categoryID = 1;
 
                 using (ISession session = _sessionFactory.OpenSession())
@@ -180,7 +180,7 @@ namespace FragmentServerWV.Services
 
                     BbsPostBody body = new BbsPostBody();
 
-                    body.postBody = postBody;
+                    body.postBody = postBodyBytes;
                     body.postID = meta.postID;
 
                     session.Save(body);

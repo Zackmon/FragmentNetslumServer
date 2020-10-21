@@ -9,7 +9,7 @@
             <generator class="native"/>
         </id>
         
-        <property name = "postBody" column = "postBody" type = "String"/>
+        <property name = "postBody" column = "postBody" type = "BinaryBlob"/>
     
         <property name = "postID" column = "postID" type = "int"/>
 
