@@ -79,6 +79,19 @@ create table MAIL_META
         unique (MAIL_ID)
 );
 
+create table MAIL_BODY
+(
+    MAIL_BODY_ID int auto_increment
+        primary key,
+    MAIL_ID      int         not null,
+    MAIL_BODY    blob        null,
+    FACE_ID      varchar(30) not null,
+    constraint MAIL_BODY_MAIL_ID_uindex
+        unique (MAIL_ID),
+    constraint MAIL_BODY_MAIL_META_MAIL_ID_fk
+        foreign key (MAIL_ID) references MAIL_META (MAIL_ID)
+);
+
 
 
 
