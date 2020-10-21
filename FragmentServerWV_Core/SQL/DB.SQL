@@ -76,18 +76,23 @@ create table MAIL_META
 );
 
 
-create table MAIL_BODY
+create table MAIL_META
 (
-    MAIL_BODY_ID int auto_increment,
-    MAIL_ID   int   not null ,
-    MAIL_BODY varchar(1200) null,
-    FACE_ID   varchar(30)   not null,
-    PRIMARY KEY (MAIL_BODY_ID),
-    constraint MAIL_BODY_MAIL_ID_uindex
-        unique (MAIL_ID),
-    constraint MAIL_BODY_MAIL_META_MAIL_ID_fk
-        foreign key (MAIL_ID) references MAIL_META (MAIL_ID)
+    MAIL_ID             int auto_increment,
+    RECEIVER_ACCOUNT_ID int                  not null,
+    DATE                datetime             not null,
+    SENDER_ACCOUNT_ID   int                  not null,
+    SENDER_NAME         varchar(18)          null,
+    RECEIVER_NAME       varchar(18)          not null,
+    MAIL_SUBJECT        varchar(128)         not null,
+    MAIL_DELIVERED      tinyint(1) default 0 null,
+    constraint MAIL_META_MAIL_ID_uindex
+        unique (MAIL_ID)
 );
+
+alter table MAIL_META
+    add primary key (MAIL_ID);
+
 
 ################################################Create Mail Tables #####################################################
 
