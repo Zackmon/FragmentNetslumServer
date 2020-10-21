@@ -155,6 +155,7 @@ namespace FragmentServerWV.Services
             meta.date = DateTime.UtcNow;
             meta.username = usernameBytes;
             meta.title = postTitleBytes;
+            meta.subtitle = new byte[16];
             if (postTitle.Length > 16)
                 Buffer.BlockCopy(postTitleBytes, 0, meta.subtitle, 0, 16);
             else
