@@ -1010,10 +1010,12 @@ namespace FragmentServerWV
 
             if (postMetaModel.title.Length > 32) //if the length is more than 17 then truncate
             {
-                postMetaModel.title = postMetaModel.title.Substring(0, 32);
+                byte[] temp = new byte[32];
+                Buffer.BlockCopy(postMetaModel.title,0,temp,0,32);
+                postMetaModel.title = temp;
             }
 
-            byte[] titleBytes = _encoding.GetBytes(postMetaModel.title);
+            byte[] titleBytes = postMetaModel.title;
             // m.WriteByte((byte) (titleBytes.Length - 1));
             m.Write(titleBytes, 0, titleBytes.Length); // title
 

@@ -10,7 +10,7 @@ namespace FragmentServerWV.Models
         public virtual DateTime date {get; set; }
         public virtual string username {get; set; }
         public virtual string subtitle {get; set; }
-        public virtual string title {get; set; }
+        public virtual byte[] title {get; set; }
         public virtual string unk3 {get; set; }
         public virtual int threadID {get; set; }
 

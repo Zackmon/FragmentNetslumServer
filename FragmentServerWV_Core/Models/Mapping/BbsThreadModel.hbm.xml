@@ -9,7 +9,7 @@
             <generator class="native"/>
         </id>
 
-        <property name = "threadTitle" column = "threadTitle" type = "String"/>
+        <property name = "threadTitle" column = "threadTitle" type = "BinaryBlob"/>
         <property name = "categoryID" column = "categoryID" type = "int"/>
 
     </class>

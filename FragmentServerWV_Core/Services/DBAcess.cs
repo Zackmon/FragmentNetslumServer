@@ -154,7 +154,7 @@ namespace FragmentServerWV.Services
             meta.unk2 = 0;
             meta.date = DateTime.UtcNow;
             meta.username = username;
-            meta.title = postTitle;
+            meta.title = postBodyBytes;
             meta.subtitle = postTitle.Substring(0, 16);
             meta.unk3 = "unk3";
             meta.threadID = threadID;
