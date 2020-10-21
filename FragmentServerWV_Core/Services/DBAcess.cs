@@ -153,9 +153,12 @@ namespace FragmentServerWV.Services
 
             meta.unk2 = 0;
             meta.date = DateTime.UtcNow;
-            meta.username = username;
-            meta.title = postBodyBytes;
-            meta.subtitle = postTitle.Substring(0, 16);
+            meta.username = usernameBytes;
+            meta.title = postTitleBytes;
+            if (postTitle.Length > 16)
+                Buffer.BlockCopy(postTitleBytes, 0, meta.subtitle, 0, 16);
+            else
+                meta.subtitle = postTitleBytes;
             meta.unk3 = "unk3";
             meta.threadID = threadID;
 
@@ -209,6 +212,7 @@ namespace FragmentServerWV.Services
             model.saveID = _encoding.GetString(client.save_id, 0, client.save_id.Length - 1);
             model.characterSaveID = _encoding.GetString(client.char_id, 0, client.char_id.Length - 1);
             model.characterName = _encoding.GetString(client.char_name, 0, client.char_name.Length - 1);
+            //Buffer.BlockCopy(client.char_name,0,model.characterName,0,client.char_name.Length-1);
 
             PlayerClass playerClass = (PlayerClass) client.char_class;
             model.characterClassName = playerClass.ToString();

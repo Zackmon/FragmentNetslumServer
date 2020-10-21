@@ -11,8 +11,8 @@
         <property name = "Receiver_Account_ID" column = "RECEIVER_ACCOUNT_ID" type = "int"/>
         <property name = "date" column = "Date" type = "datetime"/>
         <property name = "Sender_Account_ID" column = "SENDER_ACCOUNT_ID" type = "int"/>
-        <property name = "Sender_Name" column = "SENDER_NAME" type = "String"/>
-        <property name = "Receiver_Name" column = "RECEIVER_NAME" type = "String"/>
+        <property name = "Sender_Name" column = "SENDER_NAME" type = "BinaryBlob"/>
+        <property name = "Receiver_Name" column = "RECEIVER_NAME" type = "BinaryBlob"/>
         <property name = "Mail_Subject" column = "MAIL_SUBJECT" type = "BinaryBlob"/>
         <property name = "Mail_Delivered" column = "MAIL_DELIVERED" type = "Boolean"/>        
 

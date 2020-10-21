@@ -648,9 +648,9 @@ namespace FragmentServerWV
             
             MailMetaModel metaModel = new MailMetaModel();
             metaModel.Receiver_Account_ID = (int) swap32(BitConverter.ToUInt32(reciver_accountID));
-            metaModel.Receiver_Name = _encoding.GetString(reciver);
+            metaModel.Receiver_Name = reciver;
             metaModel.Sender_Account_ID = (int) swap32(BitConverter.ToUInt32(sender_accountID));
-            metaModel.Sender_Name = _encoding.GetString(sender);
+            metaModel.Sender_Name = sender;
             metaModel.Mail_Subject = subject;
             metaModel.date = DateTime.UtcNow;
             metaModel.Mail_Delivered = false;
@@ -672,14 +672,14 @@ namespace FragmentServerWV
             List<byte> messageID = BitConverter.GetBytes(swap32((uint) metaModel.Mail_ID)).ToList();
            
             
-            List<byte> sender = _encoding.GetBytes(metaModel.Sender_Name).ToList();
+            List<byte> sender = metaModel.Sender_Name.ToList();
 
             while (sender.Count<18)
             {
                 sender.Add(0x00);
             }
 
-            List<byte> receiver = _encoding.GetBytes(metaModel.Receiver_Name).ToList();
+            List<byte> receiver = metaModel.Receiver_Name.ToList();
             while (receiver.Count<18)
             {
                 receiver.Add(0x00);
@@ -970,10 +970,12 @@ namespace FragmentServerWV
             // Setting the username
             if (postMetaModel.username.Length > 15) //if the lenghth is more than 15 char then truncate 
             {
-                postMetaModel.username = postMetaModel.username.Substring(0, 15);
+                byte[] temp = new byte[17];
+                Buffer.BlockCopy(postMetaModel.username,0,temp,0,15);
+                postMetaModel.username = temp;
             }
 
-            byte[] usernameBytes =_encoding.GetBytes(postMetaModel.username);
+            byte[] usernameBytes = postMetaModel.username;
             //m.WriteByte((byte) (username.Length - 1));
             m.Write(usernameBytes, 0, usernameBytes.Length); //username
             while (m.Length < 0x20)
@@ -983,10 +985,12 @@ namespace FragmentServerWV
             //setting the Subtitle
             if (postMetaModel.subtitle.Length > 17) //if the lengh is more than 17 then truncate
             {
-                postMetaModel.subtitle = postMetaModel.subtitle.Substring(0, 17);
+                byte[] temp = new byte[17];
+                Buffer.BlockCopy(postMetaModel.subtitle,0,temp,0,17);
+                postMetaModel.subtitle = temp;
             }
 
-            byte[] subtitleBytes = _encoding.GetBytes(postMetaModel.subtitle);
+            byte[] subtitleBytes = postMetaModel.subtitle;
             //m.WriteByte((byte) (subtitleBytes.Length - 1));
             m.Write(subtitleBytes, 0, subtitleBytes.Length); // subtitles
             while (m.Length < 0x32)
