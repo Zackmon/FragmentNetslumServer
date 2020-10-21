@@ -12,7 +12,7 @@ create table BBS_Category
 create table BBS_Threads
 (
     threadID  int             auto_increment,
-    threadTitle varchar(37)   not null,
+    threadTitle blob not null,
     categoryID  int           not null,
     PRIMARY KEY (threadID),
     constraint BBS_Threads_threadID_uindex
@@ -27,9 +27,9 @@ create table BBS_Post_Meta
     postID   int           auto_increment,
     unk2     int           not null,
     Date     datetime      not null,
-    username varchar(20)   not null,
-    subtitle varchar(20)   not null,
-    title    varchar(37)   not null,
+    username blob   not null,
+    subtitle blob   not null,
+    title    blob   not null,
     unk3     varchar(44)   not null,
     threadID int           not null,
     PRIMARY KEY (postID),
@@ -45,7 +45,7 @@ create table BBS_Post_Meta
 create table BBS_Post_Body
 (
     postBodyID int           auto_increment,
-    postBody   varchar(600)  not null,
+    postBody   blob  not null,
     postID     int           not null,
     PRIMARY KEY (postBodyID),
     constraint BBS_Post_Body_postBodyID_uindex
@@ -61,19 +61,7 @@ create table BBS_Post_Body
 
 
 ################################################Create Mail Tables #####################################################
-create table MAIL_META
-(
-    MAIL_ID             int auto_increment,
-    RECEIVER_ACCOUNT_ID int          not null,
-    DATE                datetime     not null,
-    SENDER_ACCOUNT_ID   int          not null,
-    SENDER_NAME         varchar(18)  null,
-    RECEIVER_NAME       varchar(18)  not null,
-    MAIL_SUBJECT        varchar(128) not null,
-    PRIMARY KEY (MAIL_ID),
-    constraint MAIL_META_MAIL_ID_uindex
-        unique (MAIL_ID)
-);
+
 
 
 create table MAIL_META
@@ -82,16 +70,16 @@ create table MAIL_META
     RECEIVER_ACCOUNT_ID int                  not null,
     DATE                datetime             not null,
     SENDER_ACCOUNT_ID   int                  not null,
-    SENDER_NAME         varchar(18)          null,
-    RECEIVER_NAME       varchar(18)          not null,
-    MAIL_SUBJECT        varchar(128)         not null,
+    SENDER_NAME         blob          null,
+    RECEIVER_NAME       blob         not null,
+    MAIL_SUBJECT        blob         not null,
     MAIL_DELIVERED      tinyint(1) default 0 null,
+    PRIMARY KEY (MAIL_ID),
     constraint MAIL_META_MAIL_ID_uindex
         unique (MAIL_ID)
 );
 
-alter table MAIL_META
-    add primary key (MAIL_ID);
+
 
 
 ################################################Create Mail Tables #####################################################
