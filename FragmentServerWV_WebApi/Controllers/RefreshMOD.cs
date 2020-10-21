@@ -18,8 +18,9 @@ namespace FragmentServerWV_WebApi.Controllers
         [HttpGet]
         public string Get()
         {
-            DBAcess.getInstance().LoadMessageOfDay();
+           DBAcess.getInstance().RefreshMessageOfTheDay();
 
+           
             return "Message Of the Day Refreshed";
         }
     }

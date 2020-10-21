@@ -352,6 +352,11 @@ namespace FragmentServerWV.Services
             return messageModel.Message;
         }
 
+        public void RefreshMessageOfTheDay()
+        {
+            _messageOfTheDay = LoadMessageOfDay();
+        }
+
         public string MessageOfTheDay
         {
             get => _messageOfTheDay;
