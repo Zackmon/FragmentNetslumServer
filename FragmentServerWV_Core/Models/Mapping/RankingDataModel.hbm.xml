@@ -13,7 +13,7 @@
         <property name = "diskID" column = "DiskID" type = "String"/>
         <property name = "saveID" column = "SaveID" type = "String"/>
         <property name = "characterSaveID" column = "CharacterSaveID" type = "String"/>
-        <property name = "characterName" column = "CharacterName" type = "BinaryBlob"/>
+        <property name = "characterName" column = "CharacterName" type = "String"/>
         <property name = "characterLevel" column = "CharacterLevel" type = "int"/>
         <property name = "characterClassName" column = "CharacterClassName" type = "string"/>
         <property name = "characterHP" column = "CharacterHP" type = "int"/>
