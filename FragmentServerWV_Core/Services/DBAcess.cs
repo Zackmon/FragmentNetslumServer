@@ -296,7 +296,7 @@ namespace FragmentServerWV.Services
                 foreach (MailMetaModel meta in metaList)
                 {
                     meta.Mail_Delivered = true;
-                    session.SaveOrUpdate(metaList);
+                    session.SaveOrUpdate(meta);
                 }
                 
                 transaction.Commit();
