@@ -292,14 +292,13 @@ namespace FragmentServerWV.Services
             //set the records as delivered 
             if (metaList.Count > 0)
             {
+                using ITransaction transaction = session.BeginTransaction();
                 foreach (MailMetaModel meta in metaList)
                 {
                     meta.Mail_Delivered = true;
+                    session.SaveOrUpdate(metaList);
                 }
-
-                using ITransaction transaction = session.BeginTransaction();
-
-                session.SaveOrUpdate(metaList);
+                
                 transaction.Commit();
             }
 
