@@ -161,7 +161,16 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
-                meta.unk0 = session.Query<BbsPostMetaModel>().Max(x => (int?) x.unk0).Value + 1;
+                try
+                {
+                    meta.unk0 = session.Query<BbsPostMetaModel>().Max(x => (int?) x.unk0).Value + 1;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("BBS is empty , creating needed data");
+                    meta.unk0 = 1;
+                }
+                
                 //int postBodyID = session.Query<BbsPostBody>().Max(x => (int?) x.postBodyID).Value + 1;
                 //meta.postID = postID;
                 using (ITransaction transaction = session.BeginTransaction())
