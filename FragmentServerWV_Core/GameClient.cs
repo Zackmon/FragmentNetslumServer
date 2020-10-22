@@ -224,7 +224,8 @@ namespace FragmentServerWV
                     break;
                 case OpCodes.OPCODE_DATA_AS_IPPORT:
                     ipdata = argument;
-                    Log.LogData(argument,0xFFFF,this.index,"Area Server IP",0,0);
+                    IPEndPoint ipEndPoint = (IPEndPoint) client.Client.RemoteEndPoint;
+                    Console.WriteLine(ipEndPoint);
                     Log.Writeline("Client #" + this.index + " : IP=" +
                                   ipdata[3] + "." +
                                   ipdata[2] + "." +
