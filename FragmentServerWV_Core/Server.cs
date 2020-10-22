@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using FragmentServerWV.Exceptions;
 using FragmentServerWV.Services;
 
 namespace FragmentServerWV
@@ -73,6 +74,7 @@ namespace FragmentServerWV
             listener.Start();
             bool run = true;
             int count = 1;
+
             try
             {
                 while (run)
@@ -89,14 +91,18 @@ namespace FragmentServerWV
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                throw new LobbyEmuCrashException("Server Crashed ",t,e);
             }
-            foreach (GameClient client in clients)
-                client.Exit();
-            foreach (ProxyClient client in proxies)
-                client.Exit();
-            Log.Writeline("Server exited");
+            finally
+            {
+                foreach (GameClient client in clients)
+                    client.Exit();
+                foreach (ProxyClient client in proxies)
+                    client.Exit();
+                Log.Writeline("Server exited");
+            }
         }
     }
 }
