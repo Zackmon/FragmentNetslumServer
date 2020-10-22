@@ -31,7 +31,9 @@ namespace FragmentServerWV
         public ushort client_seq_nr;
         public ushort server_seq_nr;
         public bool isAreaServer;
+        public IPEndPoint ipEndPoint;
         public byte[] ipdata;
+        public byte[] externalIPAddress;
         public byte[] publish_data_1;
         public byte[] publish_data_2;
         public byte[] last_status;
@@ -85,6 +87,9 @@ namespace FragmentServerWV
             index = idx;
             to_crypto = new Crypto();
             from_crypto = new Crypto();
+            
+            ipEndPoint = (IPEndPoint) client.Client.RemoteEndPoint;
+
             t = new Thread(Handler);
             t.Start();
         }
@@ -224,14 +229,29 @@ namespace FragmentServerWV
                     break;
                 case OpCodes.OPCODE_DATA_AS_IPPORT:
                     ipdata = argument;
-                    IPEndPoint ipEndPoint = (IPEndPoint) client.Client.RemoteEndPoint;
-                    Console.WriteLine(ipEndPoint);
-                    Log.Writeline("Client #" + this.index + " : IP=" +
+                    
+                    
+                    string[] ipAddress = ipEndPoint.Address.ToString().Split('.');
+                    argument[3] = (byte) Int32.Parse(ipAddress[0]);
+                    argument[2] = (byte) Int32.Parse(ipAddress[1]);
+                    argument[1] = (byte) Int32.Parse(ipAddress[2]);
+                    argument[0] = (byte) Int32.Parse(ipAddress[3]);
+                    externalIPAddress = argument;
+                    
+                    Log.Writeline("Area Server Client #" + this.index + " : Local IP=" +
                                   ipdata[3] + "." +
                                   ipdata[2] + "." +
                                   ipdata[1] + "." +
                                   ipdata[0] + " Port:" +
                                   swap16(BitConverter.ToUInt16(ipdata, 4)));
+                    
+                    Log.Writeline("Area Server Client #" + this.index + " : External IP=" +
+                                  externalIPAddress[3] + "." +
+                                  externalIPAddress[2] + "." +
+                                  externalIPAddress[1] + "." +
+                                  externalIPAddress[0] + " Port:" +
+                                  swap16(BitConverter.ToUInt16(externalIPAddress, 4)));
+                    
                     SendPacket30(OpCodes.OPCODE_DATA_AS_IPPORT_OK, new byte[] {0x00, 0x00});
                     break;
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2:
@@ -582,7 +602,11 @@ namespace FragmentServerWV
                     {
                         MemoryStream m = new MemoryStream();
                         m.WriteByte(0);
-                        m.Write(client.ipdata, 0, 6);
+                        if (client.ipEndPoint.Address == this.ipEndPoint.Address)
+                            m.Write(client.ipdata, 0, 6);
+                        else
+                            m.Write(client.externalIPAddress, 0, 6);
+                        
                         byte[] buff = BitConverter.GetBytes(swap16(client.as_usernum));
                         int pos = 0;
                         while (client.publish_data_1[pos++] != 0) ;
