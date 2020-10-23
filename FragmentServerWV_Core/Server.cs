@@ -46,8 +46,9 @@ namespace FragmentServerWV
             }
 
             DBAcess.getInstance().LoadMessageOfDay();
-            t = new Thread(MainThread);
-            t.Start();
+            ThreadPool.QueueUserWorkItem(new WaitCallback(MainThread));
+            // t = new Thread(MainThread);
+           // t.Start();
         }
 
         public static void Stop()
