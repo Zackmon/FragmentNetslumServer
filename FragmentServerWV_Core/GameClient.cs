@@ -181,6 +181,7 @@ namespace FragmentServerWV
 
             _exited = true;
             client.Close();
+            Server.clients.RemoveAt(this.index - 1);
         }
 
         public void HandlerPacket30(byte[] data, int index, Crypto crypto)
@@ -566,9 +567,9 @@ namespace FragmentServerWV
             }
             catch (Exception e)
             {
-                Console.WriteLine("error while processing Packet the following packet for the Client# " +this.index+"\n"+ data );
+                Console.WriteLine("error while processing Packet the following packet for the Client# " +this.index+"\n"+ data + "\n"+e );
                 Exit();
-                throw;
+                //throw;
             }
         }
 
