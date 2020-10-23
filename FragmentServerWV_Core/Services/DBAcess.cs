@@ -169,7 +169,7 @@ namespace FragmentServerWV.Services
                 {
                     meta.unk0 = session.Query<BbsPostMetaModel>().Max(x => (int?) x.unk0).Value + 1;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Console.WriteLine("BBS is empty , creating needed data");
                     meta.unk0 = 1;
