@@ -10,7 +10,7 @@
             NHibernate.Driver.MySqlDataDriver
         </property>
         <property name="connection.connection_string">
-            Server=localhost;Database=fragment_schema;User ID=fragment;Password=test;
+            Server=78.100.6.134;Database=fragment_test;User ID=fragment;Password=password;
         </property>
         <property name="dialect">
             NHibernate.Dialect.MySQL5Dialect

@@ -48,16 +48,24 @@ namespace FragmentServerWV
 
         public void DispatchStatus(byte[] data, int who)
         {
-            MemoryStream m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)FindRoomIndexById(who))), 0, 2);
-            m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)(data.Length))), 0, 2);
-            m.Write(data, 0, data.Length);
-            byte[] buff = m.ToArray();
-            foreach (GameClient client in Server.clients)
-                if (!client.isAreaServer && client.index != who && !client._exited && client.room_index == ID)
-                    client.SendPacket30(0x7009, buff);
-                else if (client.index == who)
-                    client.last_status = buff;
+            try
+            {
+                MemoryStream m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) FindRoomIndexById(who))), 0, 2);
+                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) (data.Length))), 0, 2);
+                m.Write(data, 0, data.Length);
+                byte[] buff = m.ToArray();
+                foreach (GameClient client in Server.clients)
+                    if (!client.isAreaServer && client.index != who && !client._exited && client.room_index == ID)
+                        client.SendPacket30(0x7009, buff);
+                    else if (client.index == who)
+                        client.last_status = buff;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         public void DispatchPublicBroadcast(byte[] data, int who)
