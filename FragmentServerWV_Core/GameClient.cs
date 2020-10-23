@@ -89,9 +89,9 @@ namespace FragmentServerWV
             from_crypto = new Crypto();
             
             ipEndPoint = (IPEndPoint) client.Client.RemoteEndPoint;
-
-            t = new Thread(Handler);
-            t.Start();
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Handler));
+            //t = new Thread(Handler);
+            //t.Start();
             
         }
 
