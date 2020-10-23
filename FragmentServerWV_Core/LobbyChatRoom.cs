@@ -64,12 +64,14 @@ namespace FragmentServerWV
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                //throw;
             }
         }
 
         public void DispatchPublicBroadcast(byte[] data, int who)
         {
+            try
+            {
             int id = FindRoomIndexById(who);
             byte[] temp = new byte[data.Length];
             data.CopyTo(temp, 0);
@@ -86,6 +88,12 @@ namespace FragmentServerWV
                     temp[1] = 0xff;
                     client.SendPacket30(0x7862, temp);
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                //throw;
+            }
         }
         
         public void DispatchPrivateBroadcast(byte[] data, int who, int destid)

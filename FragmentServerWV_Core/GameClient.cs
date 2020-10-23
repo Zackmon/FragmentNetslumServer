@@ -89,9 +89,9 @@ namespace FragmentServerWV
             from_crypto = new Crypto();
             
             ipEndPoint = (IPEndPoint) client.Client.RemoteEndPoint;
-
-            t = new Thread(Handler);
-            t.Start();
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Handler));
+            //t = new Thread(Handler);
+            //t.Start();
             
         }
 
@@ -923,7 +923,7 @@ namespace FragmentServerWV
             {
                 Console.WriteLine("error sending packet to client " + this.index + " maybe disconnected \n" + e);
                 Exit();
-                throw;
+                //throw;
             }
         }
 
@@ -952,7 +952,7 @@ namespace FragmentServerWV
             {
                 Console.WriteLine("error sending packet to client " + this.index + " maybe disconnected \n" + e);
                 Exit();
-                throw;
+                //throw;
             }
             
         }
