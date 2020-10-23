@@ -64,7 +64,7 @@ namespace FragmentServerWV
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                //throw;
             }
         }
 
@@ -92,7 +92,7 @@ namespace FragmentServerWV
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                //throw;
             }
         }
         

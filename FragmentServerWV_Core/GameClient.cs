@@ -923,7 +923,7 @@ namespace FragmentServerWV
             {
                 Console.WriteLine("error sending packet to client " + this.index + " maybe disconnected \n" + e);
                 Exit();
-                throw;
+                //throw;
             }
         }
 
@@ -952,7 +952,7 @@ namespace FragmentServerWV
             {
                 Console.WriteLine("error sending packet to client " + this.index + " maybe disconnected \n" + e);
                 Exit();
-                throw;
+                //throw;
             }
             
         }
