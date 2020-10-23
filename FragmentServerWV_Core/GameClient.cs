@@ -184,7 +184,7 @@ namespace FragmentServerWV
 
             for (int i = 0; i < Server.clients.Count; i++)
             {
-                if (Server.clients[i].index == this.index) ;
+                if (Server.clients[i].index == this.index)
                 {
                     Server.clients.RemoveAt(i);
                     break;
