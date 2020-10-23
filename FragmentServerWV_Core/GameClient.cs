@@ -181,7 +181,16 @@ namespace FragmentServerWV
 
             _exited = true;
             client.Close();
-            Server.clients.RemoveAt(this.index - 1);
+
+            for (int i = 0; i < Server.clients.Count; i++)
+            {
+                if (Server.clients[i].index == this.index) ;
+                {
+                    Server.clients.RemoveAt(i);
+                    break;
+                }
+            }
+
         }
 
         public void HandlerPacket30(byte[] data, int index, Crypto crypto)
