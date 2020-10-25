@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using FragmentServerWV.Models;
-using HibernatingRhinos.Profiler.Appender.NHibernate;
 using NHibernate;
 using NHibernate.Cfg;
 
@@ -28,6 +27,7 @@ namespace FragmentServerWV.Services
 
         public DBAcess()
         {
+
             var config = new Configuration().Configure();
             config.AddAssembly("FragmentServerWV_Core");
             _sessionFactory = config.BuildSessionFactory();
