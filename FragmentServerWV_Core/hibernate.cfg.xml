@@ -10,13 +10,13 @@
             NHibernate.Driver.MySqlDataDriver
         </property>
         <property name="connection.connection_string">
-            Server=localhost;Database=fragment_schema;User ID=fragment;Password=fragment_test;
+            Server=127.0.0.1;Database=fragment_schema;User ID=fragment;Password=test;
         </property>
         <property name="dialect">
             NHibernate.Dialect.MySQL5Dialect
         </property>
         <!-- mapping files -->
-
-
+        
+        
     </session-factory>
 </hibernate-configuration>
