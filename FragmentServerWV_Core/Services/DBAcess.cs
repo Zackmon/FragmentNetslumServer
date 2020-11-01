@@ -200,8 +200,10 @@ namespace FragmentServerWV.Services
             Console.WriteLine("post Body " + postBody);
         }
 
-        public void PlayerLogin(GameClient client)
+        public uint PlayerLogin(GameClient client)
         {
+            //TODO return Character ID
+            
             RankingDataModel model = new RankingDataModel();
 
 
@@ -234,6 +236,8 @@ namespace FragmentServerWV.Services
             transaction.Commit();
 
             session.Close();
+
+            return 0;
         }
 
 

@@ -318,7 +318,15 @@ namespace FragmentServerWV
                         break;
                     case OpCodes.OPCODE_DATA_REGISTER_CHAR:
                         Log.LogData(argument, 0xFFFF, this.index, "character data", 0, 0);
-                        ExtractCharacterData(argument);
+                        _characterPlayerID = ExtractCharacterData(argument);
+
+                        byte[] guildStatus = GuildManagementService.GetInstance().GetPlayerGuild(_characterPlayerID);
+                        if (guildStatus[0] == 0x01)
+                        {
+                            isGuildMaster = true;
+                        }
+
+                        _guildID = swap16(BitConverter.ToUInt16(guildStatus, 1));
 
                         SendPacket30(OpCodes.OPCODE_DATA_REGISTER_CHAROK,
                             new byte[] {0x01, 0x55, 0x58}); //first byte is membership status 0=none 1= master 2= member
@@ -450,6 +458,8 @@ namespace FragmentServerWV
                     case 0x7600: //create Guild
                         Log.LogData(argument,0xffff,this.index,"Create Guild Info",0,0);
                         u = GuildManagementService.GetInstance().CreateGuild(argument);
+                        _guildID = u;
+                        isGuildMaster = true;
                         
                         SendPacket30(0x7601,BitConverter.GetBytes(swap16(u))); // send guild ID
                         
@@ -1002,7 +1012,7 @@ namespace FragmentServerWV
 
         }
 
-        public void ExtractCharacterData(byte[] data)
+        public uint ExtractCharacterData(byte[] data)
         {
             save_slot = data[0];
             char_id = ReadByteString(data, 1);
@@ -1034,12 +1044,14 @@ namespace FragmentServerWV
 
              charModelFile = "xf" + classLetter + modelNumber + modelType +"_"+ colorCode;
             
-            DBAcess.getInstance().PlayerLogin(this);
+           
             
             
             Console.WriteLine("Character Date \n save_slot "+ save_slot + "\n char_id " +_encoding.GetString(save_id) + " \n char_name " + _encoding.GetString(char_id) +
                               "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting "+ _encoding.GetString(greeting) +"\n charmodel " +char_model + "\n char_hp " + char_HP+
                               "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter "+ online_god_counter + "\n offline god counter "+ offline_godcounter +"\n\n\n\n full byte araray " + BitConverter.ToString(data));
+            
+            return DBAcess.getInstance().PlayerLogin(this);
         }
 
 

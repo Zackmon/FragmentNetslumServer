@@ -28,6 +28,12 @@ namespace FragmentServerWV.Services
         }
 
 
+        public byte[] GetPlayerGuild(uint characterID)
+        {
+            return new byte[] {0x00 //0 = no guild 1= master 2= member
+                , 0x00, 0x00}; // Guild ID 
+        }
+
         public ushort CreateGuild(byte[] argument)
         {
             int pos = 0;
@@ -344,7 +350,7 @@ namespace FragmentServerWV.Services
             return new byte[] {0x00, 0x00};
         }
 
-        public byte[] LeaveGuild(ushort guildID, uint playerID)
+        public byte[] LeaveGuild(ushort guildID, uint characterID)
         {
             return new byte[] {0x00, 0x00};
         }
