@@ -69,6 +69,14 @@ namespace FragmentServerWV
         
         private Encoding _encoding;
 
+        private uint _characterPlayerID = 0;
+        
+        private ushort _guildID = 0;
+        private bool isGuildMaster = false;
+        
+        private uint _itemDontationID = 0;
+        private ushort _itemDonationQuantity = 0 ;
+
         
 
 
@@ -220,8 +228,8 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] {0x02, 0x10});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_ENTERROOM:
-                        room_index = (short) swap16(BitConverter.ToUInt16(data, 0xA));
-                        room = Server.lobbyChatRooms[room_index - 1];
+                        room_index = 1; //(short) swap16(BitConverter.ToUInt16(data, 0xA));
+                        room = Server.lobbyChatRooms[room_index - 1]; //for tetsing only 
                         SendPacket30(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK,
                             BitConverter.GetBytes(swap16((ushort) room.Users.Count)));
                         room.Users.Add(this.index);
@@ -311,8 +319,9 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_REGISTER_CHAR:
                         Log.LogData(argument, 0xFFFF, this.index, "character data", 0, 0);
                         ExtractCharacterData(argument);
-                        
-                        SendPacket30(OpCodes.OPCODE_DATA_REGISTER_CHAROK, new byte[] {0x01, 0x00,0x01}); //first byte is membership status 0=none 1= master 2= member
+
+                        SendPacket30(OpCodes.OPCODE_DATA_REGISTER_CHAROK,
+                            new byte[] {0x01, 0x55, 0x58}); //first byte is membership status 0=none 1= master 2= member
                         break;
                     case OpCodes.OPCODE_DATA_UNREGISTER_CHAR:
                         SendPacket30(OpCodes.OPCODE_DATA_UNREGISTER_CHAROK, new byte[] {0x00, 0x00});
@@ -384,137 +393,201 @@ namespace FragmentServerWV
                     case 0x7722: // GUILD Shop
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         if (u == 0)
-                            SendPacket30(0x7723, new byte[] {0x00, 0x00});
+                        {
+                            SendPacket30(0x7723, new byte[] {0x00, 0x01});
+                            SendPacket30(0x7725, new byte[] {0x00,0x01, 0x41, 0x6c, 0x6c,0x00});
+                        }
                         else
-                            SendPacket30(0x7725, new byte[] {0x00, 0x00});
+                        {
+                            List<byte[]> listOfGuilds = GuildManagementService.GetInstance().GetListOfGuilds();
+                            SendPacket30(0x7726, BitConverter.GetBytes(swap16((ushort) listOfGuilds.Count)));
+                            foreach (var guildName in listOfGuilds)
+                            {
+                                SendPacket30(0x7727, guildName);                                
+                            }
+
+                        }
+                        
                         break;
+                    case 0x772f: // Get the Item List for the Selected Guild (General Store)
+                        u = swap16(BitConverter.ToUInt16(argument, 0));
+                        List<byte[]> listOfItemsForGeneralStore =
+                            GuildManagementService.GetInstance().GetGuildItems(u, true);
+                        
+                        SendPacket30(0x7730, BitConverter.GetBytes(swap16((ushort) listOfItemsForGeneralStore.Count)));
+
+                        foreach (var item in listOfItemsForGeneralStore)
+                        {
+                            SendPacket30(0x7731, item);
+                        }
+                        
+                        break;
+                        
                     case 0x7733: //Guild Menu
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         if (u == 0)// Guild Category List
                         {
                             SendPacket30(0x7734, new byte[] {0x00, 0x01}); //Size of List
-                            SendPacket30(0x7736,new byte[]{0x00,0x01,0x41,0x6c,0x6c,0x00});//
+                            SendPacket30(0x7736,new byte[]{0x00,0x01,0x41,0x6c,0x6c,0x00});//Category Name (ALL)
                         }
                         else // Guild Listing of the selected Category
                         {
-                            SendPacket30(0x7737, new byte[] {0x00, 0x01});    //Size of List
-                            SendPacket30(0x7738,new byte[] {0x00,0x01, 0x44,0x61,0x79,0x62,0x72,0x65,0x61,0x6b,0x20,0x4d,0x61,0x66,0x69,0x61,0x00});
+                            List<byte[]> listOfGuild = GuildManagementService.GetInstance().GetListOfGuilds();
+                            SendPacket30(0x7737, BitConverter.GetBytes(swap16((ushort) listOfGuild.Count))); //Size of List
+
+                            foreach (var guildName in listOfGuild)
+                            {
+                                SendPacket30(0x7738,guildName);    
+                            }
+                            
                         }
                         break;
                     case 0x7739: // Get Guild Info
-                        //SendPacket30(0x7740,new byte[]{0x30,0x00, 0x31,0x00, 0x32, 0x00,   0x00,0x01, 0x00,0x02, 0x00,0x03, 0x00,0x04, 0x00,0x05, 0x00,0x06, 0x00,0x07});
-                        SendPacket30(0x7740,GetGuildInfo());
+                        u = swap16(BitConverter.ToUInt16(argument, 0));
+                        Console.WriteLine("Guild ID = " + u);
+                        SendPacket30(0x7740,GuildManagementService.GetInstance().GetGuildInfo(u));
                         break;
                     case 0x7600: //create Guild
                         Log.LogData(argument,0xffff,this.index,"Create Guild Info",0,0);
-                        CaptureGuildCreation(argument);
-                        SendPacket30(0x7601,new byte[] {0xde,0xad}); // send guild ID 
+                        u = GuildManagementService.GetInstance().CreateGuild(argument);
+                        
+                        SendPacket30(0x7601,BitConverter.GetBytes(swap16(u))); // send guild ID
+                        
                         break;
                      case 0x789c: // get the logged in character Guild Info (if enlisted)
-                         
-                         
-                         SendPacket30(0x789d,GetGuildInfo());
+                         u = swap16(BitConverter.ToUInt16(argument, 0));
+
+                         SendPacket30(0x789d,GuildManagementService.GetInstance().GetGuildInfo(u));
                          break;
                     case 0x7610: //get Guild member list
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         if (u == 0)// Guild Member Category List
                         {
-                            SendPacket30(0x7611, new byte[] {0x00, 0x01}); //Size of List
-                            
-                            SendPacket30(0x7613,new byte[]{0x00,0x01,0x43,0x61,0x74,0x65,0x67,0x6f,0x72,0x79,0x20,0x31,0x00});// send categories 
+                            List<byte[]> listOfClasses = GuildManagementService.GetInstance().GetClassList();
+                            SendPacket30(0x7611, BitConverter.GetBytes(swap16((ushort)listOfClasses.Count))); //Size of List
+                            foreach (var className in listOfClasses)
+                            {
+                                SendPacket30(0x7613,className);// send categories    
+                            }
+                             
                         }
                         else //MemberList in that Category
                         {
-                            SendPacket30(0x7614, new byte[] {0x00, 0x01});    //Size of List
+                            List<byte[]> memberList =
+                                GuildManagementService.GetInstance().GetGuildMembersListByClass(0, u);
+                            SendPacket30(0x7614, BitConverter.GetBytes(swap16((ushort) memberList.Count)));//Size of List
 
-                            string memName = "zackmon";
-                            byte[] className = {0x02};
-                            ushort memLevel = 50;
-                            string memGreeting = "Greeting";
-                            byte[] memStatus = {0x01};
-                            byte[] modelNumber = {0x00, 0x00, 0x45, 0x01};
-                            byte[] isMaster = {0x00};
+                            foreach (var member in memberList)
+                            {
+                                SendPacket30(0x7615,member); //Member Detailes    
+                            }
                             
-                             m = new MemoryStream();
-                             
-                             m.Write(_encoding.GetBytes(memName));
-                             m.Write(new byte[]{0x00});
-                             m.Write(className);
-                             m.Write(BitConverter.GetBytes(swap16(memLevel)));
-                             m.Write(_encoding.GetBytes(memGreeting));
-                             m.Write(new byte[]{0x00});
-                             m.Write(memStatus);
-                             m.Write(modelNumber);
-                             //m.Write(new byte[]{0x00});
-                             m.Write(isMaster);
-                             
-                            SendPacket30(0x7615,m.ToArray()); //Member Detailes
                         }
                         break;
-                    case 0x7708: // Get Guild Items
-                        SendPacket30(0x7709 , new byte[] {0x00,0x02}); // number of items
-                        // uint Item ID
-                        // ushort Quantity
-                        // uint price
+                    case 0x7708: // Get Guild Items for members to buy from 
+                        u = swap16(BitConverter.ToUInt16(argument, 0));
+                        List<byte[]> membersItemList = GuildManagementService.GetInstance().GetGuildItems(u, false);
+                        SendPacket30(0x7709 , BitConverter.GetBytes(swap16((ushort) membersItemList.Count))); // number of items
 
-                        uint itemID = 720952;
-                        ushort itemQuanitiy = 250;
-                        uint itemPrice = 3200;
-                        m = new MemoryStream();
-                        m.Write(BitConverter.GetBytes(swap32(itemID)),0,4);
-                        m.Write(BitConverter.GetBytes(swap16(itemQuanitiy)),0,2);
-                        m.Write(BitConverter.GetBytes(swap32(itemPrice)),0,4);
-                        SendPacket30(0x770a,m.ToArray());
-                        m = new MemoryStream();
-                        itemQuanitiy = 2;
-                        itemPrice = 4200;
-                        m.Write(BitConverter.GetBytes(swap32(itemID)),0,4);
-                        m.Write(BitConverter.GetBytes(swap16(itemQuanitiy)),0,2);
-                        m.Write(BitConverter.GetBytes(swap32(itemPrice)),0,4);
-                        SendPacket30(0x770a,m.ToArray());
+                        foreach (var item in membersItemList)
+                        {
+                            SendPacket30(0x770a,item);
+                        }
+                        
                         break;
-                    case 0x7728: //Guild Item Donation (from member to guild) // resend Item List
-                        SendPacket30(0x7729,new byte[] {0x00,0x01});
-                        uint itemID2 = 720952;
-                        ushort itemQuanitiy2 = 250;
-                        uint itemPrice2 = 3200;
-                        m = new MemoryStream();
-                        m.Write(BitConverter.GetBytes(swap32(itemID2)),0,4);
-                        m.Write(BitConverter.GetBytes(swap16(itemQuanitiy2)),0,2);
-                        m.Write(BitConverter.GetBytes(swap32(itemPrice2)),0,4);
-                        SendPacket30(0x772A,m.ToArray());
+                    case 0x7728: //Guild Item List
+                        u = swap16(BitConverter.ToUInt16(argument,0));
+                        List<byte[]> allGuildItems =
+                            GuildManagementService.GetInstance().GetAllGuildItemsWithSettings(u);
+                        SendPacket30(0x7729,BitConverter.GetBytes(swap16((ushort) allGuildItems.Count)));
+
+                        foreach (var item in allGuildItems)
+                        {
+                            SendPacket30(0x772A,item);
+                        }
+                        
+                        break;
+                    case 0x770C: //buy Item from guild 
+                        SendPacket30(0x770D,GuildManagementService.GetInstance().BuyItemFromGuild(argument) ); // how many to give the player 
                         break;
                     case 0x7702: // Donate Item to Guild
                         Log.LogData(argument,0xfff,this.index,"Item Donated to Guild",0,0);
 
-                        uint itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
-                        ushort itemDonationQuantity = swap16(BitConverter.ToUInt16(argument, 6));
+                         _itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
+                         _itemDonationQuantity = swap16(BitConverter.ToUInt16(argument, 6));
                         
-                        Console.WriteLine("Item ID For Donation " + itemDontationID);
-                        Console.WriteLine("Item Quant For Donation " + itemDonationQuantity);
+                        Console.WriteLine("Item ID For Donation " + _itemDontationID);
+                        Console.WriteLine("Item Quantity For Donation " + _itemDonationQuantity);
                         
-                        SendPacket30(0x7704,new byte[] {0x00,0x00});
+                        SendPacket30(0x7704,GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_itemDontationID));
                         break;
                     case 0x7879:
                         Log.LogData(argument,0xfff,this.index,"Get Member and General Screen Permission",0,0);
                         
-                        SendPacket30(0x787a,new byte[] {0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff});
+                        SendPacket30(0x787a,new byte[] {0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01});
                         
                         break;
                     case 0x7703:
                         Log.LogData(argument,0x7703,this.index,"Member + General Item Price",0,0);
                         uint GeneralPrice = swap32(BitConverter.ToUInt32(argument, 0));
                         uint MemberPrice = swap32(BitConverter.ToUInt32(argument, 4));
-                        Boolean isGeneral = BitConverter.ToBoolean(argument, 8);
-                        Boolean isMember = BitConverter.ToBoolean(argument, 9);
+                        bool isGeneral = BitConverter.ToBoolean(argument, 8);
+                        bool isMember = BitConverter.ToBoolean(argument, 9);
                         
                         Console.Write("GenePrice " + GeneralPrice +"\nMemberPrice "+ MemberPrice+"\nisGeneral "+ isGeneral + "\nisMember "+ isMember);
                         
+                        GuildManagementService.GetInstance().AddItemToGuildInventory(_guildID,_itemDontationID,
+                            _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember,isGuildMaster);
                         SendPacket30(0x7705,new byte[] {0x00,0x00}); // how many to deduct from the player
                         break;
-                    case 0x787B:
+                    case 0x7712: //update item pricing (from Master window)
+                        Log.LogData(argument,0x7712,this.index,"Member + General Item Price",0,0);
+                        
+                        SendPacket30(0x7713,GuildManagementService.GetInstance().SetItemVisibilityAndPrice(argument)); 
+                        break;
+                    case 0x787B:// no idea what this is but I think it's only ACK
                         Log.LogData(argument,0x787B,this.index,"After Selecting the member and general",0,0);
                         SendPacket30(0x787C,new byte[] {0x00,0x00});
+                        break;
+                    case 0x788D:// Leve Guild and assign someone else the master of the guild
+                        uint assigningPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
+                        Console.WriteLine("Player to assign the Master Guild to " + assigningPlayerID);
+                        SendPacket30(0x788E,GuildManagementService.GetInstance().LeaveGuildAndAssignMaster(_guildID,assigningPlayerID));
+                        break;
+                    case 0x7616: //Player leaving the guild
+                        SendPacket30(0x7617,GuildManagementService.GetInstance().LeaveGuild(_guildID,_characterPlayerID));
+                        break;
+                    case 0x7864: //kick player from guild
+                        uint playerToKick = swap32(BitConverter.ToUInt32(argument, 0));
+                        Console.WriteLine("Player to kick from guild " + playerToKick);
+                        SendPacket30(0x7865,GuildManagementService.GetInstance().KickPlayerFromGuild(_guildID,playerToKick));
+                        break;
+                    case 0x7619: // Dissolve the guild
+                        SendPacket30(0x761A,GuildManagementService.GetInstance().DestroyGuild(_guildID));
+                        break;
+                    case 0x761C: // Update Guild Emblem and Comment
+                        
+                        SendPacket30(0x761D,GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument));
+                        break;
+                    case 0x770E: // Take out GP from the Guild Inventory
+                        ushort guildIDTakeMoney = swap16(BitConverter.ToUInt16(argument, 0));
+                        uint amountOfMoneyToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
+                        
+                        Console.WriteLine("Guild ID " + guildIDTakeMoney + "\nAmount of money to Take out " + amountOfMoneyToTakeOut);
+                        SendPacket30(0x770F,GuildManagementService.GetInstance().TakeMoneyFromGuild(guildIDTakeMoney,amountOfMoneyToTakeOut)); // amount of money to give to the player 
+                        break;
+                    case 0x7710:// take item from the guild inventory
+                        ushort guildIDTakeItem = swap16(BitConverter.ToUInt16(argument, 0));
+                        uint itemIDToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
+                        ushort quantityToTake = swap16(BitConverter.ToUInt16(argument, 6));
+                        
+                        Console.WriteLine("Guild ID " + guildIDTakeItem + "\nItem ID to take " + itemIDToTakeOut + "\n quantity to take out " + quantityToTake);
+                        SendPacket30(0x7711,GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem,itemIDToTakeOut,quantityToTake)); // quantity  to give to the player
+                        break;
+                    case 0x7700:// donate Coins to Guild
+                        //Log.LogData(argument,0xff,this.index,"Donate Coin to guild",0,0);
+                        
+                        SendPacket30(0x7701,GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
                         break;
                     case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
                         publish_data_2 = argument;
