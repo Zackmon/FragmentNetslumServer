@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using FragmentServerWV.Models;
@@ -203,7 +204,7 @@ namespace FragmentServerWV.Services
         public uint PlayerLogin(GameClient client)
         {
             //TODO return Character ID
-            
+            ///////////////Player Logging ///////////////////////////////////////////////////////////////////////////////
             RankingDataModel model = new RankingDataModel();
 
 
@@ -227,18 +228,254 @@ namespace FragmentServerWV.Services
             model.godStatusCounterOnline = client.online_god_counter;
             model.averageFieldLevel = client.offline_godcounter;
             model.accountID = client.AccountId;
+            ///////////////Player Logging ///////////////////////////////////////////////////////////////////////////////
+            
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            CharacterRepositoryModel characterRepositoryModel;
+            
+            characterRepositoryModel = session.Query<CharacterRepositoryModel>().SingleOrDefault(
+                x => x.accountID == client.AccountId && x.charachterSaveID.Equals(model.characterSaveID));
+            if (characterRepositoryModel == null || characterRepositoryModel.PlayerID == -1 ||
+                characterRepositoryModel.PlayerID == 0)
+            {
+                characterRepositoryModel = new CharacterRepositoryModel();
+                
+                characterRepositoryModel.GuildID = 0;
+                characterRepositoryModel.GuildMaster = 0;
+                
+                characterRepositoryModel.accountID = client.AccountId;
+                characterRepositoryModel.charachterSaveID = model.characterSaveID;
+                
+            }
+            characterRepositoryModel.CharachterName = client.char_name;
+            characterRepositoryModel.Greeting = client.greeting;
+            characterRepositoryModel.ClassID = client.char_class;
+            characterRepositoryModel.CharachterLevel = client.char_level;
+            characterRepositoryModel.OnlineStatus = true;
+            characterRepositoryModel.ModelNumber = (int) client.char_model;
+
+            session.Save(model);
+            session.SaveOrUpdate(characterRepositoryModel);
+            transaction.Commit();
+
+            session.Close();
+
+            return (uint) characterRepositoryModel.PlayerID;
+        }
+
+        public void setPlayerAsOffline(uint playerID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            CharacterRepositoryModel characterRepositoryModel = session.Query<CharacterRepositoryModel>().SingleOrDefault(
+                x => x.PlayerID == playerID);
+
+            characterRepositoryModel.OnlineStatus = false;
+            
+            session.SaveOrUpdate(characterRepositoryModel);
+            transaction.Commit();
+            session.Close();
+        }
+
+        public void updatePlayerInfo(CharacterRepositoryModel characterRepositoryModel)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            session.SaveOrUpdate(characterRepositoryModel);
+            transaction.Commit();
+            session.Close();
+        }
+
+        public CharacterRepositoryModel GetCharacterInfo(uint playerID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            CharacterRepositoryModel characterRepositoryModel = session.Query<CharacterRepositoryModel>().SingleOrDefault(
+                x => x.PlayerID == playerID);
+
+            
+            
+            transaction.Commit();
+            session.Close();
+
+            return characterRepositoryModel;
+        }
+
+        public void EnrollPlayerInGuild(ushort guildID, uint playerID, bool isMaster)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            CharacterRepositoryModel characterRepositoryModel = session.Query<CharacterRepositoryModel>().SingleOrDefault(
+                x => x.PlayerID == playerID);
+
+            characterRepositoryModel.GuildID = guildID;
+            if (isMaster)
+            {
+                characterRepositoryModel.GuildMaster = 1;
+            }
+            else
+            {
+                characterRepositoryModel.GuildMaster = 2;
+            }
+            
+            session.SaveOrUpdate(characterRepositoryModel);
+
+            transaction.Commit();
+            session.Close();
+
+        }
+
+        public ushort CreateGuild(GuildRepositoryModel guildRepositoryModel)
+        {
 
             using ISession session = _sessionFactory.OpenSession();
 
             using ITransaction transaction = session.BeginTransaction();
 
-            session.Save(model);
+            session.Save(guildRepositoryModel);
             transaction.Commit();
-
             session.Close();
 
-            return 0;
+            return (ushort) guildRepositoryModel.GuildID;
         }
+
+        public GuildRepositoryModel GetGuildInfo(ushort guildID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            GuildRepositoryModel guildRepositoryModel = session.Query<GuildRepositoryModel>().SingleOrDefault(
+                x => x.GuildID == guildID);
+
+
+            transaction.Commit();
+            session.Close();
+            
+            return guildRepositoryModel;
+
+        }
+
+        public void UpdateGuildInfo(GuildRepositoryModel guildRepositoryModel)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            session.SaveOrUpdate(guildRepositoryModel);
+            transaction.Commit();
+            session.Close();
+        }
+
+        public List<GuildItemShopModel> GetGuildsItems(ushort guildID)
+        {
+            
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            List<GuildItemShopModel> guildItemShopList = session.Query<GuildItemShopModel>().Where(
+                x => x.GuildID == guildID).ToList();
+
+
+            transaction.Commit();
+            session.Close();
+
+            return guildItemShopList;
+        }
+
+
+        public GuildItemShopModel GetSingleGuildItem(ushort guildID, uint itemID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            GuildItemShopModel guildItemShopList = session.Query<GuildItemShopModel>().SingleOrDefault(
+                x => x.GuildID == guildID && x.ItemID == itemID);
+
+
+            transaction.Commit();
+            session.Close();
+
+            return guildItemShopList;   
+        }
+
+        public void UpdateSingleGuildItem(GuildItemShopModel guildItemShopModel, bool isNewItem)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            if (isNewItem)
+            {
+                session.Save(guildItemShopModel);
+            }
+            else
+            {
+                session.SaveOrUpdate(guildItemShopModel);
+            }
+
+            transaction.Commit();
+            session.Close();
+        }
+
+
+        public List<CharacterRepositoryModel> GetAllGuildMembers(ushort guildID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+            
+            List<CharacterRepositoryModel> guildItemShopList = session.Query<CharacterRepositoryModel>().Where(
+                x => x.GuildID == guildID).ToList();
+
+
+            transaction.Commit();
+            session.Close();
+
+            return guildItemShopList;
+        }
+
+        public CharacterRepositoryModel GetCharacterRepositoryModel(uint playerID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            CharacterRepositoryModel characterRepositoryModel = session.Query<CharacterRepositoryModel>().SingleOrDefault(
+                x => x.PlayerID == playerID);
+
+
+            transaction.Commit();
+            session.Close();
+
+            return characterRepositoryModel;
+        }
+
+        public List<GuildRepositoryModel> GetAllGuilds()
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            List<GuildRepositoryModel> guildRepositoryModels = session.Query<GuildRepositoryModel>().ToList();
+
+            return guildRepositoryModels;
+        }
+
+
 
 
         public int GetPlayerAccountId(string saveID)

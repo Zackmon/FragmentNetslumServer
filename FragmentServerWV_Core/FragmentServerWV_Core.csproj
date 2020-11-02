@@ -44,6 +44,12 @@
     <EmbeddedResource Include="Models\Mapping\PlayerAccountIDModel.hbm.xml" />
     <None Remove="Models\Mapping\MessageOfTheDayModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\MessageOfTheDayModel.hbm.xml" />
+    <None Remove="Models\Mapping\CharacterRepositoryModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\CharacterRepositoryModel.hbm.xml" />
+    <None Remove="Models\Mapping\GuildItemShopModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\GuildItemShopModel.hbm.xml" />
+    <None Remove="Models\Mapping\GuildRepositoryModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\GuildRepositoryModel.hbm.xml" />
   </ItemGroup>
 
 <!--

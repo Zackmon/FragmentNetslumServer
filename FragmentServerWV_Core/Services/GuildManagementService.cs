@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Text;
+using FragmentServerWV.Models;
 
 namespace FragmentServerWV.Services
 {
@@ -30,11 +32,29 @@ namespace FragmentServerWV.Services
 
         public byte[] GetPlayerGuild(uint characterID)
         {
-            return new byte[] {0x00 //0 = no guild 1= master 2= member
-                , 0x00, 0x00}; // Guild ID 
+            CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(characterID);
+            
+            MemoryStream m = new MemoryStream();
+
+            if (characterRepositoryModel.GuildMaster == 1) // the player is guild master
+            {
+                m.Write(new byte[]{0x01});
+                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)characterRepositoryModel.GuildID)));
+            }else if (characterRepositoryModel.GuildMaster == 2) // the player is a normal member
+            {
+                m.Write(new byte[]{0x02});
+                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)characterRepositoryModel.GuildID)));
+            }
+            else
+            {
+                m.Write(new byte[]{0x00,0x00,0x00});
+            }
+
+
+            return m.ToArray();
         }
 
-        public ushort CreateGuild(byte[] argument)
+        public ushort CreateGuild(byte[] argument, uint masterPlayerID)
         {
             int pos = 0;
 
@@ -47,11 +67,25 @@ namespace FragmentServerWV.Services
             byte[] guildEmblem = ReadByteGuildEmblem(argument, pos);
 
             //TODO create Guild in DB and return actual Guild ID
+            GuildRepositoryModel model = new GuildRepositoryModel();
+            model.GuildName = guildNameBytes;
+            model.GuildComment = guildCommentBytes;
+            model.GuildEmblem = guildEmblem;
+            model.GoldCoin = 0;
+            model.SilverCoin = 0;
+            model.BronzeCoin = 0;
+            model.Gp = 0;
+            model.MasterPlayerID = (int) masterPlayerID;
+            model.EstablishmentDate = DateTime.Now.ToString("yyyy/MM/dd");
 
-            return 1;
+            ushort guildID = DBAcess.getInstance().CreateGuild(model);
+            
+            DBAcess.getInstance().EnrollPlayerInGuild(guildID,masterPlayerID,true);
+            
+            return guildID;
         }
 
-        public byte[] UpdateGuildEmblemComment(byte[] argument)
+        public byte[] UpdateGuildEmblemComment(byte[] argument, ushort guildID)
         {
             int pos = 0;
 
@@ -62,6 +96,13 @@ namespace FragmentServerWV.Services
             pos += guildCommentBytes.Length;
 
             byte[] guildEmblem = ReadByteGuildEmblem(argument, pos);
+
+            GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildID);
+
+            guildRepositoryModel.GuildComment = guildCommentBytes;
+            guildRepositoryModel.GuildEmblem = guildEmblem;
+            
+            DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
 
             return new byte[] {0x00, 0x00};
         }
@@ -78,6 +119,13 @@ namespace FragmentServerWV.Services
             Console.WriteLine("Silver Coin Donation " + silverCoinDonate);
             Console.WriteLine("Bronze Coin Donation " + bronzeCoinDonate);
 
+            GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildIDCointToDonate);
+            guildRepositoryModel.GoldCoin += goldCoinDonate;
+            guildRepositoryModel.SilverCoin += silverCoinDonate;
+            guildRepositoryModel.BronzeCoin += bronzeCoinDonate;
+            
+            DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
+
             MemoryStream m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(goldCoinDonate)));
             m.Write(BitConverter.GetBytes(swap16(silverCoinDonate)));
@@ -90,91 +138,170 @@ namespace FragmentServerWV.Services
         {
             //TODO get list of items of the guild from DB based on guild ID
 
+            List<GuildItemShopModel> guildItemList = DBAcess.getInstance().GetGuildsItems(guildId);
+
+            if (guildItemList == null)
+            {
+                guildItemList = new List<GuildItemShopModel>();
+            }
+
             List<byte[]> listOfItems = new List<byte[]>();
             MemoryStream m = new MemoryStream();
 
-            uint itemIDGeneral = 720952;
-            ushort itemQuanitiyGeneral = 250;
-            uint itemPriceGeneral = 50;
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap32(itemIDGeneral)), 0, 4);
-            m.Write(BitConverter.GetBytes(swap16(itemQuanitiyGeneral)), 0, 2);
-            m.Write(BitConverter.GetBytes(swap32(itemPriceGeneral)), 0, 4);
 
-            listOfItems.Add(m.ToArray());
+            foreach (var item in guildItemList)
+            {
+                if (isGeneral)
+                {
+                    if (item.AvailableForGeneral)
+                    {
+                        m = new MemoryStream();
+                        m.Write(BitConverter.GetBytes(swap32((uint)item.ItemID)), 0, 4);
+                        m.Write(BitConverter.GetBytes(swap16((ushort)item.Quantity)), 0, 2);
+                        m.Write(BitConverter.GetBytes(swap32((uint)item.GeneralPrice)), 0, 4);  
+                        listOfItems.Add(m.ToArray());
+                    }
+                }
+                else
+                {
+                    if (item.AvailableForMember)
+                    {
+                        m = new MemoryStream();
+                        m.Write(BitConverter.GetBytes(swap32((uint)item.ItemID)), 0, 4);
+                        m.Write(BitConverter.GetBytes(swap16((ushort)item.Quantity)), 0, 2);
+                        m.Write(BitConverter.GetBytes(swap32((uint)item.MemberPrice)), 0, 4);
+                        listOfItems.Add(m.ToArray());
+                    }
+                }
+
+
+            }
 
             return listOfItems;
         }
 
         public List<byte[]> GetAllGuildItemsWithSettings(ushort guildID)
         {
+            List<GuildItemShopModel> guildItemList = DBAcess.getInstance().GetGuildsItems(guildID);
+
             List<byte[]> itemList = new List<byte[]>();
+
+            if (guildItemList == null)
+            {
+                guildItemList = new List<GuildItemShopModel>();
+            }
 
             MemoryStream m = new MemoryStream();
 
-            uint itemID2 = 720952;
-            ushort itemQuanitiy2 = 1;
-            uint itemPrice2 = 3200;
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap32(itemID2)), 0, 4);
-            m.Write(BitConverter.GetBytes(swap16(itemQuanitiy2)), 0, 2);
-            m.Write(BitConverter.GetBytes(swap32(itemPrice2)), 0, 4);
-            m.Write(BitConverter.GetBytes(swap32(itemPrice2)), 0, 4);
-            m.Write(new byte[] {0x01, 0x01}); // first one is for general // second is for members 
-            //m.Write(BitConverter.GetBytes(swap16(1)),0,2);
-            itemList.Add(m.ToArray());
+            foreach (var item in guildItemList)
+            {
+                m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(swap32((uint) item.ItemID)), 0, 4);
+                m.Write(BitConverter.GetBytes(swap16((ushort) item.Quantity)), 0, 2);
+                m.Write(BitConverter.GetBytes(swap32((uint) item.GeneralPrice)), 0, 4);
+                m.Write(BitConverter.GetBytes(swap32((uint) item.MemberPrice)), 0, 4);
 
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap32(itemID2)), 0, 4);
-            m.Write(BitConverter.GetBytes(swap16(itemQuanitiy2)), 0, 2);
-            m.Write(BitConverter.GetBytes(swap32(itemPrice2)), 0, 4);
-            m.Write(BitConverter.GetBytes(swap32(itemPrice2)), 0, 4);
-            m.Write(new byte[] {0x00, 0x00});
-            m.Write(BitConverter.GetBytes(swap32(50)), 0, 4);
-            itemList.Add(m.ToArray());
+                if (item.AvailableForGeneral)
+                {
+                    m.Write(new byte[] {0x01});
+                }
+                else
+                {
+                    m.Write(new byte[] {0x00});
+                }
+
+                if (item.AvailableForMember)
+                {
+                    m.Write(new byte[] {0x01});
+                }
+                else
+                {
+                    m.Write(new byte[] {0x00});
+                }
+
+                itemList.Add(m.ToArray());
+            }
 
             return itemList;
         }
 
-        public byte[] GetItemDonationSettings(uint itemID, bool isMaster)
+        public byte[] GetItemDonationSettings(bool isMaster)
         {
             if (isMaster)
             {
                 return new byte[] {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01};
             }
-            else
-            {
-                return new byte[]
-                {
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-                }; // don't allow normal member to edit price or publish setting just take thier item XD
-            }
+
+            return new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // don't allow normal member to edit price or publish setting just take thier item XD
         }
 
         public byte[] AddItemToGuildInventory(ushort guildID, uint itemID, ushort itemQuantity, uint generalPrice,
             uint memberPrice, bool isGeneral, bool isMember, bool isGuildMaster)
         {
-            //TODO add item to guild inventory 
+
+            bool isNewItem = false;
+            GuildItemShopModel guildItemShopModel = DBAcess.getInstance().GetSingleGuildItem(guildID, itemID);
+
+            if (guildItemShopModel == null || guildItemShopModel.ItemShopID == -1 || guildItemShopModel.ItemShopID == 0)
+            {
+                guildItemShopModel = new GuildItemShopModel();
+                guildItemShopModel.ItemID = (int) itemID;
+                guildItemShopModel.GuildID = guildID;
+                guildItemShopModel.Quantity = 0;
+                guildItemShopModel.GeneralPrice = 0;
+                guildItemShopModel.MemberPrice = 0;
+                guildItemShopModel.AvailableForGeneral = false;
+                guildItemShopModel.AvailableForMember = false;
+                
+                isNewItem = true;
+            }
+
+            guildItemShopModel.Quantity += itemQuantity;
+            
+            
 
             if (isGuildMaster)
             {
                 // edit price and publishing settings
+                guildItemShopModel.GeneralPrice = (int) generalPrice;
+                guildItemShopModel.MemberPrice = (int) memberPrice;
+                guildItemShopModel.AvailableForGeneral = isGeneral;
+                guildItemShopModel.AvailableForMember = isMember;
             }
+            
+            DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel,isNewItem);
 
             MemoryStream m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(itemQuantity)));
             return m.ToArray();
         }
 
-        public byte[] GetPriceOfItemToBeDonated(uint itemID)
+        public byte[] GetPriceOfItemToBeDonated(ushort guildID,uint itemID)
         {
-            MemoryStream m = new MemoryStream();
+            GuildItemShopModel guildItemShopModel = DBAcess.getInstance().GetSingleGuildItem(guildID, itemID);
+            
+            if (guildItemShopModel == null || guildItemShopModel.ItemShopID == -1 || guildItemShopModel.ItemShopID == 0)
+            {
+                MemoryStream m = new MemoryStream();
 
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap32(500)));
-            m.Write(BitConverter.GetBytes(swap32(500)));
+                m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(swap32(0)));
+                m.Write(BitConverter.GetBytes(swap32(0)));
 
-            return m.ToArray();
+                return m.ToArray();    
+            }
+            else
+            {
+                MemoryStream m = new MemoryStream();
+
+                m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(swap32((uint)guildItemShopModel.GeneralPrice)));
+                m.Write(BitConverter.GetBytes(swap32((uint) guildItemShopModel.MemberPrice)));
+
+                return m.ToArray();
+            }
+
+
         }
 
         public byte[] BuyItemFromGuild(byte[] argument)
@@ -186,15 +313,25 @@ namespace FragmentServerWV.Services
             Console.WriteLine("Guild ID " + guildIDBuying + "\nItem ID = " + itemIDBuying + "\nitem Quantity " +
                               quantityOfBuying + "\nprice of each piece " + priceOfEachPiece);
 
+            GuildItemShopModel guildItemShopModel =
+                DBAcess.getInstance().GetSingleGuildItem(guildIDBuying, itemIDBuying);
+            
+            GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildIDBuying);
+            guildItemShopModel.Quantity -= quantityOfBuying;
+
             uint totalGPToAdd = priceOfEachPiece * quantityOfBuying;
-            //TODO add GP to guild inventory
+
+            guildRepositoryModel.Gp += (int)totalGPToAdd;
+            
+            DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel,false);
+            DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
 
             MemoryStream m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(quantityOfBuying)));
             return m.ToArray();
         }
 
-        public byte[] SetItemVisibilityAndPrice(byte[] argument)
+        public byte[] SetItemVisibilityAndPrice(byte[] argument) // from guild master window 
         {
             ushort GuildIDMaster = swap16(BitConverter.ToUInt16(argument, 0));
             uint itemIDmaster = swap32(BitConverter.ToUInt32(argument, 2));
@@ -202,7 +339,16 @@ namespace FragmentServerWV.Services
             uint MemberPriceMaster = swap32(BitConverter.ToUInt32(argument, 10));
             Boolean isGeneralMaster = argument[14] == 0x01;
             Boolean isMemberMaster = argument[15] == 0x01;
-            ;
+
+            GuildItemShopModel guildItemShopModel =
+                DBAcess.getInstance().GetSingleGuildItem(GuildIDMaster, itemIDmaster);
+
+            guildItemShopModel.GeneralPrice = (int) GeneralPriceMaster;
+            guildItemShopModel.MemberPrice = (int) MemberPriceMaster;
+            guildItemShopModel.AvailableForGeneral = isGeneralMaster;
+            guildItemShopModel.AvailableForMember = isMemberMaster;
+            
+            DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel,false);
 
             Console.Write("GenePrice " + GeneralPriceMaster + "\nMemberPrice " + MemberPriceMaster + "\nisGeneral " +
                           isGeneralMaster + "\nisMember " + isMemberMaster);
@@ -213,6 +359,12 @@ namespace FragmentServerWV.Services
 
         public byte[] TakeMoneyFromGuild(ushort guildID, uint amountOfMoney)
         {
+
+            GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildID);
+            guildRepositoryModel.Gp -= (int) amountOfMoney;
+            
+            DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
+            
             MemoryStream m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap32(amountOfMoney)));
             return m.ToArray();
@@ -220,6 +372,10 @@ namespace FragmentServerWV.Services
 
         public byte[] TakeItemFromGuild(ushort guildID, uint itemID, ushort quantity)
         {
+            GuildItemShopModel guildItemShopModel = DBAcess.getInstance().GetSingleGuildItem(guildID, itemID);
+            guildItemShopModel.Quantity -= quantity;
+            DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel,false);
+            
             MemoryStream m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap32(quantity)));
             return m.ToArray();
@@ -275,71 +431,77 @@ namespace FragmentServerWV.Services
             return classList;
         }
 
-        public List<byte[]> GetGuildMembersListByClass(ushort guildID, ushort categoryID)
+        public List<byte[]> GetGuildMembersListByClass(ushort guildID, ushort categoryID, uint playerID)
         {
-            List<byte[]> membersList = new List<byte[]>();
+            List<CharacterRepositoryModel> allMembers = DBAcess.getInstance().GetAllGuildMembers(guildID);
+
+            if (allMembers == null)
+            {
+                allMembers = new List<CharacterRepositoryModel>();
+            }
 
             MemoryStream m = new MemoryStream();
-
-            string memName = "zackmon";
-            byte[] className = {0x02};
-            ushort memLevel = 50;
-            string memGreeting = "Greeting";
-            byte[] memStatus = {0x00};
-            byte[] modelNumber = {0x00, 0x00, 0x45, 0x01};
-            byte[] isMaster = {0x00};
-
-
-            m = new MemoryStream();
-
-            m.Write(_encoding.GetBytes(memName));
-            m.Write(new byte[] {0x00});
-            m.Write(className);
-            m.Write(BitConverter.GetBytes(swap16(memLevel)));
-            m.Write(_encoding.GetBytes(memGreeting));
-            m.Write(new byte[] {0x00});
-            m.Write(memStatus);
-            m.Write(modelNumber);
-            //m.Write(new byte[]{0x00});
-            m.Write(new byte[] {0x00, 0x00, 0x00, 0x00}); // Player ID
-            m.Write(isMaster);
-
-            membersList.Add(m.ToArray());
-
-            memName = "zack2";
-            m = new MemoryStream();
-
-            m.Write(_encoding.GetBytes(memName));
-            m.Write(new byte[] {0x00});
-            m.Write(className);
-            m.Write(BitConverter.GetBytes(swap16(memLevel)));
-            m.Write(_encoding.GetBytes(memGreeting));
-            m.Write(new byte[] {0x00});
-            m.Write(memStatus);
-            m.Write(modelNumber);
-            //m.Write(new byte[]{0x00});
-            m.Write(new byte[] {0x00, 0x00, 0x00, 0x01}); //Player ID
-            m.Write(isMaster);
-            membersList.Add(m.ToArray());
-
-            switch (categoryID)
+            
+            List<byte[]> membersList = new List<byte[]>();
+            
+            if (categoryID == 1) // get all members 
             {
-                case 1: //ALL Members
-                    break;
-                case 2: //TwinBlade
-                    break;
-                case 3: // Blademaster
-                    break;
-                case 4: // Heavy Blade
-                    break;
-                case 5: // Heavy Axe
-                    break;
-                case 6: // Long Arm
-                    break;
-                case 7: // Wavemaster
-                    break;
-                default:
-                    break;
+                foreach (var member in allMembers)
+                {
+                    if (member.PlayerID == playerID)
+                        continue;
+                    
+                    m = new MemoryStream();
+
+                    m.Write(member.CharachterName);
+                    
+                    m.Write(BitConverter.GetBytes(member.ClassID));
+                    m.Write(BitConverter.GetBytes(swap16((ushort)member.CharachterLevel)));
+                    m.Write(member.Greeting);
+                    
+                    
+                    m.Write(BitConverter.GetBytes(member.OnlineStatus));
+                    m.Write(BitConverter.GetBytes(swap32((uint) member.ModelNumber)));
+                    
+                    m.Write(BitConverter.GetBytes(swap32((uint)member.PlayerID))); // Player ID
+                    m.Write(BitConverter.GetBytes(member.GuildMaster));
+
+                    membersList.Add(m.ToArray());
+                }
+
+                return membersList;
+            }
+
+            int classID = categoryID - 2;
+
+
+
+            foreach (var member in allMembers)
+            {
+                if (member.PlayerID == playerID)
+                    continue;
+                
+                
+                if (member.ClassID != classID)
+                    continue;
+                
+                
+                m = new MemoryStream();
+
+                m.Write(member.CharachterName);
+                    
+                m.Write(BitConverter.GetBytes(member.ClassID));
+                m.Write(BitConverter.GetBytes(swap16((ushort)member.CharachterLevel)));
+                m.Write(member.Greeting);
+                    
+                    
+                m.Write(BitConverter.GetBytes(member.OnlineStatus));
+                m.Write(BitConverter.GetBytes(swap32((uint) member.ModelNumber)));
+                    
+                m.Write(BitConverter.GetBytes(swap32((uint)member.PlayerID))); // Player ID
+                m.Write(BitConverter.GetBytes(member.GuildMaster));
+
+                membersList.Add(m.ToArray());
             }
 
             return membersList;
@@ -347,22 +509,35 @@ namespace FragmentServerWV.Services
 
         public byte[] KickPlayerFromGuild(ushort guildID, uint playerToKick)
         {
+            CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerToKick);
+            characterRepositoryModel.GuildID = 0;
+            characterRepositoryModel.GuildMaster = 0;
+            DBAcess.getInstance().updatePlayerInfo(characterRepositoryModel);
+            
             return new byte[] {0x00, 0x00};
         }
 
         public byte[] LeaveGuild(ushort guildID, uint characterID)
         {
+            CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(characterID);
+            characterRepositoryModel.GuildID = 0;
+            characterRepositoryModel.GuildMaster = 0;
+            DBAcess.getInstance().updatePlayerInfo(characterRepositoryModel);
             return new byte[] {0x00, 0x00};
         }
 
         public byte[] LeaveGuildAndAssignMaster(ushort guildID, uint playerToAssign)
         {
+            CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerToAssign);
+            characterRepositoryModel.GuildMaster = 1;
+            DBAcess.getInstance().updatePlayerInfo(characterRepositoryModel);
             return new byte[] {0x00, 0x00};
         }
 
 
         public byte[] DestroyGuild(ushort guildID)
         {
+            //TODO
             return new byte[] {0x00, 0x00};
         }
 
@@ -371,18 +546,25 @@ namespace FragmentServerWV.Services
         {
             //TODO Get List of Guilds from DB
 
+            List<GuildRepositoryModel> guildRepositoryModels = DBAcess.getInstance().GetAllGuilds();
+
+            if (guildRepositoryModels == null)
+            {
+                guildRepositoryModels = new List<GuildRepositoryModel>();
+            }
+            
             List<byte[]> listOfGuilds = new List<byte[]>();
 
             MemoryStream m = new MemoryStream();
+            
+            foreach (var guild in guildRepositoryModels)
+            {
+                m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(swap16((ushort)guild.GuildID)), 0, 2);
+                m.Write(guild.GuildName);
 
-            ushort guildID = 8585;
-            string guildName = "ZackGuild1234567";
-
-            m.Write(BitConverter.GetBytes(swap16(guildID)), 0, 2);
-            m.Write(_encoding.GetBytes(guildName));
-            m.Write(new byte[] {0x00});
-
-            listOfGuilds.Add(m.ToArray());
+                listOfGuilds.Add(m.ToArray());
+            }
 
             return listOfGuilds;
         }
@@ -390,106 +572,88 @@ namespace FragmentServerWV.Services
 
         public byte[] GetGuildInfo(ushort guildID)
         {
-            //TODO get Guild info from DB using the guildID;
+
+            GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildID);
+            CharacterRepositoryModel guildMaster =
+                DBAcess.getInstance().GetCharacterInfo((uint)guildRepositoryModel.MasterPlayerID);
+            List<CharacterRepositoryModel> listOfmembers = DBAcess.getInstance().GetAllGuildMembers(guildID);
+            
 
             MemoryStream m = new MemoryStream();
 
-            byte[] guildName = _encoding.GetBytes("ZackGuild1234567");
-
-            m.Write(guildName);
-
-
-            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            int secondsSinceEpoch = (int) t.TotalSeconds;
+            m.Write(guildRepositoryModel.GuildName);
+            m.Write(_encoding.GetBytes(guildRepositoryModel.EstablishmentDate)); //date
             m.Write(new byte[] {0x00});
-            m.Write(_encoding.GetBytes("2020/10/31")); //date
+            m.Write(guildMaster.CharachterName);
+            
 
-            m.Write(new byte[] {0x00});
+            int memTotal = listOfmembers.Count;
+            int twinBlade = 0;
+            int bladeMaster = 0;
+            int heavyBlade = 0;
+            int heaveyAxes = 0;
+            int longArm = 0;
+            int waveMaster = 0;
+            int totalLevel = 0;
+            
 
-
-            byte[] guildMaster = _encoding.GetBytes("zackTest");
-            //Buffer.BlockCopy(,0,guildMaster,0,_encoding.GetBytes("zackTest").Length);
-            m.Write(guildMaster);
-            m.Write(new byte[] {0x00});
-
-
-            //byte[] avgText = _encoding.GetBytes("fiejfiejfijefijefiej");
-            //   m.Write(avgText);
-            // m.Write(new byte[] {0x00});
-            //m.Write(new byte[] {0x01});// level
-            //uint date  = 50;
-            //m.Write(BitConverter.GetBytes(swap32( date)), 0, 4);
-            //  byte[] guildMaster = new byte[18];
-            //  Buffer.BlockCopy(_encoding.GetBytes("zackTest"),0,guildMaster,0,_encoding.GetBytes("zackTest").Length);
-            // m.Write(guildMaster);
-
-            ushort memTotal = 21;
-            m.Write(BitConverter.GetBytes(swap16(memTotal)), 0, 2);
-
-            ushort twinBlade = 6;
-            m.Write(BitConverter.GetBytes(swap16(twinBlade)), 0, 2);
-            ushort bladeMaster = 5;
-            m.Write(BitConverter.GetBytes(swap16(bladeMaster)), 0, 2);
-            ushort heavyBlade = 4;
-            m.Write(BitConverter.GetBytes(swap16(heavyBlade)), 0, 2);
-            ushort heaveyAxes = 3;
-            m.Write(BitConverter.GetBytes(swap16(heaveyAxes)), 0, 2);
-            ushort longArm = 2;
-            m.Write(BitConverter.GetBytes(swap16(longArm)), 0, 2);
-            ushort waveMaster = 1;
-            m.Write(BitConverter.GetBytes(swap16(waveMaster)), 0, 2);
-
-            ushort avgLevel = 55;
-            m.Write(BitConverter.GetBytes(swap16(avgLevel)), 0, 2);
-
-
-            uint goldCoins = 50;
-            m.Write(BitConverter.GetBytes(swap32(goldCoins)), 0, 4);
-            uint silverCoins = 40;
-            m.Write(BitConverter.GetBytes(swap32(silverCoins)), 0, 4);
-            uint bronzeCoins = 30;
-            m.Write(BitConverter.GetBytes(swap32(bronzeCoins)), 0, 4);
-
-            uint GP = 5000;
-            m.Write(BitConverter.GetBytes(swap32(GP)), 0, 4);
-
-            byte[] guildComment = _encoding.GetBytes("This is the Guild Comment");
-            m.Write(guildComment);
-            m.Write(new byte[] {0x00});
-            //"This is the Guild Comment";
-
-            // m.Write(guildComment);
-
-            byte[] guildEmblem =
+            foreach (var member in listOfmembers)
             {
-                0x53, 0x45, 0x39, 0x46, 0x54, 0x55, 0x49, 0x77, 0x4D, 0x41, 0x41, 0x65, 0x41, 0x41, 0x41, 0x41, 0x67,
-                0x49, 0x43, 0x41, 0x41, 0x49, 0x43, 0x41, 0x67, 0x41, 0x43, 0x41, 0x67, 0x49, 0x41, 0x41, 0x67, 0x49,
-                0x43, 0x41, 0x41, 0x45, 0x38, 0x4B, 0x41, 0x41, 0x41, 0x41, 0x41, 0x49, 0x41, 0x41, 0x67, 0x49, 0x41,
-                0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x47, 0x41, 0x67, 0x49, 0x43, 0x41, 0x41, 0x41, 0x41, 0x41,
-                0x41, 0x41, 0x41, 0x43, 0x67, 0x49, 0x43, 0x41, 0x67, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-                0x34, 0x43, 0x41, 0x67, 0x49, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x53, 0x41, 0x67, 0x49,
-                0x43, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x46, 0x67, 0x49, 0x43, 0x41, 0x67, 0x41, 0x41,
-                0x41, 0x41, 0x41, 0x41, 0x41, 0x42, 0x6F, 0x43, 0x41, 0x67, 0x49, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-                0x41, 0x41, 0x65, 0x41, 0x67, 0x49, 0x43, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x49, 0x67,
-                0x49, 0x43, 0x41, 0x67, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x43, 0x59, 0x43, 0x41, 0x67, 0x49,
-                0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x71, 0x41, 0x67, 0x49, 0x43, 0x41, 0x41, 0x41, 0x41,
-                0x41, 0x41, 0x41, 0x41, 0x4C, 0x67, 0x49, 0x43, 0x41, 0x67, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-                0x44, 0x49, 0x43, 0x41, 0x67, 0x49, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x32, 0x41, 0x67,
-                0x49, 0x43, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x4F, 0x67, 0x49, 0x43, 0x41, 0x67, 0x41,
-                0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x44, 0x34, 0x43, 0x41, 0x67, 0x49, 0x41, 0x41, 0x41, 0x41, 0x41,
-                0x41, 0x41, 0x42, 0x43, 0x41, 0x67, 0x49, 0x43, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x52,
-                0x67, 0x49, 0x43, 0x41, 0x67, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x45, 0x6F, 0x43, 0x41, 0x67,
-                0x49, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x42, 0x4F, 0x41, 0x67, 0x49, 0x43, 0x41, 0x41, 0x41,
-                0x41, 0x41, 0x41, 0x41, 0x41, 0x55, 0x67, 0x49, 0x43, 0x41, 0x67, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-                0x41, 0x46, 0x59, 0x43, 0x41, 0x67, 0x49, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x42, 0x61, 0x41,
-                0x67, 0x49, 0x43, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x58, 0x67, 0x49, 0x43, 0x41, 0x67,
-                0x41, 0x38, 0x51, 0x41, 0x41, 0x41, 0x41, 0x47, 0x49, 0x43, 0x41, 0x67, 0x49, 0x42, 0x61, 0x43, 0x67,
-                0x41, 0x41, 0x41, 0x42, 0x6D, 0x41, 0x67, 0x49, 0x42, 0x54, 0x59, 0x78, 0x63, 0x41, 0x41, 0x41, 0x41,
-                0x61, 0x67, 0x49, 0x43, 0x41, 0x4D, 0x41, 0x49, 0x42, 0x41, 0x41, 0x41, 0x41, 0x47, 0x34, 0x43, 0x41,
-                0x67, 0x49, 0x41, 0x42, 0x42, 0x77, 0x41, 0x41, 0x41, 0x42, 0x79, 0x41, 0x67, 0x49, 0x43, 0x41, 0x41,
-                0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x64, 0x67, 0x49, 0x43, 0x41, 0x67, 0x41, 0x3D, 0x3D
-            };
-            m.Write(guildEmblem);
+                if (member.ClassID == 0)
+                {
+                    twinBlade++;
+                }
+                if (member.ClassID == 1)
+                {
+                    bladeMaster++;
+                }
+                if (member.ClassID == 2)
+                {
+                    heavyBlade++;
+                }
+                if (member.ClassID == 3)
+                {
+                    heaveyAxes++;
+                }
+                if (member.ClassID == 4)
+                {
+                    longArm++;
+                }
+
+                if (member.ClassID == 5)
+                {
+                    waveMaster++;
+                }
+
+                totalLevel += member.CharachterLevel;
+
+            }
+
+            int avgLevel = 0;
+            
+            if (memTotal!=0)
+                 avgLevel= totalLevel / memTotal;
+            
+            
+            m.Write(BitConverter.GetBytes(swap16((ushort)memTotal)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)twinBlade)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)bladeMaster)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)heavyBlade)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)heaveyAxes)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)longArm)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)waveMaster)), 0, 2);
+            m.Write(BitConverter.GetBytes(swap16((ushort)avgLevel)), 0, 2);
+
+
+            m.Write(BitConverter.GetBytes(swap32((uint)guildRepositoryModel.GoldCoin)), 0, 4);
+            m.Write(BitConverter.GetBytes(swap32((uint)guildRepositoryModel.SilverCoin)), 0, 4);
+            m.Write(BitConverter.GetBytes(swap32((uint)guildRepositoryModel.BronzeCoin)), 0, 4);
+
+            m.Write(BitConverter.GetBytes(swap32((uint)guildRepositoryModel.Gp)), 0, 4);
+            
+            m.Write(guildRepositoryModel.GuildComment);
+            
+            m.Write(guildRepositoryModel.GuildEmblem);
             m.Write(new byte[] {0x00});
 
             return m.ToArray();

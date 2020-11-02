@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<hibernate-mapping assembly="FragmentServerWV_Core" namespace="FragmentServerWV.Models" xmlns="urn:nhibernate-mapping-2.2">
+    <class name="GuildItemShopModel" table="GuildItemShop">
+        <id name="ItemShopID" type="Int32">
+            <column name="itemShopID" not-null="true" sql-type="INT" />
+            <generator class="identity" />
+        </id>
+        <property name="GuildID" type="Int32">
+            <column name="guildID" not-null="false" sql-type="INT" />
+        </property>
+        <property name="ItemID" type="Int32">
+            <column name="itemID" not-null="false" sql-type="INT" />
+        </property>
+        <property name="Quantity" type="Int32">
+            <column name="quantity" not-null="false" sql-type="INT" />
+        </property>
+        <property name="GeneralPrice" type="Int32">
+            <column name="generalPrice" not-null="false" sql-type="INT" />
+        </property>
+        <property name="MemberPrice" type="Int32">
+            <column name="memberPrice" not-null="false" sql-type="INT" />
+        </property>
+        <property name="AvailableForGeneral" type="Boolean">
+            <column name="availableForGeneral" not-null="false" precision="1" scale="0" sql-type="TINYINT(1)" />
+        </property>
+        <property name="AvailableForMember" type="Boolean">
+            <column name="availableForMember" not-null="false" precision="1" scale="0" sql-type="TINYINT(1)" />
+        </property>
+    </class>
+</hibernate-mapping>

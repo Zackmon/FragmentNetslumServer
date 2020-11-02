@@ -190,6 +190,11 @@ namespace FragmentServerWV
             _exited = true;
             client.Close();
 
+            if (_characterPlayerID != 0)
+            {
+                DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
+            }
+
             for (int i = 0; i < Server.clients.Count; i++)
             {
                 if (Server.clients[i].index == this.index)
@@ -329,7 +334,7 @@ namespace FragmentServerWV
                         _guildID = swap16(BitConverter.ToUInt16(guildStatus, 1));
 
                         SendPacket30(OpCodes.OPCODE_DATA_REGISTER_CHAROK,
-                            new byte[] {0x01, 0x55, 0x58}); //first byte is membership status 0=none 1= master 2= member
+                            guildStatus); //first byte is membership status 0=none 1= master 2= member
                         break;
                     case OpCodes.OPCODE_DATA_UNREGISTER_CHAR:
                         SendPacket30(OpCodes.OPCODE_DATA_UNREGISTER_CHAROK, new byte[] {0x00, 0x00});
@@ -345,6 +350,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_LOBBY_EXITROOM_OK, new byte[] {0x00, 0x00});
                         break;
                     case OpCodes.OPCODE_DATA_RETURN_DESKTOP:
+                        DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
                         SendPacket30(OpCodes.OPCODE_DATA_RETURN_DESKTOP_OK, new byte[] {0x00, 0x00});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_GETMENU:
@@ -457,7 +463,7 @@ namespace FragmentServerWV
                         break;
                     case 0x7600: //create Guild
                         Log.LogData(argument,0xffff,this.index,"Create Guild Info",0,0);
-                        u = GuildManagementService.GetInstance().CreateGuild(argument);
+                        u = GuildManagementService.GetInstance().CreateGuild(argument,_characterPlayerID);
                         _guildID = u;
                         isGuildMaster = true;
                         
@@ -484,12 +490,12 @@ namespace FragmentServerWV
                         else //MemberList in that Category
                         {
                             List<byte[]> memberList =
-                                GuildManagementService.GetInstance().GetGuildMembersListByClass(0, u);
+                                GuildManagementService.GetInstance().GetGuildMembersListByClass(0, u,_characterPlayerID);
                             SendPacket30(0x7614, BitConverter.GetBytes(swap16((ushort) memberList.Count)));//Size of List
 
                             foreach (var member in memberList)
                             {
-                                SendPacket30(0x7615,member); //Member Detailes    
+                                SendPacket30(0x7615,member); //Member Details    
                             }
                             
                         }
@@ -529,12 +535,12 @@ namespace FragmentServerWV
                         Console.WriteLine("Item ID For Donation " + _itemDontationID);
                         Console.WriteLine("Item Quantity For Donation " + _itemDonationQuantity);
                         
-                        SendPacket30(0x7704,GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_itemDontationID));
+                        SendPacket30(0x7704,GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_guildID,_itemDontationID));
                         break;
                     case 0x7879:
                         Log.LogData(argument,0xfff,this.index,"Get Member and General Screen Permission",0,0);
                         
-                        SendPacket30(0x787a,new byte[] {0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01});
+                        SendPacket30(0x787a,GuildManagementService.GetInstance().GetItemDonationSettings(isGuildMaster));
                         
                         break;
                     case 0x7703:
@@ -577,7 +583,7 @@ namespace FragmentServerWV
                         break;
                     case 0x761C: // Update Guild Emblem and Comment
                         
-                        SendPacket30(0x761D,GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument));
+                        SendPacket30(0x761D,GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument,_guildID));
                         break;
                     case 0x770E: // Take out GP from the Guild Inventory
                         ushort guildIDTakeMoney = swap16(BitConverter.ToUInt16(argument, 0));
@@ -599,10 +605,18 @@ namespace FragmentServerWV
                         
                         SendPacket30(0x7701,GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
                         break;
+                    
+                    case 0x7603: //invite player to Guild
+                        uint invitingPlayer = swap32(BitConverter.ToUInt32(argument, 0));
+                        
+                        Console.WriteLine("Invited Player ID " + invitingPlayer);
+                        SendPacket30(0x7604,new byte[] {0x00,0x00});
+                        break;
                     case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
                         publish_data_2 = argument;
                         ExtractAreaServerData(argument);
                         break;
+                    
                     case 0x780f: // Create Thread Request 
                         SendPacket30(0x7810, new byte[] {0x01, 0x92});
                         break;
@@ -617,12 +631,58 @@ namespace FragmentServerWV
                         SendPacket30(0x7813, new byte[] {0x00, 0x00});
                         break;
 
-                    case 0x7832: // ranking
+                    case 0x7832: // ranking Page
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         if (u == 0)
-                            SendPacket30(0x7833, new byte[] {0x00, 0x00});
+                        {
+                            SendPacket30(0x7833, new byte[] {0x00, 0x02});
+                            SendPacket30(0x7835, new byte[] {0x00,0x01, 0x30, 0x30,0x00, 0x00, 0x01});
+                            SendPacket30(0x7835, new byte[] {0x00,0x02, 0x30, 0x30,0x00, 0x00, 0x01});   
+                        }
+
                         else
-                            SendPacket30(0x7836, new byte[] {0x00, 0x00, 0x00, 0x00});
+                        {
+                           
+                            SendPacket30(0x7836, new byte[] {0x00, 0x00, 0x00, 0x01});
+                            m = new MemoryStream();
+                            m.Write(_encoding.GetBytes("zackmon"));
+                            m.Write(new byte[] {0x00});
+                            m.Write(BitConverter.GetBytes(swap32(55828740)));
+                            SendPacket30(0x7837, m.ToArray());
+                        }
+                        break;
+                    
+                    case 0x7838: //Ranking Char Detail
+                        uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
+                        Console.WriteLine("Ranking Player ID " + rankPlayerID);
+                        string memName = "zackmon";
+                        byte[] classNameRank = {0x01};
+                        ushort memLevel = 50;
+                        string memGreeting = "Greeting";
+                        byte[] memStatus = {0x01};
+                        byte[] modelNumber = {0x00, 0x00, 0x45, 0x01};
+                        byte[] isMaster = {0x02};
+
+
+                        m = new MemoryStream();
+
+                        m.Write(_encoding.GetBytes(memName));
+                        m.Write(new byte[] {0x00});
+                        m.Write(classNameRank);
+                        m.Write(BitConverter.GetBytes(swap16(memLevel)));
+                        m.Write(_encoding.GetBytes(memGreeting));
+                        m.Write(new byte[] {0x00});
+                        m.Write(_encoding.GetBytes("ZackGuild"));
+                        m.Write(new byte[] {0x00});
+                        m.Write(modelNumber);
+                        m.Write(memStatus);
+                        //m.Write(new byte[]{0x00});
+                        //m.Write(new byte[] {0x00, 0x00, 0x00, 0x00}); // Player ID
+                        m.Write(isMaster);
+                       
+                        
+                       // SendPacket30(0x7839,new byte[] {0x4e,0x43,0x44,0x79,0x73,0x6f,0x6e,0x00,0x00,0x00,0x01,0x61,0x00,  0x44,0x61,0x79,0x62,0x72,0x65,0x61,0x6b,0x20,0x4d,0x61,0x66,0x69,0x61,0x00, 0x00,0x00,0x00,0x00, 0x01,     0x00,0xfe,0x02,         0x30,0x30,0x00});
+                        SendPacket30(0x7839,m.ToArray());
                         break;
 
                     case OpCodes.OPCODE_DATA_LOBBY_GETSERVERS:
