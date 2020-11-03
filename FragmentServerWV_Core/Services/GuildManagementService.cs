@@ -65,7 +65,6 @@ namespace FragmentServerWV.Services
 
             byte[] guildEmblem = ReadByteGuildEmblem(argument, pos);
 
-            //TODO create Guild in DB and return actual Guild ID
             GuildRepositoryModel model = new GuildRepositoryModel();
             model.GuildName = guildNameBytes;
             model.GuildComment = guildCommentBytes;
@@ -135,7 +134,6 @@ namespace FragmentServerWV.Services
 
         public List<byte[]> GetGuildItems(ushort guildId, bool isGeneral)
         {
-            //TODO get list of items of the guild from DB based on guild ID
 
             List<GuildItemShopModel> guildItemList = DBAcess.getInstance().GetGuildsItems(guildId);
 
@@ -561,7 +559,7 @@ namespace FragmentServerWV.Services
 
         public List<byte[]> GetListOfGuilds()
         {
-            //TODO Get List of Guilds from DB
+            
 
             List<GuildRepositoryModel> guildRepositoryModels = DBAcess.getInstance().GetAllGuilds();
 
