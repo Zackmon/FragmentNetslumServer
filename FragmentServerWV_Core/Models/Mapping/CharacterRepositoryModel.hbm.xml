@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<hibernate-mapping assembly="FragmentServerWV_Core" namespace="FragmentServerWV.Models" xmlns="urn:nhibernate-mapping-2.2">
+    <class name="CharacterRepositoryModel" table="CharacterRepository">
+        <id name="PlayerID" type="Int32">
+            <column name="playerID" not-null="true" sql-type="INT" />
+            <generator class="identity" />
+        </id>
+        <property name="CharachterName" type="BinaryBlob">
+            <column name="charachterName" not-null="false" sql-type="BLOB" />
+        </property>
+        <property name="ClassID" type="Int32">
+            <column name="classID" not-null="false" sql-type="INT" />
+        </property>
+        <property name="CharachterLevel" type="Int32">
+            <column name="charachterLevel" not-null="false" sql-type="INT" />
+        </property>
+        <property name="Greeting" type="BinaryBlob">
+            <column name="greeting" not-null="false" sql-type="BLOB" />
+        </property>
+        <property name="GuildID" type="Int32">
+            <column name="guildID" not-null="false" sql-type="INT" />
+        </property>
+        <property name="GuildMaster" type="Int32">
+            <column name="guildMaster" not-null="false" sql-type="INT" />
+        </property>
+        <property name="ModelNumber" type="Int32">
+            <column name="modelNumber" not-null="false" sql-type="INT" />
+        </property>
+        <property name="OnlineStatus" type="Boolean">
+            <column name="onlineStatus" not-null="false" precision="1" scale="0" sql-type="TINYINT(1)" />
+        </property>
+
+        <property name="accountID" type="Int32">
+            <column name="accountID" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charachterSaveID" type="String">
+            <column name="characterSaveID" not-null="false" length="255" sql-type="VARCHAR(255)" />
+        </property>
+
+
+        <property name="charHP" type="Int32">
+            <column name="charHP" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charSP" type="Int32">
+            <column name="charSP" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charGP" type="Int32">
+            <column name="charGP" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charOnlineGoat" type="Int32">
+            <column name="charOnlineGoat" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charOfflineGoat" type="Int32">
+            <column name="charOfflineGoat" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charGoldCoin" type="Int32">
+            <column name="charGoldCoin" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charSilverCoin" type="Int32">
+            <column name="charSilverCoin" not-null="false" sql-type="INT" />
+        </property>
+
+        <property name="charBronzeCoin" type="Int32">
+            <column name="charBronzeCoin" not-null="false" sql-type="INT" />
+        </property>
+
+        
+    </class>
+</hibernate-mapping>
