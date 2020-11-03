@@ -13,6 +13,15 @@
         public virtual bool OnlineStatus { get; set; }
         public virtual int accountID { get; set; }
         public virtual string charachterSaveID { get; set; }
+        
+        public virtual int charHP { get; set; }
+        public virtual int charSP { get; set; }
+        public virtual int charGP { get; set; }
+        public virtual int charOnlineGoat { get; set; }
+        public virtual int charOfflineGoat { get; set; }
+        public virtual int charGoldCoin { get; set; }
+        public virtual int charSilverCoin { get; set; }
+        public virtual int charBronzeCoin { get; set; }
 
         public CharacterRepositoryModel()
         {

@@ -43,9 +43,13 @@ namespace FragmentServerWV.Services
             List<BbsCategoryModel> categoryList = new List<BbsCategoryModel>();
             using (ISession session = _sessionFactory.OpenSession())
             {
+                using ITransaction transaction = session.BeginTransaction();
+                
                 ICriteria criteria = session.CreateCriteria(typeof(BbsCategoryModel));
                 IList<BbsCategoryModel> bbsCategoryModels = session.Query<BbsCategoryModel>().ToList();
                 categoryList.AddRange(bbsCategoryModels);
+                
+                transaction.Commit();
                 session.Close();
             }
 
@@ -59,10 +63,12 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
+                using ITransaction transaction = session.BeginTransaction();
                 threadLists.AddRange(
                     session.Query<BbsThreadModel>().Where
                             (x => x.categoryID == categoryID)
                         .ToList());
+                transaction.Commit();
                 session.Close();
             }
 
@@ -74,12 +80,14 @@ namespace FragmentServerWV.Services
         {
             List<BbsPostMetaModel> postMetaList = new List<BbsPostMetaModel>();
             using ISession session = _sessionFactory.OpenSession();
+            using ITransaction transaction = session.BeginTransaction();
 
             postMetaList.AddRange(
                 session.Query<BbsPostMetaModel>().Where
                         (x => x.threadID == threadID)
                     .ToList());
 
+            transaction.Commit();
             session.Close();
 
             return postMetaList;
@@ -89,9 +97,11 @@ namespace FragmentServerWV.Services
         public BbsPostBody GetPostBodyByPostId(int postID)
         {
             using ISession session = _sessionFactory.OpenSession();
-
+            using ITransaction transaction = session.BeginTransaction();
+            
             BbsPostBody postBody = session.Query<BbsPostBody>().SingleOrDefault(x => x.postID == postID);
-
+            transaction.Commit();
+            session.Close();
             return postBody;
         }
 
@@ -203,7 +213,7 @@ namespace FragmentServerWV.Services
 
         public uint PlayerLogin(GameClient client)
         {
-            //TODO return Character ID
+            
             ///////////////Player Logging ///////////////////////////////////////////////////////////////////////////////
             RankingDataModel model = new RankingDataModel();
 
@@ -256,6 +266,15 @@ namespace FragmentServerWV.Services
             characterRepositoryModel.CharachterLevel = client.char_level;
             characterRepositoryModel.OnlineStatus = true;
             characterRepositoryModel.ModelNumber = (int) client.char_model;
+            characterRepositoryModel.charHP = client.char_HP;
+            characterRepositoryModel.charSP = client.char_SP;
+            characterRepositoryModel.charGP = (int) client.char_GP;
+            characterRepositoryModel.charOnlineGoat = client.online_god_counter;
+            characterRepositoryModel.charOfflineGoat = client.offline_godcounter;
+            characterRepositoryModel.charGoldCoin = client.goldCoinCount;
+            characterRepositoryModel.charSilverCoin = client.silverCoinCount;
+            characterRepositoryModel.charBronzeCoin = client.bronzeCoinCount;
+
 
             session.Save(model);
             session.SaveOrUpdate(characterRepositoryModel);
@@ -472,7 +491,35 @@ namespace FragmentServerWV.Services
 
             List<GuildRepositoryModel> guildRepositoryModels = session.Query<GuildRepositoryModel>().ToList();
 
+            transaction.Commit();
+            session.Close();
             return guildRepositoryModels;
+        }
+
+        public void DeleteGuild(ushort guildID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            var updateCharQuery = session.CreateSQLQuery(
+                "update CharacterRepository set guildID = 0, guildMaster = 0 where guildID = :guildID");
+            var deleteItemsFromShopQuery =session.CreateSQLQuery( "delete from GuildItemShop where  guildID = :guildID");
+            var deleteGuildFromTable = session.CreateSQLQuery("delete from GuildRepository where guildID = :guildID");
+            
+            updateCharQuery.SetInt32("guildID", guildID);
+            deleteItemsFromShopQuery.SetInt32("guildID", guildID);
+            deleteGuildFromTable.SetInt32("guildID", guildID);
+            
+            
+            updateCharQuery.ExecuteUpdate();
+            deleteItemsFromShopQuery.ExecuteUpdate();
+            deleteGuildFromTable.ExecuteUpdate();
+            
+            transaction.Commit();
+
+            session.Close();
+
         }
 
 
@@ -508,6 +555,65 @@ namespace FragmentServerWV.Services
             }
 
             return playerAccountIdModel.ID;
+        }
+
+        public List<CharacterRepositoryModel> GetRanking(ushort categoryID, ushort classID)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+
+            using ITransaction transaction = session.BeginTransaction();
+
+            ISQLQuery query;
+
+            if (classID == 1)
+            {
+                query = session.CreateSQLQuery("select * from CharacterRepository order by :category DESC LIMIT 10 ");
+            }
+            else
+            {
+                query = session.CreateSQLQuery("select * from CharacterRepository where classID = :classID order by :category DESC LIMIT 10 ");
+                query.SetInt32("classID",classID - 2 );
+            }
+
+            switch (categoryID)
+            {
+                case 8: //Level
+                    query.SetString("category", "charachterLevel");
+                    break;
+                case 9: //HP
+                    query.SetString("category", "charHP");
+                    break;
+                case 10://SP
+                    query.SetString("category", "charSP");
+                    break;
+                case 11://GP
+                    query.SetString("category", "charGP");
+                    break;
+                case 12: // Online Gott Status
+                    query.SetString("category", "charOnlineGoat");
+                    break;
+                case 13: //Offline Gott Statue
+                    query.SetString("category", "charOfflineGoat");
+                    break;
+                case 14: //Gold Coin
+                    query.SetString("category", "charGoldCoin");
+                    break;
+                case 15: // Silver Coin
+                    query.SetString("category", "charSilverCoin");
+                    break;
+                case 16: // Bronze Coin 
+                    query.SetString("category", "charBronzeCoin");
+                    break;
+            }
+
+
+            query.AddEntity(typeof(CharacterRepositoryModel));
+            var queryList = query.List<CharacterRepositoryModel>();
+            
+            List<CharacterRepositoryModel> modelList = new List<CharacterRepositoryModel>();
+            modelList.AddRange(queryList);
+
+            return modelList;
         }
 
         public Boolean checkForNewMailByAccountID(int accountID)

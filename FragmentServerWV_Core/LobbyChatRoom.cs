@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FragmentServerWV.Services;
 
 namespace FragmentServerWV
 {
@@ -55,6 +56,7 @@ namespace FragmentServerWV
                 m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) (data.Length))), 0, 2);
                 m.Write(data, 0, data.Length);
                 byte[] buff = m.ToArray();
+               
                 foreach (GameClient client in Server.clients)
                     if (!client.isAreaServer && client.index != who && !client._exited && client.room_index == ID)
                         client.SendPacket30(0x7009, buff);
@@ -98,6 +100,38 @@ namespace FragmentServerWV
         
         public void DispatchPrivateBroadcast(byte[] data, int who, int destid)
         {
+            try
+            {
+
+
+                int srcid = FindRoomIndexById(who);
+                int towho = Users[destid - 1];
+                foreach (GameClient client in Server.clients)
+                    if (client.index == towho)
+                    {
+                        byte[] temp = new byte[data.Length];
+                        data.CopyTo(temp, 0);
+                        temp[2] = (byte) (srcid >> 8);
+                        temp[3] = (byte) (srcid & 0xff);
+                        client.SendPacket30(0x788c, temp);
+                    }
+                    else if (client.index == who)
+                    {
+                        byte[] temp = new byte[data.Length];
+                        data.CopyTo(temp, 0);
+                        temp[2] = 0xff;
+                        temp[3] = 0xff;
+                        client.SendPacket30(0x788c, temp);
+                    }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+        
+        public void GuildInvitation(byte[] data, int who, int destid, ushort guildID)
+        {
             int srcid = FindRoomIndexById(who);
             int towho = Users[destid - 1];
             foreach (GameClient client in Server.clients)
@@ -105,18 +139,18 @@ namespace FragmentServerWV
                 {
                     byte[] temp = new byte[data.Length];
                     data.CopyTo(temp, 0);
-                    temp[2] = (byte)(srcid >> 8);
-                    temp[3] = (byte)(srcid & 0xff);
-                    client.SendPacket30(0x788c, temp);
+                  //  temp[2] = (byte)(srcid >> 8);
+                   // temp[3] = (byte)(srcid & 0xff);
+                    MemoryStream m = new MemoryStream();
+                    //m.Write(temp);
+                    
+                    m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)srcid)));
+                    
+                    client.SendPacket30(0x7606, m.ToArray()); // Guild Inviation OPCode
+                 
+                    
                 }
-                else if (client.index == who)
-                {
-                    byte[] temp = new byte[data.Length];
-                    data.CopyTo(temp, 0);
-                    temp[2] = 0xff;
-                    temp[3] = 0xff;
-                    client.SendPacket30(0x788c, temp);
-                }
+                
         }
     }
 }

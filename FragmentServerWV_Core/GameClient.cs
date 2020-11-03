@@ -56,6 +56,9 @@ namespace FragmentServerWV
         public uint char_GP;
         public ushort online_god_counter;
         public ushort offline_godcounter;
+        public ushort goldCoinCount;
+        public ushort silverCoinCount;
+        public ushort bronzeCoinCount;
         public char classLetter;
         public int modelNumber;
         public char modelType;
@@ -76,6 +79,10 @@ namespace FragmentServerWV
         
         private uint _itemDontationID = 0;
         private ushort _itemDonationQuantity = 0 ;
+
+        private ushort currentGuildInvitaionSelection = 0;
+
+        private ushort _rankingCategoryID = 0;
 
         
 
@@ -490,7 +497,7 @@ namespace FragmentServerWV
                         else //MemberList in that Category
                         {
                             List<byte[]> memberList =
-                                GuildManagementService.GetInstance().GetGuildMembersListByClass(0, u,_characterPlayerID);
+                                GuildManagementService.GetInstance().GetGuildMembersListByClass(_guildID, u,_characterPlayerID);
                             SendPacket30(0x7614, BitConverter.GetBytes(swap16((ushort) memberList.Count)));//Size of List
 
                             foreach (var member in memberList)
@@ -552,9 +559,9 @@ namespace FragmentServerWV
                         
                         Console.Write("GenePrice " + GeneralPrice +"\nMemberPrice "+ MemberPrice+"\nisGeneral "+ isGeneral + "\nisMember "+ isMember);
                         
-                        GuildManagementService.GetInstance().AddItemToGuildInventory(_guildID,_itemDontationID,
-                            _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember,isGuildMaster);
-                        SendPacket30(0x7705,new byte[] {0x00,0x00}); // how many to deduct from the player
+                        
+                        SendPacket30(0x7705,GuildManagementService.GetInstance().AddItemToGuildInventory(_guildID,_itemDontationID,
+                            _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember,isGuildMaster)); // how many to deduct from the player
                         break;
                     case 0x7712: //update item pricing (from Master window)
                         Log.LogData(argument,0x7712,this.index,"Member + General Item Price",0,0);
@@ -607,10 +614,34 @@ namespace FragmentServerWV
                         break;
                     
                     case 0x7603: //invite player to Guild
-                        uint invitingPlayer = swap32(BitConverter.ToUInt32(argument, 0));
-                        
-                        Console.WriteLine("Invited Player ID " + invitingPlayer);
-                        SendPacket30(0x7604,new byte[] {0x00,0x00});
+                        u = swap16(BitConverter.ToUInt16(argument, 0));
+                        Server.lobbyChatRooms[room_index - 1].GuildInvitation(argument, this.index, u,_guildID);
+                        Console.WriteLine("Invited Player ID " + u);
+                        SendPacket30(0x7604,new byte[] {0x00,0x00}); //send to confirm that the player accepted the invite 
+                        break;
+                    case 0x7607: //accept Guild Invitation
+                        u = swap16(BitConverter.ToUInt16(argument, 0));
+                        Log.LogData(argument,0x7607,this.index,"guild invitation acceptance",0,0);
+                        m = new MemoryStream();
+                        m.Write(new byte[] {0x76, 0xB0, 0x54,0x45,0x53,0x54,0x00});
+                        if (argument[1] == 0x08) //accepted the invitation
+                        {
+                            DBAcess.getInstance().EnrollPlayerInGuild(currentGuildInvitaionSelection,
+                                _characterPlayerID, false);
+                            
+                            SendPacket30(0x760A,m.ToArray()); // send guild ID
+                          
+                        }
+                        else
+                        {
+                            SendPacket30(0x760A,m.ToArray()); // send guild ID
+                        }
+
+                        break;
+                    case 0x772C: //get Guild info (in lobby )
+                         u = swap16(BitConverter.ToUInt16(argument, 0));
+                         currentGuildInvitaionSelection = u;
+                        SendPacket30(0x772D,GuildManagementService.GetInstance().GetGuildInfo(u));
                         break;
                     case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
                         publish_data_2 = argument;
@@ -633,56 +664,51 @@ namespace FragmentServerWV
 
                     case 0x7832: // ranking Page
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        if (u == 0)
+                        if (u == 0) // get the first ranking page
                         {
-                            SendPacket30(0x7833, new byte[] {0x00, 0x02});
-                            SendPacket30(0x7835, new byte[] {0x00,0x01, 0x30, 0x30,0x00, 0x00, 0x01});
-                            SendPacket30(0x7835, new byte[] {0x00,0x02, 0x30, 0x30,0x00, 0x00, 0x01});   
+                            List<byte[]> rankCategoryList = RankingManagementService.GetInstance().GetRankingCategory();
+                            SendPacket30(0x7833, BitConverter.GetBytes(swap16((ushort) rankCategoryList.Count)));
+
+                            foreach (var category in rankCategoryList)
+                            {
+                                SendPacket30(0x7835, category);    
+                            }
+                            
                         }
 
+                        else if (u >= 8) // get class List
+                        {
+                            _rankingCategoryID = u;
+                            List<byte[]> rankClassList = RankingManagementService.GetInstance().GetClassList();
+                            
+                            SendPacket30(0x7833, BitConverter.GetBytes(swap16((ushort) rankClassList.Count)));
+
+                            foreach (var category in rankClassList)
+                            {
+                                SendPacket30(0x7835, category);    
+                            }
+                        }
                         else
                         {
+                            List<byte[]> playerRankingList = RankingManagementService.GetInstance()
+                                .GetPlayerRanking(_rankingCategoryID, u);
+                            
+                            
+                            SendPacket30(0x7836, BitConverter.GetBytes(swap32((uint)playerRankingList.Count)));
+
+                            foreach (var player in playerRankingList)
+                            {
+                                SendPacket30(0x7837, player);   
+                            }
                            
-                            SendPacket30(0x7836, new byte[] {0x00, 0x00, 0x00, 0x01});
-                            m = new MemoryStream();
-                            m.Write(_encoding.GetBytes("zackmon"));
-                            m.Write(new byte[] {0x00});
-                            m.Write(BitConverter.GetBytes(swap32(55828740)));
-                            SendPacket30(0x7837, m.ToArray());
                         }
+
                         break;
                     
                     case 0x7838: //Ranking Char Detail
                         uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
-                        Console.WriteLine("Ranking Player ID " + rankPlayerID);
-                        string memName = "zackmon";
-                        byte[] classNameRank = {0x01};
-                        ushort memLevel = 50;
-                        string memGreeting = "Greeting";
-                        byte[] memStatus = {0x01};
-                        byte[] modelNumber = {0x00, 0x00, 0x45, 0x01};
-                        byte[] isMaster = {0x02};
-
-
-                        m = new MemoryStream();
-
-                        m.Write(_encoding.GetBytes(memName));
-                        m.Write(new byte[] {0x00});
-                        m.Write(classNameRank);
-                        m.Write(BitConverter.GetBytes(swap16(memLevel)));
-                        m.Write(_encoding.GetBytes(memGreeting));
-                        m.Write(new byte[] {0x00});
-                        m.Write(_encoding.GetBytes("ZackGuild"));
-                        m.Write(new byte[] {0x00});
-                        m.Write(modelNumber);
-                        m.Write(memStatus);
-                        //m.Write(new byte[]{0x00});
-                        //m.Write(new byte[] {0x00, 0x00, 0x00, 0x00}); // Player ID
-                        m.Write(isMaster);
-                       
                         
-                       // SendPacket30(0x7839,new byte[] {0x4e,0x43,0x44,0x79,0x73,0x6f,0x6e,0x00,0x00,0x00,0x01,0x61,0x00,  0x44,0x61,0x79,0x62,0x72,0x65,0x61,0x6b,0x20,0x4d,0x61,0x66,0x69,0x61,0x00, 0x00,0x00,0x00,0x00, 0x01,     0x00,0xfe,0x02,         0x30,0x30,0x00});
-                        SendPacket30(0x7839,m.ToArray());
+                        SendPacket30(0x7839,RankingManagementService.GetInstance().getRankingPlayerInfo(rankPlayerID));
                         break;
 
                     case OpCodes.OPCODE_DATA_LOBBY_GETSERVERS:
@@ -1096,6 +1122,11 @@ namespace FragmentServerWV
             pos += 2;
             offline_godcounter = swap16(BitConverter.ToUInt16(data, pos));
             pos += 2;
+            goldCoinCount = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            silverCoinCount = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            bronzeCoinCount = swap16(BitConverter.ToUInt16(data, pos));
             
              classLetter = GetCharacterModelClass(char_model);
              modelNumber = GetCharacterModelNumber(char_model);
@@ -1105,7 +1136,9 @@ namespace FragmentServerWV
              charModelFile = "xf" + classLetter + modelNumber + modelType +"_"+ colorCode;
             
            
-            
+            Console.WriteLine("gold coin count " + goldCoinCount);
+            Console.WriteLine("silver coin count " + silverCoinCount);
+            Console.WriteLine("bronze coin count " + bronzeCoinCount);
             
             Console.WriteLine("Character Date \n save_slot "+ save_slot + "\n char_id " +_encoding.GetString(save_id) + " \n char_name " + _encoding.GetString(char_id) +
                               "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting "+ _encoding.GetString(greeting) +"\n charmodel " +char_model + "\n char_hp " + char_HP+

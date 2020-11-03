@@ -7,16 +7,15 @@ using FragmentServerWV.Models;
 
 namespace FragmentServerWV.Services
 {
-    public class GuildManagementService
+    public class GuildManagementService : BaseManagementService
     {
         private static GuildManagementService _instance = null;
 
-        private Encoding _encoding;
+        //private Encoding _encoding;
 
-        public GuildManagementService()
+        public GuildManagementService():base()
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            _encoding = Encoding.GetEncoding("Shift-JIS");
+            
         }
 
         public static GuildManagementService GetInstance()
@@ -377,59 +376,11 @@ namespace FragmentServerWV.Services
             DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel,false);
             
             MemoryStream m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap32(quantity)));
+            m.Write(BitConverter.GetBytes(swap16(quantity)));
             return m.ToArray();
         }
 
-        public List<byte[]> GetClassList()
-        {
-            List<byte[]> classList = new List<byte[]>();
-            MemoryStream m = new MemoryStream();
-
-            m.Write(BitConverter.GetBytes(swap16(1)));
-            m.Write(_encoding.GetBytes("All"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap16(2)));
-            m.Write(_encoding.GetBytes("Twin Blade"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap16(3)));
-            m.Write(_encoding.GetBytes("Blademaster"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap16(4)));
-            m.Write(_encoding.GetBytes("Heavy Blade"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap16(5)));
-            m.Write(_encoding.GetBytes("Heavy Axe"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap16(6)));
-            m.Write(_encoding.GetBytes("Long Arm"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-
-            m = new MemoryStream();
-            m.Write(BitConverter.GetBytes(swap16(7)));
-            m.Write(_encoding.GetBytes("Wavemaster"));
-            m.Write(new byte[] {0x00});
-            classList.Add(m.ToArray());
-
-            return classList;
-        }
+        
 
         public List<byte[]> GetGuildMembersListByClass(ushort guildID, ushort categoryID, uint playerID)
         {
@@ -454,13 +405,45 @@ namespace FragmentServerWV.Services
                     m = new MemoryStream();
 
                     m.Write(member.CharachterName);
+
+                    if (member.ClassID == 0)
+                    {
+                        m.Write(new byte[] {0x00});
+                    }
+                    if (member.ClassID == 1)
+                    {
+                        m.Write(new byte[] {0x01});
+                    }
+                    if (member.ClassID == 2)
+                    {
+                        m.Write(new byte[] {0x02});
+                    }
+                    if (member.ClassID == 3)
+                    {
+                        m.Write(new byte[] {0x03});
+                    }
+                    if (member.ClassID == 4)
+                    {
+                        m.Write(new byte[] {0x04});
+                    }
+                    if (member.ClassID == 5)
+                    {
+                        m.Write(new byte[] {0x05});
+                    }
                     
-                    m.Write(BitConverter.GetBytes(member.ClassID));
                     m.Write(BitConverter.GetBytes(swap16((ushort)member.CharachterLevel)));
                     m.Write(member.Greeting);
+
+                    if (member.OnlineStatus)
+                    {
+                        m.Write(new byte[] {0x01});
+                    }
+                    else
+                    {
+                        m.Write(new byte[] {0x00});
+                    }
+
                     
-                    
-                    m.Write(BitConverter.GetBytes(member.OnlineStatus));
                     m.Write(BitConverter.GetBytes(swap32((uint) member.ModelNumber)));
                     
                     m.Write(BitConverter.GetBytes(swap32((uint)member.PlayerID))); // Player ID
@@ -489,13 +472,47 @@ namespace FragmentServerWV.Services
                 m = new MemoryStream();
 
                 m.Write(member.CharachterName);
-                    
-                m.Write(BitConverter.GetBytes(member.ClassID));
+                
+                
+               
+               if (member.ClassID == 0)
+               {
+                   m.Write(new byte[] {0x00});
+               }
+               if (member.ClassID == 1)
+               {
+                   m.Write(new byte[] {0x01});
+               }
+               if (member.ClassID == 2)
+               {
+                   m.Write(new byte[] {0x02});
+               }
+               if (member.ClassID == 3)
+               {
+                   m.Write(new byte[] {0x03});
+               }
+               if (member.ClassID == 4)
+               {
+                   m.Write(new byte[] {0x04});
+               }
+               if (member.ClassID == 5)
+               {
+                   m.Write(new byte[] {0x05});
+               }
+               
                 m.Write(BitConverter.GetBytes(swap16((ushort)member.CharachterLevel)));
                 m.Write(member.Greeting);
-                    
-                    
-                m.Write(BitConverter.GetBytes(member.OnlineStatus));
+                
+                
+               if (member.OnlineStatus)
+               {
+                   m.Write(new byte[] {0x01});
+               }
+               else
+               {
+                   m.Write(new byte[] {0x00});
+               }
+               
                 m.Write(BitConverter.GetBytes(swap32((uint) member.ModelNumber)));
                     
                 m.Write(BitConverter.GetBytes(swap32((uint)member.PlayerID))); // Player ID
@@ -537,7 +554,7 @@ namespace FragmentServerWV.Services
 
         public byte[] DestroyGuild(ushort guildID)
         {
-            //TODO
+            DBAcess.getInstance().DeleteGuild(guildID);
             return new byte[] {0x00, 0x00};
         }
 
@@ -676,24 +693,7 @@ namespace FragmentServerWV.Services
         }
 
 
-        //Copy from the GameClient Code
-        public ushort swap16(ushort data)
-        {
-            ushort result = 0;
-            result = (ushort) ((data >> 8) + ((data & 0xFF) << 8));
-            return result;
-        }
-
-
-        public uint swap32(uint data)
-        {
-            uint result = 0;
-            result |= (uint) ((data & 0xFF) << 24);
-            result |= (uint) (((data >> 8) & 0xFF) << 16);
-            result |= (uint) (((data >> 16) & 0xFF) << 8);
-            result |= (uint) ((data >> 24) & 0xFF);
-            return result;
-        }
+        
 
         public byte[] ReadByteString(byte[] data, int pos)
         {
