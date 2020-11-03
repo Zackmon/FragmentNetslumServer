@@ -146,3 +146,64 @@ create table MessageOfTheDay
     Message varchar(500) not null
 );
 ################################################ Message Of The Day #####################################################
+
+
+
+
+################################################ Guild and Ranking Update################################################
+create table CharacterRepository
+(
+    playerID int auto_increment
+        primary key,
+    charachterName blob null,
+    classID int null,
+    charachterLevel int null,
+    greeting blob null,
+    guildID int null,
+    guildMaster int null,
+    modelNumber int null,
+    onlineStatus tinyint(1) null,
+    accountID int null,
+    characterSaveID varchar(255) null,
+    charHP int null,
+    charSP int null,
+    charGP int null,
+    charOnlineGoat int null,
+    charOfflineGoat int null,
+    charGoldCoin int null,
+    charSilverCoin int null,
+    charBronzeCoin int null
+)AUTO_INCREMENT=1000;
+
+
+create table GuildRepository
+(
+    guildID int auto_increment
+        primary key,
+    guildName blob null,
+    guildEmblem blob null,
+    guildComment blob null,
+    establishmentDate varchar(255) null,
+    masterPlayerID int null,
+    goldCoin int null,
+    silverCoin int null,
+    bronzeCoin int null,
+    gp int null
+)AUTO_INCREMENT=1000;
+
+create table GuildItemShop
+(
+    itemShopID          int auto_increment
+        primary key,
+    guildID             int        null,
+    itemID              int        null,
+    quantity            int        null,
+    generalPrice        int        null,
+    memberPrice         int        null,
+    availableForGeneral tinyint(1) null,
+    availableForMember  tinyint(1) null
+)AUTO_INCREMENT=1000;
+
+
+
+################################################ Guild and Ranking Update################################################
