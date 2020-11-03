@@ -84,6 +84,8 @@ namespace FragmentServerWV
 
         private ushort _rankingCategoryID = 0;
 
+        private ushort lobbyType = 0;
+
         
 
 
@@ -189,7 +191,8 @@ namespace FragmentServerWV
             Log.Writeline("Client Handler #" + index + " exited");
             if (room_index != -1)
             {
-                LobbyChatRoom room = Server.lobbyChatRooms[room_index - 1];
+                LobbyChatRoom room = Server.lobbyChatRooms[room_index];
+                room.ClientLeavingRoom(this.index);
                 room.Users.Remove(this.index);
                 Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
             }
@@ -240,8 +243,28 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] {0x02, 0x10});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_ENTERROOM:
-                        room_index = 1; //(short) swap16(BitConverter.ToUInt16(data, 0xA));
-                        room = Server.lobbyChatRooms[room_index - 1]; //for tetsing only 
+                        Log.LogData(argument,0x7006,this.index,"Lobby Login",0,0);
+                        
+                        room_index = (short) swap16(BitConverter.ToUInt16(argument, 0));
+                        lobbyType = swap16(BitConverter.ToUInt16(argument, 2));
+                        Console.WriteLine("Lobby Room ID" + room_index);
+                        Console.WriteLine("Lobby Type ID" + lobbyType);
+                        
+                        if (lobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
+                        {
+                            if (!Server.lobbyChatRooms.ContainsKey(room_index))
+                            {
+                                Server.lobbyChatRooms.Add(room_index,new LobbyChatRoom("Guild Room", (ushort) room_index,0x7418));
+                            }
+                            //TODO add Guild Specific Code
+                            room = Server.lobbyChatRooms[room_index];  
+                        }
+                        else
+                        {
+                            room = Server.lobbyChatRooms[room_index];
+                        }
+                        
+                        
                         SendPacket30(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK,
                             BitConverter.GetBytes(swap16((ushort) room.Users.Count)));
                         room.Users.Add(this.index);
@@ -250,7 +273,7 @@ namespace FragmentServerWV
                         room.DispatchAllStatus(this.index);
                         break;
                     case 0x7009:
-                        Server.lobbyChatRooms[room_index - 1].DispatchStatus(argument, this.index);
+                        Server.lobbyChatRooms[room_index].DispatchStatus(argument, this.index);
                         break;
                     case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
                         int end = argument.Length - 1;
@@ -349,7 +372,8 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_LOBBY_EXITROOM:
                         if (room_index != -1)
                         {
-                            room = Server.lobbyChatRooms[room_index - 1];
+                            room = Server.lobbyChatRooms[room_index];
+                            room.ClientLeavingRoom(this.index);
                             room.Users.Remove(this.index);
                             Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
                         }
@@ -615,7 +639,7 @@ namespace FragmentServerWV
                     
                     case 0x7603: //invite player to Guild
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        Server.lobbyChatRooms[room_index - 1].GuildInvitation(argument, this.index, u,_guildID);
+                        Server.lobbyChatRooms[room_index].GuildInvitation(argument, this.index, u,_guildID);
                         Console.WriteLine("Invited Player ID " + u);
                         SendPacket30(0x7604,new byte[] {0x00,0x00}); //send to confirm that the player accepted the invite 
                         break;
@@ -808,7 +832,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] {0x00, 0x00});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_EVENT:
-                        Server.lobbyChatRooms[room_index - 1].DispatchPublicBroadcast(argument, this.index);
+                        Server.lobbyChatRooms[room_index].DispatchPublicBroadcast(argument, this.index);
                         break;
                     case OpCodes.OPCODE_DATA_MAILCHECK:
                         Log.LogData(argument, 0xFFFF, this.index, "CHECK FOR NEW MAIL NOTIFICATION ", 0, 0);
@@ -833,7 +857,7 @@ namespace FragmentServerWV
                         break;
                     case 0x788C:
                         ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
-                        Server.lobbyChatRooms[room_index - 1].DispatchPrivateBroadcast(argument, this.index, destid);
+                        Server.lobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
                         break;
                     case OpCodes.OPCODE_DATA_SELECT_CHAR:
                         
@@ -878,9 +902,19 @@ namespace FragmentServerWV
 
         public void GetLobbyMenu()
         {
+            List <LobbyChatRoom> nonGuildLobbies = new List<LobbyChatRoom>();
+
+            foreach (var room in Server.lobbyChatRooms.Values)
+            {
+                if (room.type == 0x7403)
+                {
+                    nonGuildLobbies.Add(room);
+                }
+            }
+            
             SendPacket30(OpCodes.OPCODE_DATA_LOBBY_LOBBYLIST,
-                BitConverter.GetBytes(swap16((ushort) Server.lobbyChatRooms.Count())));
-            foreach (LobbyChatRoom room in Server.lobbyChatRooms)
+                BitConverter.GetBytes(swap16((ushort) nonGuildLobbies.Count())));
+            foreach (LobbyChatRoom room in nonGuildLobbies)
             {
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap16((ushort) room.ID)), 0, 2);

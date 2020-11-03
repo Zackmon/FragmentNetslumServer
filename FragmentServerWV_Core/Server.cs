@@ -21,7 +21,7 @@ namespace FragmentServerWV
         public static readonly object _sync = new object();
         public static List<GameClient> clients;
         public static List<ProxyClient> proxies;
-        public static List<LobbyChatRoom> lobbyChatRooms;
+        public static Dictionary<int,LobbyChatRoom> lobbyChatRooms;
         public static TcpListener listener;
 
         public static void StartProxy(string targetIP)
@@ -35,14 +35,11 @@ namespace FragmentServerWV
         {
             clients = new List<GameClient>();
             proxies = new List<ProxyClient>();
-            lobbyChatRooms = new List<LobbyChatRoom>();
+            lobbyChatRooms = new Dictionary<int, LobbyChatRoom>();
             if (!_proxymode)
             {
-                ushort count = 1;
-                string[] lines = File.ReadAllLines("lobbies.txt");
-                foreach (string name in lines)
-                    if (name.Trim() != "")
-                        lobbyChatRooms.Add(new LobbyChatRoom(name, count++, 0x7403));
+                ushort lobbyID = 1;
+                lobbyChatRooms.Add(lobbyID,new LobbyChatRoom("Main Lobby", lobbyID, 0x7403));
             }
 
             DBAcess.getInstance().LoadMessageOfDay();

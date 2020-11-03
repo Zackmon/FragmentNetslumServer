@@ -457,5 +457,8 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
     
         
 */
+
+
+        public const ushort LOBBY_TYPE_GUILD = 0x7418;
     }
 }

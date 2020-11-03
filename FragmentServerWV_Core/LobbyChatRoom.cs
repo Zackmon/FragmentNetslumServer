@@ -147,10 +147,29 @@ namespace FragmentServerWV
                     m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)srcid)));
                     
                     client.SendPacket30(0x7606, m.ToArray()); // Guild Inviation OPCode
-                 
                     
                 }
                 
+        }
+
+        public void ClientLeavingRoom(int leavingClientID)
+        {
+            try
+            {
+                MemoryStream m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) FindRoomIndexById(leavingClientID))), 0, 2);
+           
+                byte[] buff = m.ToArray();
+               
+                foreach (GameClient client in Server.clients)
+                    if (!client.isAreaServer && client.index != leavingClientID && !client._exited && client.room_index == ID)
+                        client.SendPacket30(0x700a, buff);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                //throw;
+            }
         }
     }
 }
