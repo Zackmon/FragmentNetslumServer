@@ -28,6 +28,7 @@ namespace FragmentServerWV.Services
 
         public DBAcess()
         {
+
             var config = new Configuration().Configure();
             config.AddAssembly("FragmentServerWV_Core");
             _sessionFactory = config.BuildSessionFactory();
@@ -69,6 +70,7 @@ namespace FragmentServerWV.Services
                             (x => x.categoryID == categoryID)
                         .ToList());
                 transaction.Commit();
+
                 session.Close();
             }
 
@@ -102,6 +104,7 @@ namespace FragmentServerWV.Services
             BbsPostBody postBody = session.Query<BbsPostBody>().SingleOrDefault(x => x.postID == postID);
             transaction.Commit();
             session.Close();
+
             return postBody;
         }
 
@@ -531,6 +534,7 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
+                using ITransaction transaction = session.BeginTransaction();
                 playerAccountIdModel = session.Query<PlayerAccountIDModel>()
                     .SingleOrDefault(x => x.saveID == saveID);
 
@@ -539,18 +543,16 @@ namespace FragmentServerWV.Services
                     Console.WriteLine("the Save ID " + saveID +
                                       " does not have an associated account ID , creating a new Account ID");
 
-                    using (ITransaction transaction = session.BeginTransaction())
-                    {
+                   
                         playerAccountIdModel = new PlayerAccountIDModel();
                         playerAccountIdModel.saveID = saveID;
 
                         session.Save(playerAccountIdModel);
-                        transaction.Commit();
-                    }
 
-                    Console.WriteLine("the new Account ID for the save " + saveID + " is " + playerAccountIdModel.ID);
+                        Console.WriteLine("the new Account ID for the save " + saveID + " is " + playerAccountIdModel.ID);
                 }
-
+                
+                transaction.Commit();
                 session.Close();
             }
 
@@ -621,10 +623,13 @@ namespace FragmentServerWV.Services
             Boolean newMail = false;
             using (ISession session = _sessionFactory.OpenSession())
             {
+                using ITransaction transaction = session.BeginTransaction();
+                
                 newMail = session.Query<MailMetaModel>()
                     .Any(x => x.Receiver_Account_ID == accountID
                               && x.Mail_Delivered == false);
 
+                transaction.Commit();
                 session.Close();
             }
 
@@ -636,7 +641,8 @@ namespace FragmentServerWV.Services
             List<MailMetaModel> metaList = new List<MailMetaModel>();
 
             using ISession session = _sessionFactory.OpenSession();
-
+            using ITransaction transaction = session.BeginTransaction();
+            
             metaList = session.Query<MailMetaModel>()
                 .Where(x => x.Receiver_Account_ID == accountID && x.Mail_Delivered == false)
                 .ToList();
@@ -644,16 +650,17 @@ namespace FragmentServerWV.Services
             //set the records as delivered 
             if (metaList.Count > 0)
             {
-                using ITransaction transaction = session.BeginTransaction();
+                
                 foreach (MailMetaModel meta in metaList)
                 {
                     meta.Mail_Delivered = true;
                     session.SaveOrUpdate(meta);
                 }
                 
-                transaction.Commit();
+               
             }
 
+            transaction.Commit();
             session.Close();
 
             return metaList;
@@ -665,9 +672,12 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
+                using ITransaction transaction = session.BeginTransaction();
+                
                 bodyModel = session.Query<MailBodyModel>()
                     .SingleOrDefault(x => x.Mail_ID == mail_ID);
 
+                transaction.Commit();
                 session.Close();
             }
 
@@ -681,8 +691,11 @@ namespace FragmentServerWV.Services
             using ITransaction transaction = session.BeginTransaction();
 
             session.Save(metaModel);
+            
             bodyModel.Mail_ID = metaModel.Mail_ID;
+            
             session.Save(bodyModel);
+            
             transaction.Commit();
 
             session.Close();
@@ -694,9 +707,12 @@ namespace FragmentServerWV.Services
 
             using (ISession session = _sessionFactory.OpenSession())
             {
+                using ITransaction transaction = session.BeginTransaction();
+                
                 messageModel = session.Query<MessageOfTheDayModel>()
                     .SingleOrDefault(x => x.Id == 1);
 
+                transaction.Commit();
                 session.Close();
             }
 

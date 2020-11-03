@@ -42,7 +42,7 @@ namespace FragmentServerWV
                 lobbyChatRooms.Add(lobbyID,new LobbyChatRoom("Main Lobby", lobbyID, 0x7403));
             }
 
-            DBAcess.getInstance().LoadMessageOfDay();
+            //DBAcess.getInstance().LoadMessageOfDay();
             ThreadPool.QueueUserWorkItem(new WaitCallback(MainThread));
             // t = new Thread(MainThread);
            // t.Start();
