@@ -631,6 +631,10 @@ namespace FragmentServerWV.Services
             List<CharacterRepositoryModel> modelList = new List<CharacterRepositoryModel>();
             modelList.AddRange(queryList);
 
+            transaction.Commit();
+            session.Close();
+            
+
             return modelList;
         }
 
