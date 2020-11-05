@@ -6,6 +6,7 @@ using System.Text;
 using FragmentServerWV.Models;
 using NHibernate;
 using NHibernate.Cfg;
+using NHibernate.Criterion;
 
 namespace FragmentServerWV.Services
 {
@@ -566,51 +567,66 @@ namespace FragmentServerWV.Services
             using ITransaction transaction = session.BeginTransaction();
 
             ISQLQuery query;
+            
+            var criteria = session.CreateCriteria<CharacterRepositoryModel>();
 
-            if (classID == 1)
+            if (classID != 1)
             {
-                query = session.CreateSQLQuery("select * from CharacterRepository order by :category DESC LIMIT 10 ");
+                classID -= 2;
+                //query = session.CreateSQLQuery("select * from CharacterRepository order by :category DESC LIMIT 10 ");
+                criteria.Add(Expression.Eq("ClassID",(int) classID));
             }
-            else
+            /*else
             {
                 query = session.CreateSQLQuery("select * from CharacterRepository where classID = :classID order by :category DESC LIMIT 10 ");
                 query.SetInt32("classID",classID - 2 );
-            }
+            }*/
 
             switch (categoryID)
             {
                 case 8: //Level
-                    query.SetString("category", "charachterLevel");
+                    //query.SetString("category", "charachterLevel");
+                    criteria.AddOrder(Order.Desc("CharachterLevel"));
                     break;
                 case 9: //HP
-                    query.SetString("category", "charHP");
+                    //query.SetString("category", "charHP");
+                    criteria.AddOrder(Order.Desc("charHP"));
                     break;
                 case 10://SP
-                    query.SetString("category", "charSP");
+                    //query.SetString("category", "charSP");
+                    criteria.AddOrder(Order.Desc("charSP"));
                     break;
                 case 11://GP
-                    query.SetString("category", "charGP");
+                    //query.SetString("category", "charGP");
+                    criteria.AddOrder(Order.Desc("charGP"));
                     break;
                 case 12: // Online Gott Status
-                    query.SetString("category", "charOnlineGoat");
+                    //query.SetString("category", "charOnlineGoat");
+                    criteria.AddOrder(Order.Desc("charOnlineGoat"));
                     break;
                 case 13: //Offline Gott Statue
-                    query.SetString("category", "charOfflineGoat");
+                    //query.SetString("category", "charOfflineGoat");
+                    criteria.AddOrder(Order.Desc("charOfflineGoat"));
                     break;
                 case 14: //Gold Coin
-                    query.SetString("category", "charGoldCoin");
+                    //query.SetString("category", "charGoldCoin");
+                    criteria.AddOrder(Order.Desc("charGoldCoin"));
                     break;
                 case 15: // Silver Coin
-                    query.SetString("category", "charSilverCoin");
+                    //query.SetString("category", "charSilverCoin");
+                    criteria.AddOrder(Order.Desc("charSilverCoin"));
                     break;
                 case 16: // Bronze Coin 
-                    query.SetString("category", "charBronzeCoin");
+                    //query.SetString("category", "charBronzeCoin");
+                    criteria.AddOrder(Order.Desc("charBronzeCoin"));
                     break;
             }
 
+            
 
-            query.AddEntity(typeof(CharacterRepositoryModel));
-            var queryList = query.List<CharacterRepositoryModel>();
+            //query.AddEntity(typeof(CharacterRepositoryModel));
+
+            var queryList = criteria.SetMaxResults(10).List<CharacterRepositoryModel>();
             
             List<CharacterRepositoryModel> modelList = new List<CharacterRepositoryModel>();
             modelList.AddRange(queryList);
