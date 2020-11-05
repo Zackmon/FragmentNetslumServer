@@ -566,7 +566,7 @@ namespace FragmentServerWV.Services
 
             using ITransaction transaction = session.BeginTransaction();
 
-            ISQLQuery query;
+            
             
             var criteria = session.CreateCriteria<CharacterRepositoryModel>();
 
