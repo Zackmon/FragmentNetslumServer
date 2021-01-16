@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Zackmon/FragmentServer_netCore.svg?branch=master)](https://travis-ci.com/Zackmon/FragmentServer_netCore)
+
 a private lobby emulator for the game .hack//frägment
 
 credits go to WV(Warranty Voider) for the baseCode of this Repo 
