@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/Zackmon/FragmentServer_netCore.svg?branch=master)](https://travis-ci.com/Zackmon/FragmentServer_netCore)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Zackmon_FragmentServer_netCore&metric=alert_status)](https://sonarcloud.io/dashboard?id=Zackmon_FragmentServer_netCore)
 
 a private lobby emulator for the game .hack//frägment
 
