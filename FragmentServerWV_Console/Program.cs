@@ -1,26 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using FragmentServerWV;
+﻿using FragmentServerWV;
 using FragmentServerWV_WebApi;
-using FragmentServerWV.Models;
-using FragmentServerWV.Services;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-
+using System;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace FragmentServerWV_Console
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             LogEventDelegate logEventDelegate = new LogEventDelegate();
             logEventDelegate.Logging += LogToConsole;
             Config.Load();
             Log.InitLogs(logEventDelegate);
-            Server.Start();
+            Server.Instance.Start();
             
             CreateHostBuilder(args).Build().Run();
 

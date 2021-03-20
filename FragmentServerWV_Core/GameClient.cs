@@ -1,16 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Net.Sockets;
-using System.Net;
-using System.Security.AccessControl;
-using FragmentServerWV.Models;
+﻿using FragmentServerWV.Models;
 using FragmentServerWV.Services;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 
 namespace FragmentServerWV
 {
@@ -191,7 +189,7 @@ namespace FragmentServerWV
             Log.Writeline("Client Handler #" + index + " exited");
             if (room_index != -1)
             {
-                LobbyChatRoom room = Server.lobbyChatRooms[room_index];
+                LobbyChatRoom room = Server.Instance.LobbyChatRooms[room_index];
                 room.ClientLeavingRoom(this.index);
                 room.Users.Remove(this.index);
                 Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
@@ -205,11 +203,11 @@ namespace FragmentServerWV
                 DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
             }
 
-            for (int i = 0; i < Server.clients.Count; i++)
+            for (int i = 0; i < Server.Instance.Clients.Count; i++)
             {
-                if (Server.clients[i].index == this.index)
+                if (Server.Instance.Clients[i].index == this.index)
                 {
-                    Server.clients.RemoveAt(i);
+                    Server.Instance.Clients.RemoveAt(i);
                     break;
                 }
             }
@@ -252,16 +250,16 @@ namespace FragmentServerWV
                         
                         if (lobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
                         {
-                            if (!Server.lobbyChatRooms.ContainsKey(room_index))
+                            if (!Server.Instance.LobbyChatRooms.ContainsKey(room_index))
                             {
-                                Server.lobbyChatRooms.Add(room_index,new LobbyChatRoom("Guild Room", (ushort) room_index,0x7418));
+                                Server.Instance.LobbyChatRooms.Add(room_index,new LobbyChatRoom("Guild Room", (ushort) room_index,0x7418));
                             }
                             //TODO add Guild Specific Code
-                            room = Server.lobbyChatRooms[room_index];  
+                            room = Server.Instance.LobbyChatRooms[room_index];  
                         }
                         else
                         {
-                            room = Server.lobbyChatRooms[room_index];
+                            room = Server.Instance.LobbyChatRooms[room_index];
                         }
                         
                         
@@ -273,7 +271,7 @@ namespace FragmentServerWV
                         room.DispatchAllStatus(this.index);
                         break;
                     case 0x7009:
-                        Server.lobbyChatRooms[room_index].DispatchStatus(argument, this.index);
+                        Server.Instance.LobbyChatRooms[room_index].DispatchStatus(argument, this.index);
                         break;
                     case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
                         int end = argument.Length - 1;
@@ -372,7 +370,7 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_LOBBY_EXITROOM:
                         if (room_index != -1)
                         {
-                            room = Server.lobbyChatRooms[room_index];
+                            room = Server.Instance.LobbyChatRooms[room_index];
                             room.ClientLeavingRoom(this.index);
                             room.Users.Remove(this.index);
                             Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
@@ -639,7 +637,7 @@ namespace FragmentServerWV
                     
                     case 0x7603: //invite player to Guild
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        Server.lobbyChatRooms[room_index].GuildInvitation(argument, this.index, u,_guildID);
+                        Server.Instance.LobbyChatRooms[room_index].GuildInvitation(argument, this.index, u,_guildID);
                         Console.WriteLine("Invited Player ID " + u);
                         SendPacket30(0x7604,new byte[] {0x00,0x00}); //send to confirm that the player accepted the invite 
                         break;
@@ -832,7 +830,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] {0x00, 0x00});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_EVENT:
-                        Server.lobbyChatRooms[room_index].DispatchPublicBroadcast(argument, this.index);
+                        Server.Instance.LobbyChatRooms[room_index].DispatchPublicBroadcast(argument, this.index);
                         break;
                     case OpCodes.OPCODE_DATA_MAILCHECK:
                         Log.LogData(argument, 0xFFFF, this.index, "CHECK FOR NEW MAIL NOTIFICATION ", 0, 0);
@@ -857,7 +855,7 @@ namespace FragmentServerWV
                         break;
                     case 0x788C:
                         ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
-                        Server.lobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
+                        Server.Instance.LobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
                         break;
                     case OpCodes.OPCODE_DATA_SELECT_CHAR:
                         
@@ -904,7 +902,7 @@ namespace FragmentServerWV
         {
             List <LobbyChatRoom> nonGuildLobbies = new List<LobbyChatRoom>();
 
-            foreach (var room in Server.lobbyChatRooms.Values)
+            foreach (var room in Server.Instance.LobbyChatRooms.Values)
             {
                 if (room.type == 0x7403)
                 {
@@ -945,11 +943,11 @@ namespace FragmentServerWV
             else
             {
                 ushort count = 0;
-                foreach (GameClient client in Server.clients)
+                foreach (GameClient client in Server.Instance.Clients)
                     if (client.isAreaServer)
                         count++;
                 SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
-                foreach (GameClient client in Server.clients)
+                foreach (GameClient client in Server.Instance.Clients)
                     if (client.isAreaServer && !client._exited)
                     {
                         MemoryStream m = new MemoryStream();
