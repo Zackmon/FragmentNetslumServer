@@ -30,7 +30,7 @@ namespace FragmentServerWV
         public void DispatchAllStatus(int towho)
         {
             GameClient client = null;
-            foreach(GameClient c in Server.Instance.Clients)
+            foreach(GameClient c in Server.Instance.GameClientService.Clients)
                 if(c.index == towho)
                 {
                     client = c;
@@ -38,7 +38,7 @@ namespace FragmentServerWV
                 }
             if(client == null)
                 return;
-            foreach (GameClient c in Server.Instance.Clients)
+            foreach (GameClient c in Server.Instance.GameClientService.Clients)
                 if (c.index != towho && c.room_index == ID && !c._exited)
                     client.SendPacket30(0x7009, c.last_status);
         }
@@ -53,7 +53,7 @@ namespace FragmentServerWV
                 m.Write(data, 0, data.Length);
                 byte[] buff = m.ToArray();
                
-                foreach (GameClient client in Server.Instance.Clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (!client.isAreaServer && client.index != who && !client._exited && client.room_index == ID)
                         client.SendPacket30(0x7009, buff);
                     else if (client.index == who)
@@ -73,7 +73,7 @@ namespace FragmentServerWV
             int id = FindRoomIndexById(who);
             byte[] temp = new byte[data.Length];
             data.CopyTo(temp, 0);
-            foreach (GameClient client in Server.Instance.Clients)
+            foreach (GameClient client in Server.Instance.GameClientService.Clients)
                 if (!client.isAreaServer && !client._exited && client.room_index == ID && client.index != who)
                 {
                     temp[0] = (byte)(id >> 8);
@@ -102,7 +102,7 @@ namespace FragmentServerWV
 
                 int srcid = FindRoomIndexById(who);
                 int towho = Users[destid - 1];
-                foreach (GameClient client in Server.Instance.Clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (client.index == towho)
                     {
                         byte[] temp = new byte[data.Length];
@@ -130,7 +130,7 @@ namespace FragmentServerWV
         {
             int srcid = FindRoomIndexById(who);
             int towho = Users[destid - 1];
-            foreach (GameClient client in Server.Instance.Clients)
+            foreach (GameClient client in Server.Instance.GameClientService.Clients)
                 if (client.index == towho)
                 {
                     byte[] temp = new byte[data.Length];
@@ -157,7 +157,7 @@ namespace FragmentServerWV
            
                 byte[] buff = m.ToArray();
                
-                foreach (GameClient client in Server.Instance.Clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (!client.isAreaServer && client.index != leavingClientID && !client._exited && client.room_index == ID)
                         client.SendPacket30(0x700a, buff);
             }

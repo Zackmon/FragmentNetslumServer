@@ -203,14 +203,17 @@ namespace FragmentServerWV
                 DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
             }
 
-            for (int i = 0; i < Server.Instance.Clients.Count; i++)
-            {
-                if (Server.Instance.Clients[i].index == this.index)
-                {
-                    Server.Instance.Clients.RemoveAt(i);
-                    break;
-                }
-            }
+            // this should also work
+            Server.Instance.GameClientService.RemoveClient(this);
+
+            //for (int i = 0; i < Server.Instance.GameClientService.Clients.Count; i++)
+            //{
+            //    if (Server.Instance.Clients[i].index == this.index)
+            //    {
+            //        Server.Instance.Clients.RemoveAt(i);
+            //        break;
+            //    }
+            //}
 
         }
 
@@ -943,11 +946,11 @@ namespace FragmentServerWV
             else
             {
                 ushort count = 0;
-                foreach (GameClient client in Server.Instance.Clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (client.isAreaServer)
                         count++;
                 SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
-                foreach (GameClient client in Server.Instance.Clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (client.isAreaServer && !client._exited)
                     {
                         MemoryStream m = new MemoryStream();
