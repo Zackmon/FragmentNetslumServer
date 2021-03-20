@@ -1,6 +1,8 @@
 ﻿using FragmentServerWV.Exceptions;
+using FragmentServerWV.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,100 +11,6 @@ using System.Threading.Tasks;
 
 namespace FragmentServerWV
 {
-    //public static class Server
-    //{
-    //    // do not do this >:(
-    //    public static Thread t;
-    //    public static bool _exit = false;
-    //    public static bool _proxymode = false;
-    //    public static string proxyIP;
-    //    public static readonly object _sync = new object();
-    //    public static List<GameClient> clients;
-    //    public static List<ProxyClient> proxies;
-    //    public static Dictionary<int,LobbyChatRoom> LobbyChatRooms;
-    //    public static TcpListener listener;
-
-
-    //    // TODO: Check OG C++ code to see if this is still needed
-    //    public static void StartProxy(string targetIP)
-    //    {
-    //        proxyIP = targetIP;
-    //        _proxymode = true;
-    //        Start();
-    //    }
-
-    //    public static void Start()
-    //    {
-    //        clients = new List<GameClient>();
-    //        proxies = new List<ProxyClient>();
-    //        LobbyChatRooms = new Dictionary<int, LobbyChatRoom>();
-    //        if (!_proxymode)
-    //        {
-    //            ushort lobbyID = 1;
-    //            LobbyChatRooms.Add(lobbyID,new LobbyChatRoom("Main Lobby", lobbyID, 0x7403));
-    //        }
-
-    //        //DBAcess.getInstance().LoadMessageOfDay();
-    //        ThreadPool.QueueUserWorkItem(new WaitCallback(MainThread));
-    //        // t = new Thread(MainThread);
-    //       // t.Start();
-    //    }
-
-    //    public static void Stop()
-    //    {
-    //        lock (_sync)
-    //        {
-    //            _exit = true;
-    //            if (listener != null)
-    //                listener.Stop();
-    //        }
-    //    }
-
-    //    public static void MainThread(object obj)
-    //    {
-    //        string ip = Config.configs["ip"];
-    //        //string any = IPAddress.Loopback.ToString();
-    //        listener = new TcpListener(IPAddress.Parse(Config.configs["ip"]), Convert.ToUInt16(Config.configs["port"]));
-    //        Log.Writeline("Server started on " + ip + ":" + Config.configs["port"]);
-    //        Log.Writeline(" Log Size = " + Convert.ToInt32(Config.configs["logsize"]));
-    //        Log.Writeline(" Ping Delay = " + Convert.ToInt32(Config.configs["ping"]) + "ms");
-    //        Log.Writeline(" Proxy Mode = " + _proxymode);
-    //        if (_proxymode)
-    //            Log.Writeline(" Proxy Target IP = " + proxyIP);
-    //        listener.Start();
-    //        bool run = true;
-    //        int count = 1;
-
-    //        try
-    //        {
-    //            while (run)
-    //            {
-    //                TcpClient client = listener.AcceptTcpClient();
-    //                if (_proxymode)
-    //                    proxies.Add(new ProxyClient(client, count, proxyIP, Config.configs["port"]));
-    //                else
-    //                    clients.Add(new GameClient(client, count));
-    //                Log.Writeline("New client connected with ID #" + count++);
-    //                lock (_sync)
-    //                {
-    //                    run = !_exit;
-    //                }
-    //            }
-    //        }
-    //        catch (Exception e)
-    //        {
-    //            throw new LobbyEmuCrashException("Server Crashed ",t,e);
-    //        }
-    //        finally
-    //        {
-    //            foreach (GameClient client in clients)
-    //                client.Exit();
-    //            foreach (ProxyClient client in proxies)
-    //                client.Exit();
-    //            Log.Writeline("Server exited");
-    //        }
-    //    }
-    //}
 
     /// <summary>
     /// Defines the main listener loop for the .hack//fragment service
@@ -124,7 +32,6 @@ namespace FragmentServerWV
 
 
         private readonly CancellationTokenSource tokenSource;
-        private readonly List<GameClient> clients;
         // private readonly List<ProxyClient> proxies;
         private readonly Dictionary<int, LobbyChatRoom> lobbyChatRooms;
         
@@ -132,6 +39,8 @@ namespace FragmentServerWV
         private readonly IPAddress ipAddress;
         private readonly ushort port;
         private readonly int logSize;
+
+        private readonly Services.GameClientService gameClientService;
 
 
 
@@ -160,10 +69,15 @@ namespace FragmentServerWV
         /// </summary>
         public Dictionary<int, LobbyChatRoom> LobbyChatRooms => lobbyChatRooms;
 
+        ///// <summary>
+        ///// Gets the theoretically connected clients
+        ///// </summary>
+        //private ReadOnlyCollection<GameClient> Clients => GameClientService.Clients;
+
         /// <summary>
-        /// Gets the theoretically connected clients
+        /// Gets the service for handling <see cref="GameClient"/> instances
         /// </summary>
-        public List<GameClient> Clients => clients;
+        public GameClientService GameClientService => gameClientService;
 
 
 
@@ -192,10 +106,11 @@ namespace FragmentServerWV
             this.ipAddress = ipAddress;
             this.port = port;
             this.logSize = logSize;
+            this.gameClientService = new Services.GameClientService();
             this.listener = new TcpListener(ipAddress, port);
-            this.clients = new List<GameClient>();
             this.lobbyChatRooms = new Dictionary<int, LobbyChatRoom>();
             this.tokenSource = new CancellationTokenSource();
+            this.lobbyChatRooms.Add(1, new LobbyChatRoom("Main Lobby", 1, 0x7403));
             // this.proxies = new List<ProxyClient>();
         }
 
@@ -234,7 +149,7 @@ namespace FragmentServerWV
                 while (!CancellationToken.IsCancellationRequested)
                 {
                     var incomingClient = await listener.AcceptTcpClientAsync(); // its magic but infectious magic
-                    clients.Add(new GameClient(incomingClient, count++));
+                    GameClientService.AddClient(new GameClient(incomingClient, count++));
                     Log.Writeline($"New client connected with ID #{count:N0}");
                     CancellationToken.ThrowIfCancellationRequested();
                 }
@@ -262,7 +177,7 @@ namespace FragmentServerWV
 
         private void SafeShutdownInternal()
         {
-            foreach (var client in clients)
+            foreach (var client in GameClientService.Clients)
                 client.Exit();
         }
 
