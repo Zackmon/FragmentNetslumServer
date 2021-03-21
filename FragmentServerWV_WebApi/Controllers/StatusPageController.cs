@@ -27,7 +27,7 @@ namespace FragmentServerWV_WebApi.Controllers
             ClientsModel clientList = new ClientsModel();
             // clientList.Add(test);
 
-            foreach (GameClient client in Server.Instance.Clients)
+            foreach (GameClient client in Server.Instance.GameClientService.Clients)
             {
                 if (!client._exited)
                 {

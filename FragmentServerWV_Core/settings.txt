@@ -7,3 +7,8 @@ ping = 5000
 
 #maximum log text length
 logsize = 100000
+
+#setup the sinks in a CSV related variable
+#valid entries are: console,file
+sinks = console
+folder = C:\logs\

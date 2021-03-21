@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Serilog;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Net.Sockets;
 
 namespace FragmentServerWV.Services
 {
-    public sealed class GameClientService
+    public sealed class GameClientService : Interfaces.IClientProviderService
     {
 
         private readonly List<GameClient> clients;
+        private readonly ILogger logger;
 
 
         /// <summary>
@@ -16,25 +18,30 @@ namespace FragmentServerWV.Services
         public ReadOnlyCollection<GameClient> Clients => clients.AsReadOnly();
 
 
-
-
-
-
-
-
-        public void AddClient(TcpClient client, int clientId) => AddClient(new GameClient(client, clientId));
-
-        public void AddClient(GameClient client) => clients.Add(client);
-
-        public bool RemoveClient(GameClient client) => clients.Remove(client);
-
-        public bool RemoveClient(int index)
+        public GameClientService(ILogger logger)
         {
-            if (index < 0) return false;
-            if (index > clients.Count) return false;
-            clients.RemoveAt(index);
-            return true;
+            this.logger = logger;
         }
 
+
+
+        public void AddClient(TcpClient client, uint clientId) => this.AddClient(new GameClient(client, (int)clientId));
+
+        public void AddClient(GameClient client)
+        {
+            this.logger.Information("Client {@client.index} has connected", client);
+            this.clients.Add(client);
+            this.logger.Information("There are {@clients.Count} connected clients", this.clients);
+        }
+
+        public void RemoveClient(uint index) => this.RemoveClient(clients.Find(c => c.index == (int)index));
+
+        public void RemoveClient(GameClient client)
+        {
+            this.logger.Information("Client {@client.index} is disconnecting", client);
+            this.clients.Remove(client);
+            this.logger.Information("There are {@clients.Count} connected clients", this.clients);
+        }
     }
+
 }

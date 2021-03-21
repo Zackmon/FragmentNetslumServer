@@ -1,13 +1,21 @@
 ﻿using FragmentServerWV.Exceptions;
 using FragmentServerWV.Services;
+using FragmentServerWV.Services.Interfaces;
+using Serilog;
+using Serilog.Formatting.Json;
+using Serilog.Sinks.SystemConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity;
+using Unity.Injection;
+using Unity.Lifetime;
 
 namespace FragmentServerWV
 {
@@ -20,6 +28,7 @@ namespace FragmentServerWV
     /// </remarks>
     public sealed class Server
     {
+        private const int ONE_GIGABYTE = 1073741824;
 
         // This is our only static variable in this class.
         // Everything else will be instance specific.
@@ -29,19 +38,16 @@ namespace FragmentServerWV
         // considerably. In the future, I may suggest introducing
         // a DI framework of sorts to piece together everything
         private static Server instance;
-
-
         private readonly CancellationTokenSource tokenSource;
-        // private readonly List<ProxyClient> proxies;
         private readonly Dictionary<int, LobbyChatRoom> lobbyChatRooms;
-        
-        private readonly TcpListener listener;
         private readonly IPAddress ipAddress;
         private readonly ushort port;
-        private readonly int logSize;
 
-        private readonly Services.GameClientService gameClientService;
-
+        private readonly IClientProviderService gameClientService;
+        private readonly ILobbyChatService lobbyChatService;
+        private readonly IClientConnectionService clientConnectionService;
+        private readonly IUnityContainer container;
+        
 
 
         /// <summary>
@@ -64,20 +70,16 @@ namespace FragmentServerWV
         /// </summary>
         public CancellationToken CancellationToken => tokenSource.Token;
 
-        /// <summary>
-        /// Gets the lobby rooms
-        /// </summary>
-        public Dictionary<int, LobbyChatRoom> LobbyChatRooms => lobbyChatRooms;
-
-        ///// <summary>
-        ///// Gets the theoretically connected clients
-        ///// </summary>
-        //private ReadOnlyCollection<GameClient> Clients => GameClientService.Clients;
-
+        
         /// <summary>
         /// Gets the service for handling <see cref="GameClient"/> instances
         /// </summary>
-        public GameClientService GameClientService => gameClientService;
+        public IClientProviderService GameClientService => gameClientService;
+
+        /// <summary>
+        /// Gets the service for handling <see cref="LobbyChatRoom"/> instances
+        /// </summary>
+        public ILobbyChatService LobbyChatService => lobbyChatService;
 
 
 
@@ -92,26 +94,21 @@ namespace FragmentServerWV
         /// </remarks>
         public Server() : this(
             IPAddress.Parse(Config.configs["ip"]),
-            Convert.ToUInt16(Config.configs["port"]),
-            Convert.ToInt32(Config.configs["logsize"]))
-        {
-
-        }
+            Convert.ToUInt16(Config.configs["port"])) { }
 
         internal Server(
             IPAddress ipAddress,
-            ushort port,
-            int logSize)
+            ushort port)
         {
             this.ipAddress = ipAddress;
             this.port = port;
-            this.logSize = logSize;
-            this.gameClientService = new Services.GameClientService();
-            this.listener = new TcpListener(ipAddress, port);
-            this.lobbyChatRooms = new Dictionary<int, LobbyChatRoom>();
+            container = this.InitializeContainer();
+
+
+            this.gameClientService = container.Resolve<IClientProviderService>();
+            this.lobbyChatService = container.Resolve<ILobbyChatService>();
+            this.clientConnectionService = container.Resolve<IClientConnectionService>();
             this.tokenSource = new CancellationTokenSource();
-            this.lobbyChatRooms.Add(1, new LobbyChatRoom("Main Lobby", 1, 0x7403));
-            // this.proxies = new List<ProxyClient>();
         }
 
 
@@ -120,8 +117,7 @@ namespace FragmentServerWV
         /// </summary>
         public void Start()
         {
-            listener.Start();
-            Task.Run(async () => await ListenForConnections());
+            this.clientConnectionService.BeginListening(this.ipAddress, this.port);
         }
 
         /// <summary>
@@ -129,56 +125,61 @@ namespace FragmentServerWV
         /// </summary>
         public void Stop()
         {
-            tokenSource.Cancel();
+
+            this.SafeShutdownInternal();
         }
+
         public void StartProxy(string targetIp) => throw new NotImplementedException("TODO: Tell formless to look at C++ code if you need this otherwise nah.");
 
 
-
-        private async Task ListenForConnections()
-        {
-            var logSb = new StringBuilder()
-                .AppendLine($"Listening on: {ipAddress}:{port}")
-                .AppendLine($"Log Size: {logSize:N0}")
-                .AppendLine($"Ping Delay: {Config.configs["ping"]}ms");
-            Log.Writeline(logSb.ToString());
-
-            var count = 1;
-            try
-            {
-                while (!CancellationToken.IsCancellationRequested)
-                {
-                    var incomingClient = await listener.AcceptTcpClientAsync(); // its magic but infectious magic
-                    GameClientService.AddClient(new GameClient(incomingClient, count++));
-                    Log.Writeline($"New client connected with ID #{count:N0}");
-                    CancellationToken.ThrowIfCancellationRequested();
-                }
-            }
-            catch (OperationCanceledException oce)
-            {
-                // safe shutdown
-                Log.Writeline("Safe Shutdown initiated");
-                SafeShutdownInternal();
-            }
-            catch (Exception e)
-            {
-                // probably FUBAR
-                Log.Writeline("An unexpected issue arose and is taking down the server");
-                Log.Writeline(e.Message);
-                Log.Writeline(e.StackTrace);
-                SafeShutdownInternal();
-            }
-            finally
-            {
-                listener.Stop();
-            }
-        }
 
 
         private void SafeShutdownInternal()
         {
             foreach (var client in GameClientService.Clients)
                 client.Exit();
+        }
+
+        private IUnityContainer InitializeContainer()
+        {
+            return new UnityContainer()
+                .RegisterFactory<ILogger>((container) =>
+                {
+                    var logConfig = new LoggerConfiguration();
+
+                    // configure the sinks appropriately
+                    var sinks = Config.configs["sinks"]?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    if (sinks.Contains("console", StringComparer.OrdinalIgnoreCase))
+                    {
+                        logConfig.WriteTo.Console();
+                    }
+                    if (sinks.Contains("file", StringComparer.OrdinalIgnoreCase))
+                    {
+                        var path = Config.configs["folder"];
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+
+                        logConfig.WriteTo.File(
+                            formatter: new JsonFormatter(),
+                            path: path,
+                            buffered: true,
+                            flushToDiskInterval: TimeSpan.FromMinutes(1),
+                            rollingInterval: RollingInterval.Minute,
+                            rollOnFileSizeLimit: true,
+                            retainedFileCountLimit: 31,
+                            encoding: Encoding.UTF8);
+                    }
+
+
+
+                    return logConfig.CreateLogger();
+                }, new ContainerControlledLifetimeManager())
+                .RegisterSingleton<IClientProviderService, GameClientService>()
+                .RegisterSingleton<IClientConnectionService, ClientConnectionService>()
+                .RegisterSingleton<ILobbyChatService, LobbyChatService>();
+
         }
 
     }
