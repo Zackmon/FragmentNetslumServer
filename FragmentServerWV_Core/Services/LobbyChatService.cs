@@ -1,4 +1,4 @@
-﻿using Serilog;
+using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,12 +43,15 @@ namespace FragmentServerWV.Services
 
         public bool TryGetLobby(ushort lobbyId, out LobbyChatRoom lobbyChatRoom)
         {
+            this.logger.Information("Looking for a Lobby of ID {@lobbyId}", lobbyId);
             lobbyChatRoom = null;
             if (lobbies.ContainsKey(lobbyId))
             {
                 lobbyChatRoom = lobbies[lobbyId];
+                this.logger.Information("Found Lobby ID {@lobbyId}", lobbyId);
                 return true;
             }
+            this.logger.Information("Could not find {@lobbyId}", lobbyId);
             return false;
         }
     }
