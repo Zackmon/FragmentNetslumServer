@@ -10,27 +10,11 @@ namespace FragmentServerWV_Console
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            LogEventDelegate logEventDelegate = new LogEventDelegate();
-            logEventDelegate.Logging += LogToConsole;
             Config.Load();
-            Log.InitLogs(logEventDelegate);
             Server.Instance.Start();
-            
             CreateHostBuilder(args).Build().Run();
-
-
-
-            /*DBAcess dbAcess = DBAcess.getInstance();
-
-            List<BbsCategoryModel> bbsCategoryModels= dbAcess.GetListOfBbsCategory();
-            List<BbsThreadModel> bbsThreadModels = dbAcess.getThreadsByCategoryID(bbsCategoryModels[0].categoryID);
-            List<BbsPostMetaModel> bbsPostMetaModels = dbAcess.getPostsMetaByThreadID(bbsThreadModels[0].threadID);
-            BbsPostBody bbsPostBody = dbAcess.getPostBodyByPostID(bbsPostMetaModels[0].postID);
-            
-            Console.WriteLine(bbsPostBody.postBody);*/
-
         }
 
         public static void LogToConsole(String text, int logSize)
