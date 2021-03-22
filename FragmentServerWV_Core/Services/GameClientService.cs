@@ -30,18 +30,18 @@ namespace FragmentServerWV.Services
 
         public void AddClient(GameClient client)
         {
-            this.logger.Information("Client {@client.index} has connected", client);
+            this.logger.Information("Client {@client.index} has connected", client.index);
             this.clients.Add(client);
-            this.logger.Information("There are {@clients.Count} connected clients", this.clients);
+            this.logger.Information("There are {@clients.Count} connected clients", clients.Count);
         }
 
         public void RemoveClient(uint index) => this.RemoveClient(clients.Find(c => c.index == (int)index));
 
         public void RemoveClient(GameClient client)
         {
-            this.logger.Information("Client {@client.index} is disconnecting", client);
+            this.logger.Information("Client {@client.index} is disconnecting", client.index);
             this.clients.Remove(client);
-            this.logger.Information("There are {@clients.Count} connected clients", this.clients);
+            this.logger.Information("There are {@clients.Count} connected clients", clients.Count);
         }
     }
 

@@ -140,7 +140,6 @@ namespace FragmentServerWV
                             break;
                         case OpCodes.OPCODE_KEY_EXCHANGE_REQUEST:
                             logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
-                            logger.Debug("Received Data");
                             m = new MemoryStream();
                             m.Write(p.data, 4, 16);
                             from_key = m.ToArray();
@@ -254,18 +253,13 @@ namespace FragmentServerWV
                         
                         room_index = (short) swap16(BitConverter.ToUInt16(argument, 0));
                         lobbyType = swap16(BitConverter.ToUInt16(argument, 2));
-                        Console.WriteLine("Lobby Room ID" + room_index);
-                        Console.WriteLine("Lobby Type ID" + lobbyType);
+                        logger.Information("Lobby Room ID: {@room_index}", room_index);
+                        Console.WriteLine("Lobby Type ID: {@lobbyType}");
                         
                         if (lobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
                         {
-                            //if (!Server.Instance.LobbyChatRooms.ContainsKey(room_index))
-                            //{
-                            //    Server.Instance.LobbyChatRooms.Add(room_index,new LobbyChatRoom("Guild Room", (ushort) room_index,0x7418));
-                            //}
                             //TODO add Guild Specific Code
                             room = Server.Instance.LobbyChatService.GetOrAddLobby((ushort)room_index, "Guild Room", OpCodes.LOBBY_TYPE_GUILD, out var _);
-                            //room = Server.Instance.LobbyChatRooms[room_index];  
                         }
                         else
                         {
@@ -341,7 +335,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] {0x36, 0x36, 0x31, 0x36});
                         break;
                     case OpCodes.OPCODE_DATA_SAVEID:
-                        Console.WriteLine("Data Save ID Arguments \n" + BitConverter.ToString(argument));
+                        logger.Debug($"Data Save ID Arguments: {BitConverter.ToString(argument)}");
                         byte[] saveID = ReadByteString(argument, 0);
                         this.save_id = saveID;
                         m = new MemoryStream();
@@ -435,7 +429,7 @@ namespace FragmentServerWV
 
                         int mailID = (int) swap32(BitConverter.ToUInt32(argument, 4));
 
-                        Console.WriteLine("Mail ID " + mailID);
+                        logger.Information("Mail ID:{@mailID}", mailID);
 
                         MailBodyModel bodyModel = DBAcess.getInstance().GetMailBodyByMailId(mailID);
 
@@ -503,7 +497,7 @@ namespace FragmentServerWV
                         break;
                     case 0x7739: // Get Guild Info
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        Console.WriteLine("Guild ID = " + u);
+                        logger.Information("Guild ID: {@u}", u);
                         SendPacket30(0x7740,GuildManagementService.GetInstance().GetGuildInfo(u));
                         break;
                     case 0x7600: //create Guild
