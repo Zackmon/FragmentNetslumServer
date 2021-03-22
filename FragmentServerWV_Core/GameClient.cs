@@ -293,12 +293,20 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_AS_IPPORT:
                         ipdata = argument;
 
+                        var localIpAddress = "";
+                        var externalIpAddress = ipEndPoint.Address.ToString();
 
-                        string[] ipAddress = ipEndPoint.Address.ToString().Split('.');
-                        argument[3] = (byte) Int32.Parse(ipAddress[0]);
-                        argument[2] = (byte) Int32.Parse(ipAddress[1]);
-                        argument[1] = (byte) Int32.Parse(ipAddress[2]);
-                        argument[0] = (byte) Int32.Parse(ipAddress[3]);
+                        if (externalIpAddress == Helpers.IPAddressHelpers.LOOPBACK_IP_ADDRESS)
+                        {
+                            localIpAddress = externalIpAddress;
+                            externalIpAddress = Helpers.IPAddressHelpers.GetLocalIPAddress2();
+                        }
+
+                        string[] ipAddress = externalIpAddress.Split('.');
+                        argument[3] = byte.Parse(ipAddress[0]);
+                        argument[2] = byte.Parse(ipAddress[1]);
+                        argument[1] = byte.Parse(ipAddress[2]);
+                        argument[0] = byte.Parse(ipAddress[3]);
                         externalIPAddress = argument;
 
                         logger.Information("Area Server Client #" + this.index + " : Local IP=" +
