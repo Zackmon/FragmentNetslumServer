@@ -14,7 +14,7 @@ namespace FragmentServerWV.Services
         private readonly LobbyChatRoom mainLobby;
         private readonly ILogger logger;
 
-        public ReadOnlyDictionary<int, LobbyChatRoom> Lobbies => new ReadOnlyDictionary<int, LobbyChatRoom>(Lobbies);
+        public ReadOnlyDictionary<int, LobbyChatRoom> Lobbies => new ReadOnlyDictionary<int, LobbyChatRoom>(lobbies);
 
         public LobbyChatRoom Main => mainLobby;
 
