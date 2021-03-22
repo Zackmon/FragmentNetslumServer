@@ -35,7 +35,7 @@ namespace FragmentServerWV.Services
             {
                 throw new NotSupportedException($"Multiple calls to {nameof(BeginListening)} is not supported");
             }
-            logger.Information("Opening TCP Listener on {@ipAddress}:{@port}", ipAddress, port);
+            logger.Information("Opening TCP Listener on {@ipAddress}:{@port}", ipAddress.ToString(), port);
             tokenSource = new CancellationTokenSource();
             listener = new TcpListener(ipAddress, port);
             Task.Run(async () => await InternalConnectionLoop(tokenSource.Token));
@@ -52,6 +52,7 @@ namespace FragmentServerWV.Services
 
         private async Task InternalConnectionLoop(CancellationToken token)
         {
+            listener.Start();
             uint clientIds = 1;
             try
             {

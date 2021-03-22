@@ -21,6 +21,7 @@ namespace FragmentServerWV.Services
         public GameClientService(ILogger logger)
         {
             this.logger = logger;
+            this.clients = new List<GameClient>();
         }
 
 
