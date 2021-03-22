@@ -39,7 +39,6 @@ namespace FragmentServerWV
         // a DI framework of sorts to piece together everything
         private static Server instance;
         private readonly CancellationTokenSource tokenSource;
-        private readonly Dictionary<int, LobbyChatRoom> lobbyChatRooms;
         private readonly IPAddress ipAddress;
         private readonly ushort port;
 
@@ -69,7 +68,6 @@ namespace FragmentServerWV
         /// Gets the token for cancellation
         /// </summary>
         public CancellationToken CancellationToken => tokenSource.Token;
-
         
         /// <summary>
         /// Gets the service for handling <see cref="GameClient"/> instances
@@ -81,6 +79,13 @@ namespace FragmentServerWV
         /// </summary>
         public ILobbyChatService LobbyChatService => lobbyChatService;
 
+        /// <summary>
+        /// Gets the default <see cref="IUnityContainer"/> that the entire system should be using
+        /// </summary>
+        /// <remarks>
+        /// End state: Nobody uses this property.
+        /// </remarks>
+        public IUnityContainer Container => container;
 
 
         /// <summary>
