@@ -139,7 +139,7 @@ namespace FragmentServerWV
                         case 0x0002:
                             break;
                         case OpCodes.OPCODE_KEY_EXCHANGE_REQUEST:
-                            //logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             logger.Debug("Received Data");
                             m = new MemoryStream();
                             m.Write(p.data, 4, 16);
@@ -166,7 +166,7 @@ namespace FragmentServerWV
                             to_crypto = new Crypto(to_key);
                             break;
                         case 0x30:
-                            //logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             HandlerPacket30(p.data, index, to_crypto);
                             break;
                         default:
@@ -191,11 +191,14 @@ namespace FragmentServerWV
             }
 
             logger.Information("Client Handler #" + index + " exited");
-            if (room_index != -1 && Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var room))
+            if (room_index != -1)
             {
-                room.ClientLeavingRoom(this.index);
-                room.Users.Remove(this.index);
-                logger.Information("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var room))
+                {
+                    room.ClientLeavingRoom(this.index);
+                    room.Users.Remove(this.index);
+                    logger.Information("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                }
             }
 
             _exited = true;
