@@ -87,8 +87,10 @@ namespace FragmentServerWV
 
         private readonly ILogger logger;
 
+        private readonly int ping;
 
-        public GameClient(TcpClient c, int idx)
+
+        public GameClient(TcpClient c, int idx, ILogger logger, SimpleConfiguration simpleConfiguration)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _encoding = Encoding.GetEncoding("Shift-JIS");
@@ -103,13 +105,10 @@ namespace FragmentServerWV
             index = idx;
             to_crypto = new Crypto();
             from_crypto = new Crypto();
-            
             ipEndPoint = (IPEndPoint) client.Client.RemoteEndPoint;
             ThreadPool.QueueUserWorkItem(new WaitCallback(Handler));
-            //t = new Thread(Handler);
-            //t.Start();
-            logger = Server.Instance.Container.GetLogger();
-            
+            this.logger = logger;
+            int.TryParse(simpleConfiguration.Get("ping", "5000"), out ping);
         }
 
         public void Exit()
@@ -123,7 +122,6 @@ namespace FragmentServerWV
         public void Handler(object obj)
         {
             bool run = true;
-            int pingdelay = Convert.ToInt32(Config.configs["ping"]);
             while (run)
             {
                 lock (_sync)
@@ -249,12 +247,11 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] {0x02, 0x10});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_ENTERROOM:
-                        logger.LogData(argument,0x7006,this.index,"Lobby Login",0,0);
-                        
+                        logger.LogData(argument, OpCodes.OPCODE_DATA_LOBBY_ENTERROOM, this.index, "Lobby Login", 0, 0);
                         room_index = (short) swap16(BitConverter.ToUInt16(argument, 0));
                         lobbyType = swap16(BitConverter.ToUInt16(argument, 2));
                         logger.Information("Lobby Room ID: {@room_index}", room_index);
-                        Console.WriteLine("Lobby Type ID: {@lobbyType}");
+                        logger.Information("Lobby Type ID: {@lobbyType}", lobbyType);
                         
                         if (lobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
                         {
@@ -268,7 +265,7 @@ namespace FragmentServerWV
                         
                         
                         SendPacket30(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK,
-                            BitConverter.GetBytes(swap16((ushort) room.Users.Count)));
+                        BitConverter.GetBytes(swap16((ushort) room.Users.Count)));
                         room.Users.Add(this.index);
                         logger.Information("Client #" + this.index + " : Lobby '" + room.name + "' now has " +
                                       room.Users.Count() + " Users");

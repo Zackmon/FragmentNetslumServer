@@ -10,6 +10,7 @@ namespace FragmentServerWV.Services
 
         private readonly List<GameClient> clients;
         private readonly ILogger logger;
+        private readonly SimpleConfiguration simpleConfiguration;
 
 
         /// <summary>
@@ -18,15 +19,19 @@ namespace FragmentServerWV.Services
         public ReadOnlyCollection<GameClient> Clients => clients.AsReadOnly();
 
 
-        public GameClientService(ILogger logger)
+        public GameClientService(ILogger logger, SimpleConfiguration simpleConfiguration)
         {
             this.logger = logger;
+            this.simpleConfiguration = simpleConfiguration;
             this.clients = new List<GameClient>();
         }
 
 
 
-        public void AddClient(TcpClient client, uint clientId) => this.AddClient(new GameClient(client, (int)clientId));
+        public void AddClient(TcpClient client, uint clientId)
+        {
+            this.AddClient(new GameClient(client, (int)clientId, logger, simpleConfiguration));
+        }
 
         public void AddClient(GameClient client)
         {

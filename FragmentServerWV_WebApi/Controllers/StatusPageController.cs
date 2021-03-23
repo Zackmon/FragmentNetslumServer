@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
 using FragmentServerWV;
+using FragmentServerWV.Services.Interfaces;
 using FragmentServerWV_WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace FragmentServerWV_WebApi.Controllers
 {
@@ -12,22 +12,24 @@ namespace FragmentServerWV_WebApi.Controllers
     public class StatusPageController : ControllerBase
     {
         private readonly ILogger<StatusPageController> _logger;
+        private readonly IClientProviderService clientProviderService;
+        private readonly IClientConnectionService clientConnectionService;
 
-        public StatusPageController(ILogger<StatusPageController> logger)
+        public StatusPageController(
+            ILogger<StatusPageController> logger,
+            IClientProviderService clientProviderService,
+            IClientConnectionService clientConnectionService)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.clientProviderService = clientProviderService ?? throw new ArgumentNullException(nameof(clientProviderService));
+            this.clientConnectionService = clientConnectionService ?? throw new ArgumentNullException(nameof(clientConnectionService));
         }
 
         [HttpGet]
         public ClientsModel Get()
         {
-            // ClientsModel test = new ClientsModel(0, "13041305062c00000631", "130413072018000064e2","Zackmon", "1", 1, "よろしく", 1,
-            //     200, 100, 1000, 0, 0);
-
             ClientsModel clientList = new ClientsModel();
-            // clientList.Add(test);
-
-            foreach (GameClient client in Server.Instance.GameClientService.Clients)
+            foreach (GameClient client in clientProviderService.Clients)
             {
                 if (!client._exited)
                 {
