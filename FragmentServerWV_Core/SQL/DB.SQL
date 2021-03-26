@@ -117,7 +117,7 @@ CREATE TABLE `ranking_data` (
   `CharacterGP` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `GodStatueCounterOnline` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `AverageFieldLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  'AccountID' int NOT NULL DEFAULT '0',
+  `AccountID` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
 ) AUTO_INCREMENT=40820 DEFAULT CHARSET=utf8mb4;
 

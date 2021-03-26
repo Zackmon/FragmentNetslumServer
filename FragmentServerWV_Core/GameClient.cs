@@ -1,16 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Net.Sockets;
-using System.Net;
-using System.Security.AccessControl;
-using FragmentServerWV.Models;
+﻿using FragmentServerWV.Models;
 using FragmentServerWV.Services;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 
 namespace FragmentServerWV
 {
@@ -86,7 +85,7 @@ namespace FragmentServerWV
 
         private ushort lobbyType = 0;
 
-        
+        private readonly ILogger logger;
 
 
         public GameClient(TcpClient c, int idx)
@@ -109,6 +108,7 @@ namespace FragmentServerWV
             ThreadPool.QueueUserWorkItem(new WaitCallback(Handler));
             //t = new Thread(Handler);
             //t.Start();
+            logger = Server.Instance.Container.GetLogger();
             
         }
 
@@ -139,7 +139,7 @@ namespace FragmentServerWV
                         case 0x0002:
                             break;
                         case OpCodes.OPCODE_KEY_EXCHANGE_REQUEST:
-                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             m = new MemoryStream();
                             m.Write(p.data, 4, 16);
                             from_key = m.ToArray();
@@ -159,17 +159,18 @@ namespace FragmentServerWV
                             SendPacket(0x35, m.ToArray(), checksum);
                             break;
                         case OpCodes.OPCODE_KEY_EXCHANGE_ACKNOWLEDGMENT:
-                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            
                             from_crypto = new Crypto(from_key);
                             to_crypto = new Crypto(to_key);
                             break;
                         case 0x30:
-                            //Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             HandlerPacket30(p.data, index, to_crypto);
                             break;
                         default:
-                            Log.Writeline("Client Handler #" + index + " : Received packet with unknown code");
-                            Log.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
+                            logger.Information("Client Handler #" + index + " : Received packet with unknown code");
+                            logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             run = false;
                             break;
                     }
@@ -188,13 +189,15 @@ namespace FragmentServerWV
                 }
             }
 
-            Log.Writeline("Client Handler #" + index + " exited");
+            logger.Information("Client Handler #" + index + " exited");
             if (room_index != -1)
             {
-                LobbyChatRoom room = Server.lobbyChatRooms[room_index];
-                room.ClientLeavingRoom(this.index);
-                room.Users.Remove(this.index);
-                Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var room))
+                {
+                    room.ClientLeavingRoom(this.index);
+                    room.Users.Remove(this.index);
+                    logger.Information("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                }
             }
 
             _exited = true;
@@ -205,14 +208,17 @@ namespace FragmentServerWV
                 DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
             }
 
-            for (int i = 0; i < Server.clients.Count; i++)
-            {
-                if (Server.clients[i].index == this.index)
-                {
-                    Server.clients.RemoveAt(i);
-                    break;
-                }
-            }
+            // this should also work
+            Server.Instance.GameClientService.RemoveClient(this);
+
+            //for (int i = 0; i < Server.Instance.GameClientService.Clients.Count; i++)
+            //{
+            //    if (Server.Instance.Clients[i].index == this.index)
+            //    {
+            //        Server.Instance.Clients.RemoveAt(i);
+            //        break;
+            //    }
+            //}
 
         }
 
@@ -230,7 +236,7 @@ namespace FragmentServerWV
                 m.Write(data, 10, arglen);
                 byte[] argument = m.ToArray();
                 ushort u;
-                Log.LogData(data, code, index, "Recv Data 0X30", 0, 0);
+                logger.LogData(data, code, index, "Recv Data 0X30", 0, 0);
                 switch (code)
                 {
                     case 2:
@@ -243,37 +249,36 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] {0x02, 0x10});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_ENTERROOM:
-                        Log.LogData(argument,0x7006,this.index,"Lobby Login",0,0);
+                        logger.LogData(argument,0x7006,this.index,"Lobby Login",0,0);
                         
                         room_index = (short) swap16(BitConverter.ToUInt16(argument, 0));
                         lobbyType = swap16(BitConverter.ToUInt16(argument, 2));
-                        Console.WriteLine("Lobby Room ID" + room_index);
-                        Console.WriteLine("Lobby Type ID" + lobbyType);
+                        logger.Information("Lobby Room ID: {@room_index}", room_index);
+                        Console.WriteLine("Lobby Type ID: {@lobbyType}");
                         
                         if (lobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
                         {
-                            if (!Server.lobbyChatRooms.ContainsKey(room_index))
-                            {
-                                Server.lobbyChatRooms.Add(room_index,new LobbyChatRoom("Guild Room", (ushort) room_index,0x7418));
-                            }
                             //TODO add Guild Specific Code
-                            room = Server.lobbyChatRooms[room_index];  
+                            room = Server.Instance.LobbyChatService.GetOrAddLobby((ushort)room_index, "Guild Room", OpCodes.LOBBY_TYPE_GUILD, out var _);
                         }
                         else
                         {
-                            room = Server.lobbyChatRooms[room_index];
+                            Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out room);
                         }
                         
                         
                         SendPacket30(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK,
                             BitConverter.GetBytes(swap16((ushort) room.Users.Count)));
                         room.Users.Add(this.index);
-                        Log.Writeline("Client #" + this.index + " : Lobby '" + room.name + "' now has " +
+                        logger.Information("Client #" + this.index + " : Lobby '" + room.name + "' now has " +
                                       room.Users.Count() + " Users");
                         room.DispatchAllStatus(this.index);
                         break;
                     case 0x7009:
-                        Server.lobbyChatRooms[room_index].DispatchStatus(argument, this.index);
+                        if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var rm))
+                        {
+                            rm.DispatchStatus(argument, this.index);
+                        }
                         break;
                     case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
                         int end = argument.Length - 1;
@@ -288,22 +293,30 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_AS_IPPORT:
                         ipdata = argument;
 
+                        var localIpAddress = "";
+                        var externalIpAddress = ipEndPoint.Address.ToString();
 
-                        string[] ipAddress = ipEndPoint.Address.ToString().Split('.');
-                        argument[3] = (byte) Int32.Parse(ipAddress[0]);
-                        argument[2] = (byte) Int32.Parse(ipAddress[1]);
-                        argument[1] = (byte) Int32.Parse(ipAddress[2]);
-                        argument[0] = (byte) Int32.Parse(ipAddress[3]);
+                        if (externalIpAddress == Helpers.IPAddressHelpers.LOOPBACK_IP_ADDRESS)
+                        {
+                            localIpAddress = externalIpAddress;
+                            externalIpAddress = Helpers.IPAddressHelpers.GetLocalIPAddress2();
+                        }
+
+                        string[] ipAddress = externalIpAddress.Split('.');
+                        argument[3] = byte.Parse(ipAddress[0]);
+                        argument[2] = byte.Parse(ipAddress[1]);
+                        argument[1] = byte.Parse(ipAddress[2]);
+                        argument[0] = byte.Parse(ipAddress[3]);
                         externalIPAddress = argument;
 
-                        Log.Writeline("Area Server Client #" + this.index + " : Local IP=" +
+                        logger.Information("Area Server Client #" + this.index + " : Local IP=" +
                                       ipdata[3] + "." +
                                       ipdata[2] + "." +
                                       ipdata[1] + "." +
                                       ipdata[0] + " Port:" +
                                       swap16(BitConverter.ToUInt16(ipdata, 4)));
 
-                        Log.Writeline("Area Server Client #" + this.index + " : External IP=" +
+                        logger.Information("Area Server Client #" + this.index + " : External IP=" +
                                       externalIPAddress[3] + "." +
                                       externalIPAddress[2] + "." +
                                       externalIPAddress[1] + "." +
@@ -330,7 +343,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] {0x36, 0x36, 0x31, 0x36});
                         break;
                     case OpCodes.OPCODE_DATA_SAVEID:
-                        Console.WriteLine("Data Save ID Arguments \n" + BitConverter.ToString(argument));
+                        logger.Debug($"Data Save ID Arguments: {BitConverter.ToString(argument)}");
                         byte[] saveID = ReadByteString(argument, 0);
                         this.save_id = saveID;
                         m = new MemoryStream();
@@ -352,7 +365,7 @@ namespace FragmentServerWV
                         SendPacket30(0x742A, response);
                         break;
                     case OpCodes.OPCODE_DATA_REGISTER_CHAR:
-                        Log.LogData(argument, 0xFFFF, this.index, "character data", 0, 0);
+                        logger.LogData(argument, 0xFFFF, this.index, "character data", 0, 0);
                         _characterPlayerID = ExtractCharacterData(argument);
 
                         byte[] guildStatus = GuildManagementService.GetInstance().GetPlayerGuild(_characterPlayerID);
@@ -372,10 +385,13 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_LOBBY_EXITROOM:
                         if (room_index != -1)
                         {
-                            room = Server.lobbyChatRooms[room_index];
-                            room.ClientLeavingRoom(this.index);
-                            room.Users.Remove(this.index);
-                            Log.Writeline("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                            //room = Server.Instance.LobbyChatRooms[room_index];
+                            if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out room))
+                            {
+                                room.ClientLeavingRoom(this.index);
+                                room.Users.Remove(this.index);
+                                logger.Information("Lobby '" + room.name + "' now has " + room.Users.Count() + " Users");
+                            }
                         }
 
                         SendPacket30(OpCodes.OPCODE_DATA_LOBBY_EXITROOM_OK, new byte[] {0x00, 0x00});
@@ -397,7 +413,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_MAIL_SEND_OK, new byte[] {0x00, 0x00});
                         break;
                     case OpCodes.OPCODE_DATA_MAIL_GET:
-                        Log.LogData(argument, 0xFFFF, this.index, "ACCOUNT ID FOR MAIL HEADER", 0, 0);
+                        logger.LogData(argument, 0xFFFF, this.index, "ACCOUNT ID FOR MAIL HEADER", 0, 0);
 
                         List<MailMetaModel> metaList = DBAcess.getInstance().GetAccountMail(ReadAccountID(argument, 0));
 
@@ -417,11 +433,11 @@ namespace FragmentServerWV
 
                         break;
                     case OpCodes.OPCODE_DATA_MAIL_GET_MAIL_BODY:
-                        Log.LogData(argument, 0xFFFF, this.index, "ID FOR MAIL BODY", 0, 0);
+                        logger.LogData(argument, 0xFFFF, this.index, "ID FOR MAIL BODY", 0, 0);
 
                         int mailID = (int) swap32(BitConverter.ToUInt32(argument, 4));
 
-                        Console.WriteLine("Mail ID " + mailID);
+                        logger.Information("Mail ID:{@mailID}", mailID);
 
                         MailBodyModel bodyModel = DBAcess.getInstance().GetMailBodyByMailId(mailID);
 
@@ -489,11 +505,11 @@ namespace FragmentServerWV
                         break;
                     case 0x7739: // Get Guild Info
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        Console.WriteLine("Guild ID = " + u);
+                        logger.Information("Guild ID: {@u}", u);
                         SendPacket30(0x7740,GuildManagementService.GetInstance().GetGuildInfo(u));
                         break;
                     case 0x7600: //create Guild
-                        Log.LogData(argument,0xffff,this.index,"Create Guild Info",0,0);
+                        logger.LogData(argument,0xffff,this.index,"Create Guild Info",0,0);
                         u = GuildManagementService.GetInstance().CreateGuild(argument,_characterPlayerID);
                         _guildID = u;
                         isGuildMaster = true;
@@ -558,7 +574,7 @@ namespace FragmentServerWV
                         SendPacket30(0x770D,GuildManagementService.GetInstance().BuyItemFromGuild(argument) ); // how many to give the player 
                         break;
                     case 0x7702: // Donate Item to Guild
-                        Log.LogData(argument,0xfff,this.index,"Item Donated to Guild",0,0);
+                        logger.LogData(argument,0xfff,this.index,"Item Donated to Guild",0,0);
 
                          _itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
                          _itemDonationQuantity = swap16(BitConverter.ToUInt16(argument, 6));
@@ -569,13 +585,13 @@ namespace FragmentServerWV
                         SendPacket30(0x7704,GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_guildID,_itemDontationID));
                         break;
                     case 0x7879:
-                        Log.LogData(argument,0xfff,this.index,"Get Member and General Screen Permission",0,0);
+                        logger.LogData(argument,0xfff,this.index,"Get Member and General Screen Permission",0,0);
                         
                         SendPacket30(0x787a,GuildManagementService.GetInstance().GetItemDonationSettings(isGuildMaster));
                         
                         break;
                     case 0x7703:
-                        Log.LogData(argument,0x7703,this.index,"Member + General Item Price",0,0);
+                        logger.LogData(argument,0x7703,this.index,"Member + General Item Price",0,0);
                         uint GeneralPrice = swap32(BitConverter.ToUInt32(argument, 0));
                         uint MemberPrice = swap32(BitConverter.ToUInt32(argument, 4));
                         bool isGeneral = BitConverter.ToBoolean(argument, 8);
@@ -588,12 +604,12 @@ namespace FragmentServerWV
                             _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember,isGuildMaster)); // how many to deduct from the player
                         break;
                     case 0x7712: //update item pricing (from Master window)
-                        Log.LogData(argument,0x7712,this.index,"Member + General Item Price",0,0);
+                        logger.LogData(argument,0x7712,this.index,"Member + General Item Price",0,0);
                         
                         SendPacket30(0x7713,GuildManagementService.GetInstance().SetItemVisibilityAndPrice(argument)); 
                         break;
                     case 0x787B:// no idea what this is but I think it's only ACK
-                        Log.LogData(argument,0x787B,this.index,"After Selecting the member and general",0,0);
+                        logger.LogData(argument,0x787B,this.index,"After Selecting the member and general",0,0);
                         SendPacket30(0x787C,new byte[] {0x00,0x00});
                         break;
                     case 0x788D:// Leve Guild and assign someone else the master of the guild
@@ -632,20 +648,24 @@ namespace FragmentServerWV
                         SendPacket30(0x7711,GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem,itemIDToTakeOut,quantityToTake)); // quantity  to give to the player
                         break;
                     case 0x7700:// donate Coins to Guild
-                        //Log.LogData(argument,0xff,this.index,"Donate Coin to guild",0,0);
+                        //logger.LogData(argument,0xff,this.index,"Donate Coin to guild",0,0);
                         
                         SendPacket30(0x7701,GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
                         break;
                     
                     case 0x7603: //invite player to Guild
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        Server.lobbyChatRooms[room_index].GuildInvitation(argument, this.index, u,_guildID);
-                        Console.WriteLine("Invited Player ID " + u);
-                        SendPacket30(0x7604,new byte[] {0x00,0x00}); //send to confirm that the player accepted the invite 
+                        //Server.Instance.LobbyChatRooms[room_index].GuildInvitation(argument, this.index, u,_guildID);
+                        if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var guildLobby))
+                        {
+                            guildLobby.GuildInvitation(argument, this.index, u, _guildID);
+                            Console.WriteLine("Invited Player ID " + u);
+                            SendPacket30(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
+                        }
                         break;
                     case 0x7607: //accept Guild Invitation
                         u = swap16(BitConverter.ToUInt16(argument, 0));
-                        Log.LogData(argument,0x7607,this.index,"guild invitation acceptance",0,0);
+                        logger.LogData(argument,0x7607,this.index,"guild invitation acceptance",0,0);
                         m = new MemoryStream();
                         m.Write(new byte[] {0x76, 0xB0, 0x54,0x45,0x53,0x54,0x00});
                         if (argument[1] == 0x08) //accepted the invitation
@@ -679,7 +699,7 @@ namespace FragmentServerWV
 
                         uint id = swap32(BitConverter.ToUInt32(argument, 0));
 
-                        Log.LogData(argument, 0xFFFF, this.index, "BBS_POST_ARG,", 0, 0);
+                        logger.LogData(argument, 0xFFFF, this.index, "BBS_POST_ARG,", 0, 0);
 
                         DBAcess.getInstance().CreateNewPost(argument, id);
 
@@ -832,10 +852,13 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] {0x00, 0x00});
                         break;
                     case OpCodes.OPCODE_DATA_LOBBY_EVENT:
-                        Server.lobbyChatRooms[room_index].DispatchPublicBroadcast(argument, this.index);
+                        if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var lcr))
+                        {
+                            lcr.DispatchPublicBroadcast(argument, this.index);
+                        }
                         break;
                     case OpCodes.OPCODE_DATA_MAILCHECK:
-                        Log.LogData(argument, 0xFFFF, this.index, "CHECK FOR NEW MAIL NOTIFICATION ", 0, 0);
+                        logger.LogData(argument, 0xFFFF, this.index, "CHECK FOR NEW MAIL NOTIFICATION ", 0, 0);
 
                         if (DBAcess.getInstance().checkForNewMailByAccountID(ReadAccountID(argument, 0)))
                             SendPacket30(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] {0x00, 0x00, 0x01, 0x00});
@@ -857,7 +880,11 @@ namespace FragmentServerWV
                         break;
                     case 0x788C:
                         ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
-                        Server.lobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
+                        //Server.Instance.LobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
+                        if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var p))
+                        {
+                            p.DispatchPrivateBroadcast(argument, this.index, destid);
+                        }
                         break;
                     case OpCodes.OPCODE_DATA_SELECT_CHAR:
                         
@@ -871,13 +898,13 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_LOGON:
                         if (argument[1] == 0x31)
                         {
-                            Log.Writeline("Client #" + this.index + " : New Area Server Joined");
+                            logger.Information("Client #" + this.index + " : New Area Server Joined");
                             isAreaServer = true;
                             SendPacket30(0x78AC, new byte[] {0xDE, 0xAD});
                         }
                         else
                         {
-                            Log.Writeline("Client #" + this.index + " : New Game Client Joined");
+                            logger.Information("Client #" + this.index + " : New Game Client Joined");
                             SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] {0x74, 0x32});
                         }
 
@@ -886,7 +913,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_AS_PUBLISH_OK, new byte[] {0x00, 0x00});
                         break;
                     default:
-                        Log.Writeline("Client #" + this.index +
+                        logger.Information("Client #" + this.index +
                                       " : \n !!!UNKNOWN DATA CODE RECEIVED, PLEASE REPORT : 0x" +
                                       code.ToString("X4") + "!!!\n");
                         break;
@@ -904,7 +931,7 @@ namespace FragmentServerWV
         {
             List <LobbyChatRoom> nonGuildLobbies = new List<LobbyChatRoom>();
 
-            foreach (var room in Server.lobbyChatRooms.Values)
+            foreach (var room in Server.Instance.LobbyChatService.Lobbies.Values)
             {
                 if (room.type == 0x7403)
                 {
@@ -945,11 +972,11 @@ namespace FragmentServerWV
             else
             {
                 ushort count = 0;
-                foreach (GameClient client in Server.clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (client.isAreaServer)
                         count++;
                 SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
-                foreach (GameClient client in Server.clients)
+                foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (client.isAreaServer && !client._exited)
                     {
                         MemoryStream m = new MemoryStream();
@@ -1021,7 +1048,7 @@ namespace FragmentServerWV
             Console.WriteLine("body " + _encoding.GetString(body));
             Console.WriteLine("face " + _encoding.GetString(face));
             
-            Log.LogData(face,0xFFFF,this.index,"FACE ID",0,0);
+            logger.LogData(face,0xFFFF,this.index,"FACE ID",0,0);
             
             
             MailMetaModel metaModel = new MailMetaModel();
@@ -1198,7 +1225,7 @@ namespace FragmentServerWV
             Console.WriteLine("Guild Name = "+ _encoding.GetString(guildNameBytes));
             Console.WriteLine("Guild Comment = "+ _encoding.GetString(guildCommentBytes));
             
-            Log.LogData(guildEmblem,0xff,this.index,"Guild Emblem Data",0,0);
+            logger.LogData(guildEmblem,0xff,this.index,"Guild Emblem Data",0,0);
 
         }
 
@@ -1406,7 +1433,7 @@ namespace FragmentServerWV
                 m.WriteByte((byte) (checksum & 0xFF));
                 m.Write(data, 0, data.Length);
                 byte[] buff = m.ToArray();
-                Log.LogData(buff, code, index, "Send Data", (ushort) checksum, (ushort) checksum);
+                logger.LogData(buff, code, index, "Send Data", (ushort) checksum, (ushort) checksum);
                 buff = to_crypto.Encrypt(buff);
                 ushort len = (ushort) (buff.Length + 2);
                 m = new MemoryStream();

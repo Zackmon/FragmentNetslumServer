@@ -737,7 +737,7 @@ namespace FragmentServerWV.Services
             }
 
 
-            return messageModel.Message;
+            return messageModel?.Message ?? "";
         }
 
         public void RefreshMessageOfTheDay()
