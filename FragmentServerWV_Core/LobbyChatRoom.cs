@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FragmentServerWV.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -48,8 +49,8 @@ namespace FragmentServerWV
             try
             {
                 MemoryStream m = new MemoryStream();
-                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) FindRoomIndexById(who))), 0, 2);
-                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) (data.Length))), 0, 2);
+                m.Write(BitConverter.GetBytes(((ushort) FindRoomIndexById(who)).Swap()), 0, 2);
+                m.Write(BitConverter.GetBytes(((ushort) (data.Length)).Swap()), 0, 2);
                 m.Write(data, 0, data.Length);
                 byte[] buff = m.ToArray();
                
@@ -109,7 +110,7 @@ namespace FragmentServerWV
                         data.CopyTo(temp, 0);
                         temp[2] = (byte) (srcid >> 8);
                         temp[3] = (byte) (srcid & 0xff);
-                        client.SendPacket30(0x788c, temp);
+                        client.SendPacket30(OpCodes.OPCODE_PRIVATE_BROADCAST, temp);
                     }
                     else if (client.index == who)
                     {
@@ -117,7 +118,7 @@ namespace FragmentServerWV
                         data.CopyTo(temp, 0);
                         temp[2] = 0xff;
                         temp[3] = 0xff;
-                        client.SendPacket30(0x788c, temp);
+                        client.SendPacket30(OpCodes.OPCODE_PRIVATE_BROADCAST, temp);
                     }
             }
             catch (Exception e)
@@ -135,15 +136,9 @@ namespace FragmentServerWV
                 {
                     byte[] temp = new byte[data.Length];
                     data.CopyTo(temp, 0);
-                  //  temp[2] = (byte)(srcid >> 8);
-                   // temp[3] = (byte)(srcid & 0xff);
                     MemoryStream m = new MemoryStream();
-                    //m.Write(temp);
-                    
-                    m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)srcid)));
-                    
-                    client.SendPacket30(0x7606, m.ToArray()); // Guild Inviation OPCode
-                    
+                    m.Write(BitConverter.GetBytes(((ushort)srcid).Swap()));
+                    client.SendPacket30(OpCodes.OPCODE_INVITE_TO_GUILD, m.ToArray()); // Guild Inviation OPCode
                 }
                 
         }
@@ -153,13 +148,13 @@ namespace FragmentServerWV
             try
             {
                 MemoryStream m = new MemoryStream();
-                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort) FindRoomIndexById(leavingClientID))), 0, 2);
+                m.Write(BitConverter.GetBytes(((ushort)FindRoomIndexById(leavingClientID)).Swap()), 0, 2);
            
                 byte[] buff = m.ToArray();
                
                 foreach (GameClient client in Server.Instance.GameClientService.Clients)
                     if (!client.isAreaServer && client.index != leavingClientID && !client._exited && client.room_index == ID)
-                        client.SendPacket30(0x700a, buff);
+                        client.SendPacket30(OpCodes.OPCODE_CLIENT_LEAVING_LOBBY, buff);
             }
             catch (Exception e)
             {
