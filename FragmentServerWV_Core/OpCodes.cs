@@ -461,5 +461,10 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
 
         public const ushort LOBBY_TYPE_GUILD = 0x7418;
         public const ushort LOBBY_TYPE_MAIN = 0x7403;
+        public const ushort OPCODE_CLIENT_LEAVING_LOBBY = 0x700a;
+        public const ushort OPCODE_INVITE_TO_GUILD = 0x7606;
+        public const ushort OPCODE_DATA_PAYLOAD = 0x30;
+        public const ushort OPCODE_PRIVATE_BROADCAST = 0x788c;
+
     }
 }
