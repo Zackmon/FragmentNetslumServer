@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ConsoleGUI" Version="1.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FragmentServerWV_Core\FragmentServerWV_Core.csproj" />
     <ProjectReference Include="..\FragmentServerWV_WebApi\FragmentServerWV_WebApi.csproj" />
   </ItemGroup>
