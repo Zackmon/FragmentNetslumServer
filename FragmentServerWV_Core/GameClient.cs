@@ -162,7 +162,7 @@ namespace FragmentServerWV
                             from_crypto = new Crypto(from_key);
                             to_crypto = new Crypto(to_key);
                             break;
-                        case 0x30:
+                        case OpCodes.OPCODE_DATA_PAYLOAD:
                             logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             HandlerPacket30(p.data, index, to_crypto);
                             break;
@@ -930,7 +930,7 @@ namespace FragmentServerWV
 
             foreach (var room in Server.Instance.LobbyChatService.Lobbies.Values)
             {
-                if (room.type == 0x7403)
+                if (room.type == OpCodes.LOBBY_TYPE_MAIN)
                 {
                     nonGuildLobbies.Add(room);
                 }
@@ -1409,8 +1409,7 @@ namespace FragmentServerWV
                 m.Write(BitConverter.GetBytes(swap16(code)), 0, 2);
                 m.Write(data, 0, data.Length);
                 uint checksum = Crypto.Checksum(m.ToArray());
-                while (((m.Length + 2) & 7) != 0)
-                    m.WriteByte(0);
+                while (((m.Length + 2) & 7) != 0) m.WriteByte(0);
                 SendPacket(OpCodes.OPCODE_DATA, m.ToArray(), checksum);
             }
             catch (Exception e)
@@ -1451,23 +1450,8 @@ namespace FragmentServerWV
             
         }
 
-        public static ushort swap16(ushort data)
-        {
-            ushort result = 0;
-            result = (ushort) ((data >> 8) + ((data & 0xFF) << 8));
-            return result;
-        }
 
 
-        public static uint swap32(uint data)
-        {
-            uint result = 0;
-            result |= (uint) ((data & 0xFF) << 24);
-            result |= (uint) (((data >> 8) & 0xFF) << 16);
-            result |= (uint) (((data >> 16) & 0xFF) << 8);
-            result |= (uint) ((data >> 24) & 0xFF);
-            return result;
-        }
 
 
         public void SendCategoryDetails(MemoryStream m, BbsCategoryModel categoryModel)
@@ -1583,5 +1567,10 @@ namespace FragmentServerWV
 
             SendPacket30(0x781d, m.ToArray());
         }
+
+
+        static ushort swap16(ushort data) => data.Swap();
+
+        static uint swap32(uint data) => data.Swap();
     }
 }
