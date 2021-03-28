@@ -65,25 +65,14 @@ namespace FragmentServerWV.Services
 
             return classList;
         }
-        
-        
-        //Copy from the GameClient Code
-        public ushort swap16(ushort data)
-        {
-            ushort result = 0;
-            result = (ushort) ((data >> 8) + ((data & 0xFF) << 8));
-            return result;
-        }
 
 
-        public uint swap32(uint data)
-        {
-            uint result = 0;
-            result |= (uint) ((data & 0xFF) << 24);
-            result |= (uint) (((data >> 8) & 0xFF) << 16);
-            result |= (uint) (((data >> 16) & 0xFF) << 8);
-            result |= (uint) ((data >> 24) & 0xFF);
-            return result;
-        }
+        [Obsolete("replace with direct calls to Swap() in the Extensions class")]
+        public ushort swap16(ushort data) => data.Swap();
+
+        [Obsolete("replace with direct calls to Swap() in the Extensions class")]
+        public uint swap32(uint data) => data.Swap();
+
     }
+
 }
