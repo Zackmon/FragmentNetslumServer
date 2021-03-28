@@ -10,5 +10,5 @@ logsize = 100000
 
 #setup the sinks in a CSV related variable
 #valid entries are: console,file
-sinks = console
+sinks = console,file
 folder = C:\logs\
