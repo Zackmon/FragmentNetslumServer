@@ -1,16 +1,22 @@
 ﻿using Serilog;
 using System;
 using System.Text;
-using Unity;
 
 namespace FragmentServerWV.Services
 {
     public static class Extensions
     {
-        public static ILogger GetLogger(this IUnityContainer container) => container.Resolve<ILogger>();
 
-
-
+        /// <summary>
+        /// Helper function for safely logging out binary data to a supplied <see cref="ILogger"/>
+        /// </summary>
+        /// <param name="logger"><see cref="ILogger"/></param>
+        /// <param name="data">The data to parse</param>
+        /// <param name="code">HEX code address</param>
+        /// <param name="index">The client's index number</param>
+        /// <param name="action"></param>
+        /// <param name="check1"></param>
+        /// <param name="check2"></param>
         public static void LogData(
             this ILogger logger,
             byte[] data,
@@ -27,7 +33,12 @@ namespace FragmentServerWV.Services
         }
 
 
-
+        /// <summary>
+        /// I kept this from the original source; there might be a better way to do this but for now it's fine
+        /// </summary>
+        /// <param name="bytes">The byte array to convert</param>
+        /// <param name="bytesPerLine">how many bytes should be displayed per line</param>
+        /// <returns>A string representation</returns>
         private static string HexDump(byte[] bytes, int bytesPerLine = 16)
         {
             if (bytes == null) return "<null>";
@@ -88,6 +99,68 @@ namespace FragmentServerWV.Services
                 result.Append(line);
             }
             return result.ToString();
+        }
+
+        /// <summary>
+        /// Swaps the first and second bytes around
+        /// </summary>
+        /// <param name="data">The 16 bit number to swap</param>
+        /// <returns>A byte swapped 16 bit number</returns>
+        /// <remarks>
+        /// Imagine the following example, if you would:
+        /// <code>
+        /// var c = (ushort)20;
+        /// </code>
+        /// The actual byte composition of that unsigned short is as follows:
+        /// <code>
+        /// 0  1
+        /// 14 00
+        /// </code>
+        /// Byte 0 is of value 14
+        /// Byte 1 is of value 00
+        /// When you put that number into Swap(), it does the following:
+        /// <code>
+        /// 0  1
+        /// 00 14
+        /// </code>
+        /// It literally swaps the locations
+        /// </remarks>
+        public static ushort Swap(this ushort data) => 
+            (ushort)((data >> 8) + ((data & 0xFF) << 8));
+
+        /// <summary>
+        /// Swaps bytes zero and one with bytes two and three
+        /// </summary>
+        /// <param name="data">The 32 bit number to swap</param>
+        /// <returns>A byte swapped 32 bit number</returns>
+        /// Imagine the following example, if you would:
+        /// <code>
+        /// var c = (uint)20;
+        /// </code>
+        /// The actual byte composition of that unsigned short is as follows:
+        /// <code>
+        /// 0  1  2  3
+        /// 14 00 00 00
+        /// </code>
+        /// Byte 0 is of value 14
+        /// Byte 1 is of value 00
+        /// Byte 2 is of value 00
+        /// Byte 3 is of value 00
+        /// When you put that number into Swap(), it does the following:
+        /// <code>
+        /// 0  1  2  3
+        /// 00 00 14 00
+        /// </code>
+        /// It literally swaps the locations of the byte pairs
+        /// </remarks>
+        public static uint Swap(this uint data)
+        {
+            uint result = 0;
+            result |= (data & 0xFF) << 24;
+            result |= ((data >> 8) & 0xFF) << 16;
+            result |= ((data >> 16) & 0xFF) << 8;
+            result |= (data >> 24) & 0xFF;
+            return result;
         }
 
     }
