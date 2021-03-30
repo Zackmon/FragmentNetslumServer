@@ -160,9 +160,11 @@ namespace FragmentServerWV.Entities
                             logger.Debug("Client #{@clientIndex} has no data at this time; suspending for a short duration", clientIndex);
                             await Task.Delay(TimeSpan.FromSeconds(1));
                         }
-
-                        // Packet has been read, bring over what we do now
-                        await HandleIncomingPacket(packet);
+                        else
+                        {
+                            // Packet has been read, bring over what we do now
+                            await HandleIncomingPacket(packet);
+                        }
                     }
                 }
             }
