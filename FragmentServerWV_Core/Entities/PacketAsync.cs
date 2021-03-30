@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Serilog;
 using System.IO;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV.Entities
@@ -11,8 +9,9 @@ namespace FragmentServerWV.Entities
     /// <summary>
     /// A packet class that's responsible for reading an incoming data feed
     /// </summary>
-    public sealed class Packet2
+    public sealed class PacketAsync
     {
+        private readonly ILogger logger;
         private readonly NetworkStream networkStream;
         private readonly Crypto crypto;
 
@@ -24,28 +23,67 @@ namespace FragmentServerWV.Entities
         private byte[] encryptedData;
 
 
+
+        /// <summary>
+        /// Gets the length of the packet data
+        /// </summary>
+        public ushort Length => datalen;
+
+        /// <summary>
+        /// Gets the OPCODE of the packet
+        /// </summary>
+        public ushort Code => code;
+
+        /// <summary>
+        /// Gets the decrypted byte array of data
+        /// </summary>
+        public byte[] Data => data;
+
+        /// <summary>
+        /// Gets the original encrypted byte array of data
+        /// </summary>
+        public byte[] EncryptedData => encryptedData;
+
+
+        /// <summary>
+        /// Gets the checksum of the packet as described by the packet
+        /// </summary>
+        public ushort ChecksumInPacket => checksum_inpacket;
+
+        /// <summary>
+        /// Gets the checksum of the packet computed server-side
+        /// </summary>
+        public ushort ChecksumOfPacket => checksum_ofpacket;
+
+
         /// <summary>
         /// Creates a new Packet reading class
         /// </summary>
+        /// <param name="logger"><see cref="ILogger"/></param>
         /// <param name="networkStream"><see cref="NetworkStream"/></param>
         /// <param name="crypto"><see cref="Crypto"/></param>
-        public Packet2(
+        public PacketAsync(
+            ILogger logger,
             NetworkStream networkStream,
             Crypto crypto)
         {
+            this.logger = logger;
             this.networkStream = networkStream;
             this.crypto = crypto;
         }
 
-
-
+        /// <summary>
+        /// Reads the packet data asynchronously
+        /// </summary>
+        /// <returns><see cref="bool"/></returns>
         public async Task<bool> ReadPacketAsync()
         {
-            byte[] buff = new byte[2];
-            datalen = 0;
-            if (!networkStream.DataAvailable) return false;
+            logger.Debug("Reading network packet...");
             try
             {
+                byte[] buff = new byte[2];
+                datalen = 0;
+                if (!networkStream.DataAvailable) return false;
                 int read = await networkStream.ReadAsync(buff, 0, 2);
                 if (read == 0) return false;
                 datalen = (ushort)((buff[0] << 8) + buff[1]);
@@ -77,6 +115,10 @@ namespace FragmentServerWV.Entities
             catch
             {
                 return false;
+            }
+            finally
+            {
+                logger.Debug("Completed reading network packet...");
             }
         }
 
