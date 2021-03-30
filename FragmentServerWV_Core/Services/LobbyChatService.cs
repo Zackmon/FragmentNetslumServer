@@ -1,9 +1,7 @@
-﻿using Serilog;
-using System;
+﻿using FragmentServerWV.Enumerations;
+using Serilog;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 
 namespace FragmentServerWV.Services
 {
@@ -18,12 +16,16 @@ namespace FragmentServerWV.Services
 
         public LobbyChatRoom Main => mainLobby;
 
+        public string ServiceName => "Lobby Service";
+
+        public ServiceStatusEnum ServiceStatus { get; private set; } = ServiceStatusEnum.Inactive;
 
         public LobbyChatService(ILogger logger)
         {
             this.logger = logger;
             this.lobbies = new ConcurrentDictionary<int, LobbyChatRoom>();
             this.mainLobby = GetOrAddLobby(1, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
+            this.ServiceStatus = ServiceStatusEnum.Active;
         }
 
 

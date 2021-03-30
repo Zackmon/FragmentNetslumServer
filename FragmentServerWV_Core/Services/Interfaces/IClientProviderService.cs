@@ -6,7 +6,7 @@ namespace FragmentServerWV.Services.Interfaces
     /// <summary>
     /// Defines a service that's responsible for managing connected client
     /// </summary>
-    public interface IClientProviderService
+    public interface IClientProviderService: IBaseService
     {
 
         /// <summary>

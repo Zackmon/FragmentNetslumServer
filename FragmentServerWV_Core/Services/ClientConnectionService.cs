@@ -1,4 +1,5 @@
-﻿using FragmentServerWV.Services.Interfaces;
+﻿using FragmentServerWV.Enumerations;
+using FragmentServerWV.Services.Interfaces;
 using Serilog;
 using System;
 using System.Net;
@@ -14,6 +15,11 @@ namespace FragmentServerWV.Services
         private readonly ILogger logger;
         private TcpListener listener;
         private CancellationTokenSource tokenSource;
+
+        public string ServiceName => "Client Connection Service";
+
+        public ServiceStatusEnum ServiceStatus { get; private set; }
+
 
         public ClientConnectionService(
             IClientProviderService clientProviderService,
@@ -53,6 +59,7 @@ namespace FragmentServerWV.Services
         private async Task InternalConnectionLoop(CancellationToken token)
         {
             listener.Start();
+            this.ServiceStatus = ServiceStatusEnum.Active;
             uint clientIds = 1;
             try
             {
@@ -99,6 +106,7 @@ namespace FragmentServerWV.Services
                 // At the end of it all, we need to remove the reference
                 // on the listener variable and allow GC to reclaim it
                 listener = null;
+                this.ServiceStatus = ServiceStatusEnum.Inactive;
             }
         }
 

@@ -9,7 +9,7 @@ namespace FragmentServerWV.Services.Interfaces
     /// <remarks>
     /// The implementation of this service should not block at any instance
     /// </remarks>
-    public interface IClientConnectionService
+    public interface IClientConnectionService: IBaseService
     {
 
         /// <summary>

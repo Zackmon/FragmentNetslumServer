@@ -6,7 +6,7 @@ namespace FragmentServerWV.Services.Interfaces
     /// <summary>
     /// Defines how the lobby service system should operate
     /// </summary>
-    public interface ILobbyChatService
+    public interface ILobbyChatService: IBaseService
     {
 
         /// <summary>
