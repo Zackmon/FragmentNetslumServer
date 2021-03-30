@@ -241,7 +241,7 @@ namespace FragmentServerWV
                     case OpCodes.OPCODE_DATA_LOBBY_FAVORITES_AS_INQUIRY:
                     case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS3:
                     case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS4:
-                    case 0x78A7:
+                    case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS6:
                         break;
                     case OpCodes.OPCODE_DATA_LOGON_REPEAT:
                         SendPacket30(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] {0x02, 0x10});
