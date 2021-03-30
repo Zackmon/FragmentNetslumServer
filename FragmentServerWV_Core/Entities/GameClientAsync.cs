@@ -144,6 +144,15 @@ namespace FragmentServerWV.Entities
 
 
 
+        /// <summary>
+        /// Tells the Game Client to disconnect safely
+        /// </summary>
+        public void Exit()
+        {
+            tokenSource.Cancel();
+        }
+
+
         private async Task InternalConnectionLoop(CancellationToken token)
         {
             try

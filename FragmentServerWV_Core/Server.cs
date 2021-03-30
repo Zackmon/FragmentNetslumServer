@@ -93,7 +93,6 @@ namespace FragmentServerWV
         /// </summary>
         public void Stop()
         {
-
             this.SafeShutdownInternal();
         }
 
