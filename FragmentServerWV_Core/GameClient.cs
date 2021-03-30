@@ -154,7 +154,7 @@ namespace FragmentServerWV
                             m.Write(to_key, 0, 16);
                             m.Write(new byte[] {0, 0, 0, 0xe, 0, 0, 0, 0, 0, 0}, 0, 10);
                             uint checksum = Crypto.Checksum(m.ToArray());
-                            SendPacket(0x35, m.ToArray(), checksum);
+                            SendPacket(OpCodes.OPCODE_KEY_EXCHANGE_RESPONSE, m.ToArray(), checksum);
                             break;
                         case OpCodes.OPCODE_KEY_EXCHANGE_ACKNOWLEDGMENT:
                             logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
@@ -162,7 +162,7 @@ namespace FragmentServerWV
                             from_crypto = new Crypto(from_key);
                             to_crypto = new Crypto(to_key);
                             break;
-                        case OpCodes.OPCODE_DATA_PAYLOAD:
+                        case OpCodes.OPCODE_DATA:
                             logger.LogData(p.data, p.code, index, "Recv Data", p.checksum_inpacket, p.checksum_ofpacket);
                             HandlerPacket30(p.data, index, to_crypto);
                             break;
@@ -650,7 +650,7 @@ namespace FragmentServerWV
                         SendPacket30(0x7701,GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
                         break;
                     
-                    case 0x7603: //invite player to Guild
+                    case OpCodes.OPCODE_INVITE_TO_GUILD: //invite player to Guild
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         //Server.Instance.LobbyChatRooms[room_index].GuildInvitation(argument, this.index, u,_guildID);
                         if (Server.Instance.LobbyChatService.TryGetLobby((ushort)room_index, out var guildLobby))
@@ -660,7 +660,7 @@ namespace FragmentServerWV
                             SendPacket30(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
                         }
                         break;
-                    case 0x7607: //accept Guild Invitation
+                    case OpCodes.OPCODE_ACCEPT_GUILD_INVITE: //accept Guild Invitation
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         logger.LogData(argument,0x7607,this.index,"guild invitation acceptance",0,0);
                         m = new MemoryStream();
@@ -679,7 +679,7 @@ namespace FragmentServerWV
                         }
 
                         break;
-                    case 0x772C: //get Guild info (in lobby )
+                    case OpCodes.OPCODE_GUILD_VIEW: //get Guild info (in lobby )
                          u = swap16(BitConverter.ToUInt16(argument, 0));
                          currentGuildInvitaionSelection = u;
                         SendPacket30(0x772D,GuildManagementService.GetInstance().GetGuildInfo(u));
@@ -703,7 +703,7 @@ namespace FragmentServerWV
                         SendPacket30(0x7813, new byte[] {0x00, 0x00});
                         break;
 
-                    case 0x7832: // ranking Page
+                    case OpCodes.OPCODE_RANKING_VIEW_ALL: // ranking Page
                         u = swap16(BitConverter.ToUInt16(argument, 0));
                         if (u == 0) // get the first ranking page
                         {
@@ -746,7 +746,7 @@ namespace FragmentServerWV
 
                         break;
                     
-                    case 0x7838: //Ranking Char Detail
+                    case OpCodes.OPCODE_RANKING_VIEW_PLAYER: //Ranking Char Detail
                         uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
                         
                         SendPacket30(0x7839,RankingManagementService.GetInstance().getRankingPlayerInfo(rankPlayerID));
@@ -825,7 +825,7 @@ namespace FragmentServerWV
 
                         break;
 
-                    case 0x781c:
+                    case OpCodes.OPCODE_DATA_BBS_THREAD_GET_CONTENT:
                         /*byte[] postData =
                         {
                             0x00, 0x00, 0x00, 0x00, 0x54, 0x48, 0x49, 0x53, 0x20, 0x49, 0x53, 0x20, 0x41, 0x20, 0x54, 0x45,
@@ -893,7 +893,7 @@ namespace FragmentServerWV
                         SendPacket30(OpCodes.OPCODE_DATA_SELECT2_CHAROK, new byte[] {0x30, 0x30, 0x30, 0x30});
                         break;
                     case OpCodes.OPCODE_DATA_LOGON:
-                        if (argument[1] == 0x31)
+                        if (argument[1] == OpCodes.OPCODE_DATA_SERVERKEY_CHANGE)
                         {
                             logger.Information("Client #" + this.index + " : New Area Server Joined");
                             isAreaServer = true;
