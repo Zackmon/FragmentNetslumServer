@@ -29,8 +29,7 @@ namespace FragmentServerWV.Entities
         private readonly ILogger logger;
         private readonly ILobbyChatService lobbyChatService;
 
-        public short currentLobbyIndex = -1;
-
+        private short currentLobbyIndex = -1;
         private byte[] to_key;
         private byte[] from_key;
         private ushort client_seq_nr;
@@ -47,36 +46,36 @@ namespace FragmentServerWV.Entities
         private byte areaServerStatus;
 
         #region Player Data
-        private int AccountId;
-        private byte save_slot;
-        private byte[] save_id;
-        private byte[] char_name;
-        private byte[] char_id;
-        private byte char_class;
-        private ushort char_level;
-        private byte[] greeting;
-        private uint char_model;
-        private ushort char_HP;
-        private ushort char_SP;
-        private uint char_GP;
-        private ushort online_god_counter;
-        private ushort offline_godcounter;
-        private ushort goldCoinCount;
-        private ushort silverCoinCount;
-        private ushort bronzeCoinCount;
-        private char classLetter;
-        private int modelNumber;
-        private char modelType;
-        private string colorCode;
-        private string charModelFile;
-        private uint _characterPlayerID = 0;
-        private ushort _guildID = 0;
-        private bool isGuildMaster = false;
-        private uint _itemDontationID = 0;
-        private ushort _itemDonationQuantity = 0;
-        private ushort currentGuildInvitaionSelection = 0;
-        private ushort _rankingCategoryID = 0;
-        private ushort lobbyType = 0;
+        internal int AccountId;
+        internal byte save_slot;
+        internal byte[] save_id;
+        internal byte[] char_name;
+        internal byte[] char_id;
+        internal byte char_class;
+        internal ushort char_level;
+        internal byte[] greeting;
+        internal uint char_model;
+        internal ushort char_HP;
+        internal ushort char_SP;
+        internal uint char_GP;
+        internal ushort online_god_counter;
+        internal ushort offline_godcounter;
+        internal ushort goldCoinCount;
+        internal ushort silverCoinCount;
+        internal ushort bronzeCoinCount;
+        internal char classLetter;
+        internal int modelNumber;
+        internal char modelType;
+        internal string colorCode;
+        internal string charModelFile;
+        internal uint _characterPlayerID = 0;
+        internal ushort _guildID = 0;
+        internal bool isGuildMaster = false;
+        internal uint _itemDontationID = 0;
+        internal ushort _itemDonationQuantity = 0;
+        internal ushort currentGuildInvitaionSelection = 0;
+        internal ushort _rankingCategoryID = 0;
+        internal ushort currentLobbyType = 0;
         #endregion Player Data
 
         #region Events
@@ -85,6 +84,25 @@ namespace FragmentServerWV.Entities
         /// Raised when the client is disconnecting
         /// </summary>
         public event EventHandler OnGameClientDisconnected;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets the current Client Index
+        /// </summary>
+        public int ClientIndex => (int)clientIndex;
+
+        /// <summary>
+        /// Gets the current Lobby Index
+        /// </summary>
+        public short LobbyIndex => currentLobbyIndex;
+
+        /// <summary>
+        /// Gets the currently logged in Player ID
+        /// </summary>
+        public uint PlayerID => _characterPlayerID;
 
         #endregion
 
@@ -236,14 +254,75 @@ namespace FragmentServerWV.Entities
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS3:
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS4:
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS6:
+                    // do nothing
                     break;
                 case OpCodes.OPCODE_DATA_LOGON_REPEAT:
                     await SendDataPacket(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] { 0x02, 0x10 });
                     break;
+                case OpCodes.OPCODE_DATA_LOBBY_ENTERROOM:
+                    await HandleLobbyRoomEntrance(argument);
+                    break;
+                case OpCodes.OPCODE_DATA_LOBBY_STATUS_UPDATE:
+                    if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var rm))
+                    {
+                        rm.DispatchStatus(argument, (int)clientIndex);
+                    }
+                    break;
+                case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
+                    int end = argument.Length - 1;
+                    while (argument[end] == 0) end--;
+                    end++;
+                    m = new MemoryStream();
+                    m.Write(argument, 65, end - 65);
+                    publish_data_1 = m.ToArray();
+                    await SendDataPacket(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1_OK, new byte[] { 0x00, 0x01 });
+                    break;
+                case OpCodes.OPCODE_DATA_AS_IPPORT:
+                    await HandleIncomingIpData(argument);
+                    break;
+                case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2:
+                    await SendDataPacket(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2_OK, new byte[] { 0xDE, 0xAD });
+                    break;
+                case OpCodes.OPCODE_DATA_LOGON_AS2:
+                    await SendDataPacket(0x701C, new byte[] { 0x02, 0x11 });
+                    break;
+                case OpCodes.OPCODE_DATA_LOBBY_CHATROOM_GETLIST:
+                    await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY,
+                        new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY, new byte[] { 0x00, 0x01, 0x00, 0x00 });
+                    break;
+                case OpCodes.OPCODE_DATA_AS_UPDATE_USERNUM:
+                    as_usernum = swap16(BitConverter.ToUInt16(argument, 2));
+                    break;
+                case OpCodes.OPCODE_DATA_DISKID:
+                    await SendDataPacket(OpCodes.OPCODE_DATA_DISKID_OK, new byte[] { 0x36, 0x36, 0x31, 0x36 });
+                    break;
+                case OpCodes.OPCODE_DATA_SAVEID: // This also sends the MOTD to the Client
+                    await HandleSaveIdToAccountIdAssociation(argument);
+                    break;
+                case OpCodes.OPCODE_DATA_REGISTER_CHAR: // Why are we handling Guild nonsense here as well?
+                    await HandleCharacterRegistrationAndGuildDetails(argument);
+                    break;
+                case OpCodes.OPCODE_DATA_UNREGISTER_CHAR:
+                    await SendDataPacket(OpCodes.OPCODE_DATA_UNREGISTER_CHAROK, new byte[] { 0x00, 0x00 });
+                    break;
+                case OpCodes.OPCODE_DATA_LOBBY_EXITROOM:
+                    await lobbyChatService.AnnounceRoomDeparture((ushort)currentLobbyIndex, clientIndex);
+                    await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_EXITROOM_OK, new byte[] { 0x00, 0x00 });
+                    break;
+                case OpCodes.OPCODE_DATA_RETURN_DESKTOP:
+                    DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
+                    await SendDataPacket(OpCodes.OPCODE_DATA_RETURN_DESKTOP_OK, new byte[] { 0x00, 0x00 });
+                    break;
+                case OpCodes.OPCODE_DATA_LOBBY_GETMENU:
+                    await HandleLobbyMenu();
+                    break;
             }
-            
+
 
         }
+
+
 
         private async Task SendRegularPacket(ushort code, byte[] data, uint checksum)
         {
@@ -301,13 +380,218 @@ namespace FragmentServerWV.Entities
             logger.Debug($"Client #{clientIndex} has finished pinging");
         }
 
+        #region Packet Handlers
+
+        private async Task HandleLobbyRoomEntrance(byte[] argument)
+        {
+            LobbyChatRoom room;
+            currentLobbyIndex = (short)swap16(BitConverter.ToUInt16(argument, 0));
+            currentLobbyType = swap16(BitConverter.ToUInt16(argument, 2));
+            logger.Information("Lobby Room ID: {@room_index}", currentLobbyIndex);
+            logger.Information("Lobby Type ID: {@lobbyType}", currentLobbyType);
+
+            if (currentLobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
+            {
+                //TODO add Guild Specific Code
+                room = lobbyChatService.GetOrAddLobby((ushort)currentLobbyIndex, "Guild Room", OpCodes.LOBBY_TYPE_GUILD, out var _);
+            }
+            else
+            {
+                lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out room);
+            }
+
+            await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Users.Count)));
+            room.Users.Add((int)this.clientIndex);
+            logger.Information("Client #" + this.clientIndex + " : Lobby '" + room.name + "' now has " + room.Users.Count + " Users");
+            room.DispatchAllStatus((int)this.clientIndex);
+        }
+
+        private async Task HandleIncomingIpData(byte[] argument)
+        {
+            ipdata = argument;
+            var externalIpAddress = ipEndPoint.Address.ToString();
+            if (externalIpAddress == Helpers.IPAddressHelpers.LOOPBACK_IP_ADDRESS)
+            {
+                externalIpAddress = Helpers.IPAddressHelpers.GetLocalIPAddress2();
+            }
+            string[] ipAddress = externalIpAddress.Split('.');
+            argument[3] = byte.Parse(ipAddress[0]);
+            argument[2] = byte.Parse(ipAddress[1]);
+            argument[1] = byte.Parse(ipAddress[2]);
+            argument[0] = byte.Parse(ipAddress[3]);
+            externalIPAddress = argument;
+
+            logger.Information("Area Server Client #" + clientIndex + " : Local IP=" +
+                          ipdata[3] + "." +
+                          ipdata[2] + "." +
+                          ipdata[1] + "." +
+                          ipdata[0] + " Port:" +
+                          swap16(BitConverter.ToUInt16(ipdata, 4)));
+
+            logger.Information("Area Server Client #" + clientIndex + " : External IP=" +
+                          externalIPAddress[3] + "." +
+                          externalIPAddress[2] + "." +
+                          externalIPAddress[1] + "." +
+                          externalIPAddress[0] + " Port:" +
+                          swap16(BitConverter.ToUInt16(externalIPAddress, 4)));
+            await SendDataPacket(OpCodes.OPCODE_DATA_AS_IPPORT_OK, new byte[] { 0x00, 0x00 });
+        }
+
+        private async Task HandleSaveIdToAccountIdAssociation(byte[] argument)
+        {
+            MemoryStream m;
+            byte[] saveID = ReadByteString(argument, 0);
+            save_id = saveID;
+            m = new MemoryStream();
+            AccountId = DBAcess.getInstance().GetPlayerAccountId(encoding.GetString(saveID));
+            uint swapped = swap32((uint)AccountId);
+            await m.WriteAsync(BitConverter.GetBytes(swapped), 0, 4);
+            byte[] buff = encoding.GetBytes(DBAcess.getInstance().MessageOfTheDay);
+            m.WriteByte((byte)(buff.Length - 1));
+            await m.WriteAsync(buff, 0, buff.Length);
+            while (m.Length < 0x200) m.WriteByte(0);
+            byte[] response = m.ToArray();
+            await SendDataPacket(0x742A, response);
+        }
+
+        private async Task HandleCharacterRegistrationAndGuildDetails(byte[] argument)
+        {
+            _characterPlayerID = ExtractCharacterData(argument);
+
+            byte[] guildStatus = GuildManagementService.GetInstance().GetPlayerGuild(_characterPlayerID);
+            if (guildStatus[0] == 0x01)
+            {
+                isGuildMaster = true;
+            }
+
+            _guildID = swap16(BitConverter.ToUInt16(guildStatus, 1));
+            // The first byte is membership status 0=none 1= master 2= member
+            await SendDataPacket(OpCodes.OPCODE_DATA_REGISTER_CHAROK, guildStatus);
+        }
+
+        private async Task HandleLobbyMenu()
+        {
+            var nonGuildLobbies = new List<LobbyChatRoom>();
+
+            foreach (var room in lobbyChatService.Lobbies.Values)
+            {
+                if (room.type == OpCodes.LOBBY_TYPE_MAIN)
+                {
+                    nonGuildLobbies.Add(room);
+                }
+            }
+
+            await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_LOBBYLIST, BitConverter.GetBytes(swap16((ushort)nonGuildLobbies.Count)));
+            foreach (var room in nonGuildLobbies)
+            {
+                MemoryStream m = new MemoryStream();
+                m.Write(BitConverter.GetBytes(swap16((ushort)room.ID)), 0, 2);
+                foreach (char c in room.name)
+                    m.WriteByte((byte)c);
+                m.WriteByte(0);
+                m.Write(BitConverter.GetBytes(swap16((ushort)room.Users.Count)), 0, 2);
+                m.Write(BitConverter.GetBytes(swap16((ushort)(room.Users.Count + 1))), 0, 2);
+                while (((m.Length + 2) % 8) != 0) m.WriteByte(0);
+                await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_ENTRY_LOBBY, m.ToArray());
+            }
+        }
+
+        #endregion
 
 
-        [Obsolete("Eventually replace this with direct calls")]
+        #region Miscellaneous Helper Methods
+
         static ushort swap16(ushort data) => data.Swap();
 
-        [Obsolete("Eventually replace this with direct calls")]
         static uint swap32(uint data) => data.Swap();
+
+        static byte[] ReadByteString(byte[] data, int pos)
+        {
+            var m = new MemoryStream();
+            while (true)
+            {
+                byte b = data[pos++];
+                m.WriteByte(b);
+                if (b == 0) break;
+                if (pos >= data.Length) break;
+            }
+            return m.ToArray();
+        }
+
+        uint ExtractCharacterData(byte[] data)
+        {
+            save_slot = data[0];
+            char_id = ReadByteString(data, 1);
+            int pos = 1 + char_id.Length;
+            char_name = ReadByteString(data, pos);
+            pos += char_name.Length;
+            char_class = data[pos++];
+            char_level = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            greeting = ReadByteString(data, pos);
+            pos += greeting.Length;
+            char_model = swap32(BitConverter.ToUInt32(data, pos));
+            pos += 5;
+            char_HP = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            char_SP = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            char_GP = swap32(BitConverter.ToUInt32(data, pos));
+            pos += 4;
+            online_god_counter = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            offline_godcounter = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            goldCoinCount = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            silverCoinCount = swap16(BitConverter.ToUInt16(data, pos));
+            pos += 2;
+            bronzeCoinCount = swap16(BitConverter.ToUInt16(data, pos));
+
+            classLetter = GetCharacterModelClass(char_model);
+            modelNumber = GetCharacterModelNumber(char_model);
+            modelType = GetCharacterModelType(char_model);
+            colorCode = GetCharacterModelColorCode(char_model);
+
+            charModelFile = "xf" + classLetter + modelNumber + modelType + "_" + colorCode;
+
+
+            Console.WriteLine("gold coin count " + goldCoinCount);
+            Console.WriteLine("silver coin count " + silverCoinCount);
+            Console.WriteLine("bronze coin count " + bronzeCoinCount);
+
+            Console.WriteLine("Character Date \n save_slot " + save_slot + "\n char_id " + encoding.GetString(save_id) + " \n char_name " + encoding.GetString(char_id) +
+                              "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting " + encoding.GetString(greeting) + "\n charmodel " + char_model + "\n char_hp " + char_HP +
+                              "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter " + online_god_counter + "\n offline god counter " + offline_godcounter + "\n\n\n\n full byte araray " + BitConverter.ToString(data));
+
+            return DBAcess.getInstance().PlayerLogin(this);
+        }
+
+        char GetCharacterModelClass(uint modelNumber)
+        {
+            char[] classLetters = { 't', 'b', 'h', 'a', 'l', 'w' };
+            int index = (int)(modelNumber & 0x0F);
+            return classLetters[index];
+        }
+        int GetCharacterModelNumber(uint modelNumber)
+        {
+            return (int)(modelNumber >> 4 & 0x0F) + 1;
+        }
+        char GetCharacterModelType(uint modelNumber)
+        {
+            char[] typeLetters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' };
+            int index = (int)(modelNumber >> 12) & 0x0F;
+            return typeLetters[index];
+
+        }
+        string GetCharacterModelColorCode(uint modelNumber)
+        {
+            string[] colorCodes = { "rd", "bl", "yl", "gr", "br", "pp" };
+            int index = (int)(modelNumber >> 8) & 0x0F;
+            return colorCodes[index];
+        }
+
+        #endregion Miscellaneous Helper Methods
 
     }
 }
