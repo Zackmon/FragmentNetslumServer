@@ -101,6 +101,8 @@ dataType 5 = userGreeting
         public const ushort OPCODE_DATA_LOBBY_ENTERROOM = 0x7006;
         public const ushort OPCODE_DATA_LOBBY_ENTERROOM_OK = 0x7007;
 
+        public const ushort OPCODE_DATA_LOBBY_STATUS_UPDATE = 0x7009;
+
         public const ushort OPCODE_DATA_LOBBY_CHATROOM_GETLIST = 0x7406;
         public const ushort OPCODE_DATA_LOBBY_CHATROOM_CATEGORY = 0x7407;
 
