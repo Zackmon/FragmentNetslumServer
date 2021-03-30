@@ -207,7 +207,7 @@ namespace FragmentServerWV
             }
 
             // this should also work
-            Server.Instance.GameClientService.RemoveClient(this);
+            Server.Instance.GameClientService.RemoveClient((uint)index);
 
             //for (int i = 0; i < Server.Instance.GameClientService.Clients.Count; i++)
             //{
@@ -969,11 +969,11 @@ namespace FragmentServerWV
             else
             {
                 ushort count = 0;
-                foreach (GameClient client in Server.Instance.GameClientService.Clients)
+                foreach (var client in Server.Instance.GameClientService.Clients)
                     if (client.isAreaServer)
                         count++;
                 SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
-                foreach (GameClient client in Server.Instance.GameClientService.Clients)
+                foreach (var client in Server.Instance.GameClientService.Clients)
                     if (client.isAreaServer && !client._exited)
                     {
                         MemoryStream m = new MemoryStream();
