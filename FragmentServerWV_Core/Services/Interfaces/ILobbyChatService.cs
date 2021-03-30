@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace FragmentServerWV.Services.Interfaces
 {
@@ -37,6 +38,22 @@ namespace FragmentServerWV.Services.Interfaces
         /// <param name="lobbyChatRoom">The <see cref="LobbyChatRoom"/> found, if applicable</param>
         /// <returns><see cref="LobbyChatRoom"/></returns>
         bool TryGetLobby(ushort lobbyId, out LobbyChatRoom lobbyChatRoom);
+
+        /// <summary>
+        /// Announces that a client has left a particular <see cref="LobbyChatRoom"/>
+        /// </summary>
+        /// <param name="lobbyChatRoom"><see cref="LobbyChatRoom"/></param>
+        /// <param name="clientIndex">The identifier of the client</param>
+        /// <returns>A Task that intends to complete the departure announcement</returns>
+        Task AnnounceRoomDeparture(LobbyChatRoom lobbyChatRoom, uint clientIndex);
+
+        /// <summary>
+        /// Announces that a client has left a particular <see cref="LobbyChatRoom"/>
+        /// </summary>
+        /// <param name="lobbyId">The lobby identifier</param>
+        /// <param name="clientIndex">The identifier of the client</param>
+        /// <returns>A Task that intends to complete the departure announcement</returns>
+        Task AnnounceRoomDeparture(ushort lobbyId, uint clientIndex);
 
     }
 

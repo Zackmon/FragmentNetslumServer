@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using FragmentServerWV.Entities;
+using System.Collections.ObjectModel;
 using System.Net.Sockets;
 
 namespace FragmentServerWV.Services.Interfaces
@@ -12,7 +13,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// <summary>
         /// Gets a collection of currently connected <see cref="GameClient"/> instances
         /// </summary>
-        ReadOnlyCollection<GameClient> Clients { get; }
+        ReadOnlyCollection<GameClientAsync> Clients { get; }
 
 
         /// <summary>
@@ -26,7 +27,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// Adds a new client to the <see cref="IClientProviderService"/>
         /// </summary>
         /// <param name="client">The newly created <see cref="GameClient"/></param>
-        void AddClient(GameClient client);
+        void AddClient(GameClientAsync client);
 
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// Removes an existing client from <see cref="IClientProviderService"/>
         /// </summary>
         /// <param name="client"><see cref="GameClient"/> to remove</param>
-        void RemoveClient(GameClient client);
+        void RemoveClient(GameClientAsync client);
 
     }
 

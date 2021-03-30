@@ -1,11 +1,13 @@
 ﻿using FragmentServerWV.Enumerations;
+using FragmentServerWV.Services.Interfaces;
 using Serilog;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace FragmentServerWV.Services
 {
-    public sealed class LobbyChatService : Interfaces.ILobbyChatService
+    public sealed class LobbyChatService : ILobbyChatService
     {
 
         private readonly ConcurrentDictionary<int, LobbyChatRoom> lobbies;
@@ -55,6 +57,23 @@ namespace FragmentServerWV.Services
             }
             this.logger.Information("Could not find {@lobbyId}", lobbyId);
             return false;
+        }
+
+        public async Task AnnounceRoomDeparture(LobbyChatRoom lobbyChatRoom, uint clientIndex)
+        {
+            logger.Information("Client #{@clientIndex} is leaving their lobby", clientIndex);
+            lobbyChatRoom.ClientLeavingRoom((int)clientIndex);
+            lobbyChatRoom.Users.Remove((int)clientIndex);
+            logger.Information($"Lobby '{lobbyChatRoom.name}' now has {lobbyChatRoom.Users.Count:N0} Users");
+            await Task.Yield();
+        }
+
+        public async Task AnnounceRoomDeparture(ushort lobbyId, uint clientIndex)
+        {
+            if (TryGetLobby(lobbyId, out var lobby))
+            {
+                await AnnounceRoomDeparture(lobby, clientIndex);
+            }
         }
     }
 
