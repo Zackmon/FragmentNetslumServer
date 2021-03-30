@@ -256,14 +256,16 @@ struct registerChar
         public const ushort OPCODE_DATA_BBS_THREAD_GETMENU = 0x7818;
         public const ushort OPCODE_DATA_BBS_THREAD_LIST = 0x7819;
         public const ushort OPCODE_DATA_BBS_ENTRY_POST_META = 0x781a;
-
         public const ushort OPCODE_DATA_BBS_THREAD_ENTRY_POST = 0x781b;
+        public const ushort OPCODE_DATA_BBS_THREAD_GET_CONTENT = 0x781c;
 //7819
 //781a
 //781b
 
 
-//These happen upon entering ALTIMIT DESKTOP
+        public const ushort OPCODE_RANKING_VIEW_ALL = 0x7832;
+        public const ushort OPCODE_RANKING_VIEW_PLAYER = 0x7838;
+        //These happen upon entering ALTIMIT DESKTOP
         public const ushort OPCODE_DATA_MAILCHECK = 0x7867;
         public const ushort OPCODE_DATA_MAILCHECK_OK = 0x7868;
 
@@ -462,9 +464,11 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
         public const ushort LOBBY_TYPE_GUILD = 0x7418;
         public const ushort LOBBY_TYPE_MAIN = 0x7403;
         public const ushort OPCODE_CLIENT_LEAVING_LOBBY = 0x700a;
-        public const ushort OPCODE_INVITE_TO_GUILD = 0x7606;
-        public const ushort OPCODE_DATA_PAYLOAD = 0x30;
+        public const ushort ARGUMENT_INVITE_TO_GUILD = 0x7606;
+        public const ushort OPCODE_INVITE_TO_GUILD = 0x7603;
+        public const ushort OPCODE_ACCEPT_GUILD_INVITE = 0x7607;
         public const ushort OPCODE_PRIVATE_BROADCAST = 0x788c;
+        public const ushort OPCODE_GUILD_VIEW = 0x772c;
 
     }
 }
