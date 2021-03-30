@@ -132,15 +132,17 @@ namespace FragmentServerWV
             int srcid = FindRoomIndexById(who);
             int towho = Users[destid - 1];
             foreach (GameClient client in Server.Instance.GameClientService.Clients)
+            {
                 if (client.index == towho)
                 {
                     byte[] temp = new byte[data.Length];
                     data.CopyTo(temp, 0);
                     MemoryStream m = new MemoryStream();
                     m.Write(BitConverter.GetBytes(((ushort)srcid).Swap()));
-                    client.SendPacket30(OpCodes.OPCODE_INVITE_TO_GUILD, m.ToArray()); // Guild Inviation OPCode
+                    client.SendPacket30(OpCodes.ARGUMENT_INVITE_TO_GUILD, m.ToArray()); // Guild Inviation OPCode
                 }
-                
+            }
+            
         }
 
         public void ClientLeavingRoom(int leavingClientID)
