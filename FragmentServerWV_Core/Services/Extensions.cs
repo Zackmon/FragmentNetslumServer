@@ -27,9 +27,23 @@ namespace FragmentServerWV.Services
             ushort check2)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Client #" + index + " : " + action + " (code 0x" + code.ToString("X4") + ", checksums 0x" + check1.ToString("X4") + "-0x" + check2.ToString("X4") + ")");
-            sb.AppendLine("Hexdump :\r\n" + HexDump(data));
-            logger.Debug($"{nameof(LogData)}: {sb}");
+            sb.AppendLine($"Client #{index}: {action} (Code 0x{code:X4}); Checksum 1 (from packet): 0x{check1:X4}; Checksum 2 (from server): 0x{check2:X4}");
+            try
+            {
+                sb.AppendLine(HexDump(data));
+            }
+            catch (Exception e)
+            {
+                sb.AppendLine($"Failed to invoke {nameof(HexDump)}: {e}");
+            }
+            try
+            {
+                logger?.Debug(sb.ToString());
+            }
+            catch
+            {
+                Console.WriteLine("LogData failed");
+            }
         }
 
 
