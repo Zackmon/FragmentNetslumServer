@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 
@@ -27,17 +28,22 @@ namespace FragmentServerWV
         /// </summary>
         public SimpleConfiguration()
         {
-            configurationValues = new Dictionary<string, string>();
+            configurationValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (File.Exists("settings.txt"))
             {
                 string[] lines = File.ReadAllLines("settings.txt");
                 foreach (string line in lines)
-                    if (line.Trim() != "" && !line.Trim().StartsWith("#"))
+                {
+                    var clean = line.Trim();
+                    if (!string.IsNullOrWhiteSpace(clean) && !clean.StartsWith("#"))
                     {
-                        string[] parts = line.Split('=');
-                        if (parts.Length == 2)
-                            configurationValues.Add(parts[0].Trim().ToLower(), parts[1].Trim());
+                        var parts = line.Split('=');
+                        var key = parts[0];
+                        var value = string.Join('=', lines[1..]);
+                        configurationValues.Add(key.ToLowerInvariant(), value);
                     }
+                }
+                    
             }
         }
 
