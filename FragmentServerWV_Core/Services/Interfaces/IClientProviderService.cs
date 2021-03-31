@@ -42,6 +42,13 @@ namespace FragmentServerWV.Services.Interfaces
         /// <param name="client"><see cref="GameClient"/> to remove</param>
         void RemoveClient(GameClientAsync client);
 
+        /// <summary>
+        /// Attempts to retrieve a <see cref="GameClientAsync"/> based on its index
+        /// </summary>
+        /// <param name="index">The expected client index</param>
+        /// <param name="client">The <see cref="GameClientAsync"/></param>
+        /// <returns>A boolean value to indicate success or failure</returns>
+        bool TryGetClient(uint index, out GameClientAsync client);
     }
 
 }

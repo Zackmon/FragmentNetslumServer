@@ -57,6 +57,20 @@ namespace FragmentServerWV.Services
             this.logger.Information($"There are {clients.Count} connected clients");
         }
 
+        public bool TryGetClient(uint index, out GameClientAsync client)
+        {
+            client = null;
+            foreach (var c in clients)
+            {
+                if (c.ClientIndex == index)
+                {
+                    client = c;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void Client_OnGameClientDisconnected(object sender, System.EventArgs e)
         {
             if (!(sender is GameClientAsync client)) return;
