@@ -12,3 +12,7 @@ logsize = 100000
 #valid entries are: console,file
 sinks = console,file
 folder = C:\logs\
+
+# Tick rate, in milliseconds. This is
+# how often the server checks for client data
+tick = 30

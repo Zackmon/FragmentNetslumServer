@@ -202,6 +202,7 @@ namespace FragmentServerWV.Entities
 
         private async Task InternalConnectionLoop(CancellationToken token)
         {
+            var tickRate = Convert.ToInt32(simpleConfiguration.Get("tick", "30"));
             try
             {
                 using (token.Register(() => client.Close()))
@@ -214,7 +215,7 @@ namespace FragmentServerWV.Entities
                         if (!readResult)
                         {
                             logger.Debug("Client #{@clientIndex} has no data at this time; suspending for a short duration", clientIndex);
-                            await Task.Delay(TimeSpan.FromMilliseconds(30));
+                            await Task.Delay(TimeSpan.FromMilliseconds(tickRate));
                         }
                         else
                         {
