@@ -86,7 +86,10 @@ namespace FragmentServerWV.Services
             {
                 DBAcess.getInstance().setPlayerAsOffline(client.PlayerID);
             }
-            lobbyChatService.AnnounceRoomDeparture((ushort)client.LobbyIndex, (uint)client.ClientIndex);
+            if (!client.IsAreaServer)
+            {
+                lobbyChatService.AnnounceRoomDeparture((ushort)client.LobbyIndex, (uint)client.ClientIndex);
+            }
             client.OnGameClientDisconnected -= Client_OnGameClientDisconnected;
         }
 
