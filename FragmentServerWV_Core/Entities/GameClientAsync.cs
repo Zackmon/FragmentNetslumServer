@@ -214,7 +214,7 @@ namespace FragmentServerWV.Entities
                         if (!readResult)
                         {
                             logger.Debug("Client #{@clientIndex} has no data at this time; suspending for a short duration", clientIndex);
-                            await Task.Delay(TimeSpan.FromSeconds(1));
+                            await Task.Delay(TimeSpan.FromMilliseconds(30));
                         }
                         else
                         {
@@ -511,7 +511,7 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_EVENT:
-                    if (Server.Instance.LobbyChatService.TryGetLobby((ushort)LobbyIndex, out var lcr))
+                    if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var lcr))
                     {
                         lcr.DispatchPublicBroadcast(argument, this.ClientIndex);
                     }
@@ -538,7 +538,7 @@ namespace FragmentServerWV.Entities
                 case 0x788C:
                     ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
                     //Server.Instance.LobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
-                    if (Server.Instance.LobbyChatService.TryGetLobby((ushort)LobbyIndex, out var p))
+                    if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var p))
                     {
                         p.DispatchPrivateBroadcast(argument, ClientIndex, destid);
                     }
@@ -710,7 +710,7 @@ namespace FragmentServerWV.Entities
             // Fun fact: we don't check if we're in a guild lobby
             // 'cause I think this is only possible to invoke from a guild lobby so
             // screw it
-            if (Server.Instance.LobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var guildLobby))
+            if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var guildLobby))
             {
                 guildLobby.GuildInvitation(argument, (int)this.clientIndex, u, _guildID);
                 logger.Information($"Invited Player ID {u}");
@@ -904,6 +904,11 @@ namespace FragmentServerWV.Entities
 
         private async void PingTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            if (tokenSource.IsCancellationRequested)
+            {
+                pingTimer.Dispose();
+                return;
+            }
             logger.Debug($"Client #{clientIndex} is ready to PING");
             await SendDataPacket(OpCodes.OPCODE_DATA_PING, new byte[0]);
             logger.Debug($"Client #{clientIndex} has finished pinging");
