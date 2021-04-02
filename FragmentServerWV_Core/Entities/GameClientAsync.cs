@@ -513,7 +513,7 @@ namespace FragmentServerWV.Entities
                 case OpCodes.OPCODE_DATA_LOBBY_EVENT:
                     if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var lcr))
                     {
-                        lcr.DispatchPublicBroadcast(argument, this.ClientIndex);
+                        await lcr.DispatchPublicBroadcastAsync(argument, this.ClientIndex);
                     }
                     break;
                 case OpCodes.OPCODE_DATA_MAILCHECK:
@@ -540,7 +540,7 @@ namespace FragmentServerWV.Entities
                     //Server.Instance.LobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
                     if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var p))
                     {
-                        p.DispatchPrivateBroadcast(argument, ClientIndex, destid);
+                        await p.DispatchPrivateBroadcastAsync(argument, ClientIndex, destid);
                     }
                     break;
                 case OpCodes.OPCODE_DATA_SELECT_CHAR:
@@ -712,7 +712,7 @@ namespace FragmentServerWV.Entities
             // screw it
             if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var guildLobby))
             {
-                guildLobby.GuildInvitation(argument, (int)this.clientIndex, u, _guildID);
+                await guildLobby.GuildInvitationAsync(argument, (int)this.clientIndex, u, _guildID);
                 logger.Information($"Invited Player ID {u}");
                 await SendDataPacket(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
             }
@@ -729,7 +729,7 @@ namespace FragmentServerWV.Entities
             uint itemIDToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
             ushort quantityToTake = swap16(BitConverter.ToUInt16(argument, 6));
 
-            Console.WriteLine("Guild ID " + guildIDTakeItem + "\nItem ID to take " + itemIDToTakeOut + "\n quantity to take out " + quantityToTake);
+            logger.Debug("Guild ID " + guildIDTakeItem + "\nItem ID to take " + itemIDToTakeOut + "\n quantity to take out " + quantityToTake);
             await SendDataPacket(0x7711, GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem, itemIDToTakeOut, quantityToTake)); // quantity  to give to the player
         }
 
@@ -738,7 +738,7 @@ namespace FragmentServerWV.Entities
             ushort guildIDTakeMoney = swap16(BitConverter.ToUInt16(argument, 0));
             uint amountOfMoneyToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
 
-            Console.WriteLine("Guild ID " + guildIDTakeMoney + "\nAmount of money to Take out " + amountOfMoneyToTakeOut);
+            logger.Debug("Guild ID " + guildIDTakeMoney + "\nAmount of money to Take out " + amountOfMoneyToTakeOut);
             await SendDataPacket(0x770F, GuildManagementService.GetInstance().TakeMoneyFromGuild(guildIDTakeMoney, amountOfMoneyToTakeOut)); // amount of money to give to the player 
         }
 
@@ -1247,12 +1247,12 @@ namespace FragmentServerWV.Entities
 
             charModelFile = "xf" + classLetter + modelNumber + modelType + "_" + colorCode;
 
+            logger.Information("Player Information");
+            logger.Information("gold coin count " + goldCoinCount);
+            logger.Information("silver coin count " + silverCoinCount);
+            logger.Information("bronze coin count " + bronzeCoinCount);
 
-            Console.WriteLine("gold coin count " + goldCoinCount);
-            Console.WriteLine("silver coin count " + silverCoinCount);
-            Console.WriteLine("bronze coin count " + bronzeCoinCount);
-
-            Console.WriteLine("Character Date \n save_slot " + save_slot + "\n char_id " + encoding.GetString(save_id) + " \n char_name " + encoding.GetString(char_id) +
+            logger.Information("Character Date \n save_slot " + save_slot + "\n char_id " + encoding.GetString(save_id) + " \n char_name " + encoding.GetString(char_id) +
                               "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting " + encoding.GetString(greeting) + "\n charmodel " + char_model + "\n char_hp " + char_HP +
                               "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter " + online_god_counter + "\n offline god counter " + offline_godcounter + "\n\n\n\n full byte araray " + BitConverter.ToString(data));
 

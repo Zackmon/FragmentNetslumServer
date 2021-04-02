@@ -51,7 +51,7 @@ namespace FragmentServerWV_Console
                     var sinks = cfg.Get("sinks")?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     if (sinks.Contains("console", StringComparer.OrdinalIgnoreCase))
                     {
-                        logConfig.WriteTo.Console();
+                        logConfig.WriteTo.Console(Serilog.Events.LogEventLevel.Verbose);
                     }
                     if (sinks.Contains("file", StringComparer.OrdinalIgnoreCase))
                     {
