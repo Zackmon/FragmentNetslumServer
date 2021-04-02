@@ -11,9 +11,9 @@ namespace FragmentServerWV_WebApi.Models
         private int _numberOfPlayers;
 
 
-        public static AreaServerModel ConvertDate(FragmentServerWV.GameClient client)
+        public static AreaServerModel ConvertDate(FragmentServerWV.Entities.GameClientAsync client)
         {
-            if (null == client.areaServerName) 
+            if (null == client.AreaServerName) 
                 return null;
                 
 
@@ -21,10 +21,10 @@ namespace FragmentServerWV_WebApi.Models
             
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             
-            model._serverName = Encoding.GetEncoding("Shift-JIS").GetString(client.areaServerName,0,client.areaServerName.Length-1);
-            model._serverLevel = client.areaServerLevel;
-            model._serverStatus = client.areaServerStatus == 0 ? "Available" : "Busy";
-            model._numberOfPlayers = client.as_usernum;
+            model._serverName = Encoding.GetEncoding("Shift-JIS").GetString(client.AreaServerName,0,client.AreaServerName.Length-1);
+            model._serverLevel = client.AreaServerLevel;
+            model._serverStatus = client.AreaServerStatus == 0 ? "Available" : "Busy";
+            model._numberOfPlayers = client.Players;
             
             return model;
         }

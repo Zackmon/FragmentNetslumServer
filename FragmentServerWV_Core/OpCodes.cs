@@ -471,6 +471,33 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
         public const ushort OPCODE_ACCEPT_GUILD_INVITE = 0x7607;
         public const ushort OPCODE_PRIVATE_BROADCAST = 0x788c;
         public const ushort OPCODE_GUILD_VIEW = 0x772c;
+        public const ushort OPCODE_DATA_GET_GUILD_INFO_RESPONSE = 0x7740;
+
+
+        public const ushort OPCODE_DATA_GUILD_CREATE = 0x7600;
+        public const ushort OPCODE_DATA_GUILD_GET_ALL_GUILDS = 0x7722;
+        public const ushort OPCODE_DATA_GUILD_GET_LIST_OF_ITEMS = 0x772F;
+        public const ushort OPCODE_DATA_GUILD_GETMENU = 0x7733;
+        public const ushort OPCODE_DATA_GUILD_GET_INFO = 0x7739;
+
+
+        public const ushort OPCODE_DATA_GUILD_LOGGEDIN_MEMBERS = 0x789c;
+        public const ushort OPCODE_DATA_GUILD_MEMBERLIST = 0x7610;
+        public const ushort OPCODE_DATA_GUILD_GETITEMS_TOBUY = 0x7708;
+        public const ushort OPCODE_DATA_GUILD_GETITEMS = 0x7728;
+        public const ushort OPCODE_DATA_GUILD_BUY_ITEM = 0x770C;
+        public const ushort OPCODE_DATA_GUILD_DONATE_ITEM = 0x7702;
+        public const ushort OPCODE_DATA_GUILD_GET_DONATION_SETTINGS = 0x7879;
+        public const ushort OPCODE_DATA_GUILD_UPDATEITEM_PRICING_AVAILABILITY = 0x7703;
+        public const ushort OPCODE_DATA_GUILD_UPDATEITEM_PRICING = 0x7712;
+        public const ushort OPCODE_DATA_GUILD_GM_LEAVING = 0x788D;
+        public const ushort OPCODE_DATA_GUILD_PLAYER_LEAVING = 0x7616;
+        public const ushort OPCODE_DATA_GUILD_PLAYER_KICKED = 0x7864;
+        public const ushort OPCODE_DATA_GUILD_DISSOLVED = 0x7619;
+        public const ushort OPCODE_DATA_GUILD_UPDATE_DETAILS = 0x761C;
+        public const ushort OPCODE_DATA_GUILD_TAKE_GP = 0x770E;
+        public const ushort OPCODE_DATA_GUILD_TAKE_ITEM = 0x7710;
+        public const ushort OPCODE_DATA_GUILD_DONATE_COINS = 0x7700;
 
     }
 }

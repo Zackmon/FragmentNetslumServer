@@ -21,7 +21,7 @@ namespace FragmentServerWV_WebApi.Models
         public int online_god_counter;
         public int offline_godCounter;
         
-        public static PlayerModel ConvertData(FragmentServerWV.GameClient client)
+        public static PlayerModel ConvertData(FragmentServerWV.Entities.GameClientAsync client)
         {
             PlayerModel model = new PlayerModel();
             

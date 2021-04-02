@@ -453,7 +453,7 @@ namespace FragmentServerWV
                         if (u == 0)
                         {
                             SendPacket30(0x7723, new byte[] {0x00, 0x01});
-                            SendPacket30(0x7725, new byte[] {0x00,0x01, 0x41, 0x6c, 0x6c,0x00});
+                            SendPacket30(0x7725, new byte[] {0x00, 0x01, 0x41, 0x6c, 0x6c, 0x00});
                         }
                         else
                         {
@@ -974,32 +974,32 @@ namespace FragmentServerWV
                         count++;
                 SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_SERVERLIST, BitConverter.GetBytes(swap16(count)));
                 foreach (var client in Server.Instance.GameClientService.Clients)
-                    if (client.isAreaServer && !client._exited)
-                    {
-                        MemoryStream m = new MemoryStream();
+                if (client.isAreaServer)
+                {
+                    MemoryStream m = new MemoryStream();
+                    m.WriteByte(0);
+                    if (client.ipEndPoint.Address == this.ipEndPoint.Address)
+                        m.Write(client.ipdata, 0, 6);
+                    else
+                        m.Write(client.externalIPAddress, 0, 6);
+                        
+                    byte[] buff = BitConverter.GetBytes(swap16(client.as_usernum));
+                    int pos = 0;
+                    while (client.publish_data_1[pos++] != 0) ;
+                    pos += 4;
+                    client.publish_data_1[pos++] = buff[0];
+                    client.publish_data_1[pos++] = buff[1];
+                    m.Write(client.publish_data_1, 0, client.publish_data_1.Length);
+                    while (m.Length < 45)
                         m.WriteByte(0);
-                        if (client.ipEndPoint.Address == this.ipEndPoint.Address)
-                            m.Write(client.ipdata, 0, 6);
-                        else
-                            m.Write(client.externalIPAddress, 0, 6);
-                        
-                        byte[] buff = BitConverter.GetBytes(swap16(client.as_usernum));
-                        int pos = 0;
-                        while (client.publish_data_1[pos++] != 0) ;
-                        pos += 4;
-                        client.publish_data_1[pos++] = buff[0];
-                        client.publish_data_1[pos++] = buff[1];
-                        m.Write(client.publish_data_1, 0, client.publish_data_1.Length);
-                        while (m.Length < 45)
-                            m.WriteByte(0);
 
-                        string usr = _encoding.GetString(BitConverter.GetBytes(swap16(client.as_usernum)));
-                        string pup1 = _encoding.GetString(client.publish_data_1);
-                        string pup2 =_encoding.GetString(client.publish_data_2);
-                        Console.WriteLine(pup1 +"\n" +pup2+ "\n" + client.as_usernum + "\n");
+                    string usr = _encoding.GetString(BitConverter.GetBytes(swap16(client.as_usernum)));
+                    string pup1 = _encoding.GetString(client.publish_data_1);
+                    string pup2 =_encoding.GetString(client.publish_data_2);
+                    Console.WriteLine(pup1 +"\n" +pup2+ "\n" + client.as_usernum + "\n");
                         
-                            SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
-                    }
+                        SendPacket30(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
+                }
             }
         }
 

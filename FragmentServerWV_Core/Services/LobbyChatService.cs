@@ -1,6 +1,8 @@
 ﻿using FragmentServerWV.Enumerations;
 using FragmentServerWV.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -13,6 +15,7 @@ namespace FragmentServerWV.Services
         private readonly ConcurrentDictionary<int, LobbyChatRoom> lobbies;
         private readonly LobbyChatRoom mainLobby;
         private readonly ILogger logger;
+        private readonly IServiceProvider provider;
 
         public ReadOnlyDictionary<int, LobbyChatRoom> Lobbies => new ReadOnlyDictionary<int, LobbyChatRoom>(lobbies);
 
@@ -22,9 +25,10 @@ namespace FragmentServerWV.Services
 
         public ServiceStatusEnum ServiceStatus { get; private set; } = ServiceStatusEnum.Inactive;
 
-        public LobbyChatService(ILogger logger)
+        public LobbyChatService(ILogger logger, IServiceProvider provider)
         {
             this.logger = logger;
+            this.provider = provider;
             this.lobbies = new ConcurrentDictionary<int, LobbyChatRoom>();
             this.mainLobby = GetOrAddLobby(1, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
             this.ServiceStatus = ServiceStatusEnum.Active;
@@ -39,7 +43,7 @@ namespace FragmentServerWV.Services
             {
                 localCreated = true;
                 this.logger.Information("Lobby {@lobbyId} does not exist. Creating a new Lobby named '{@lobbyName}'", lobbyId, lobbyName);
-                return new LobbyChatRoom(lobbyName, lobbyId, lobbyType);
+                return new LobbyChatRoom(lobbyName, lobbyId, lobbyType, provider.GetRequiredService<IClientProviderService>());
             });
             isCreated = localCreated;
             return lobby;
@@ -62,7 +66,7 @@ namespace FragmentServerWV.Services
         public async Task AnnounceRoomDeparture(LobbyChatRoom lobbyChatRoom, uint clientIndex)
         {
             logger.Information("Client #{@clientIndex} is leaving their lobby", clientIndex);
-            lobbyChatRoom.ClientLeavingRoom((int)clientIndex);
+            await lobbyChatRoom.ClientLeavingRoomAsync((int)clientIndex);
             lobbyChatRoom.Users.Remove((int)clientIndex);
             logger.Information($"Lobby '{lobbyChatRoom.name}' now has {lobbyChatRoom.Users.Count:N0} Users");
             await Task.Yield();

@@ -29,22 +29,19 @@ namespace FragmentServerWV_WebApi.Controllers
         public ClientsModel Get()
         {
             ClientsModel clientList = new ClientsModel();
-            foreach (GameClient client in clientProviderService.Clients)
+            foreach (var client in clientProviderService.Clients)
             {
-                if (!client._exited)
+                if (client.IsAreaServer)
                 {
-                    if (client.isAreaServer)
-                    {
-                        AreaServerModel model = AreaServerModel.ConvertDate(client);
-                        if (model!= null)
-                                clientList._areaServerList.Add(model);
-                    }
-                    else
-                    {
-                        PlayerModel model = PlayerModel.ConvertData(client);
-                        if (model != null)
-                            clientList.PlayerList.Add(model);
-                    }
+                    AreaServerModel model = AreaServerModel.ConvertDate(client);
+                    if (model!= null)
+                            clientList._areaServerList.Add(model);
+                }
+                else
+                {
+                    PlayerModel model = PlayerModel.ConvertData(client);
+                    if (model != null)
+                        clientList.PlayerList.Add(model);
                 }
             }
 
