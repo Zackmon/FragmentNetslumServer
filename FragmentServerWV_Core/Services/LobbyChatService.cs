@@ -13,9 +13,9 @@ namespace FragmentServerWV.Services
     {
 
         private readonly ConcurrentDictionary<int, LobbyChatRoom> lobbies;
-        private readonly LobbyChatRoom mainLobby;
         private readonly ILogger logger;
         private readonly IServiceProvider provider;
+        private LobbyChatRoom mainLobby;
 
         public ReadOnlyDictionary<int, LobbyChatRoom> Lobbies => new ReadOnlyDictionary<int, LobbyChatRoom>(lobbies);
 
@@ -30,10 +30,14 @@ namespace FragmentServerWV.Services
             this.logger = logger;
             this.provider = provider;
             this.lobbies = new ConcurrentDictionary<int, LobbyChatRoom>();
-            this.mainLobby = GetOrAddLobby(1, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
             this.ServiceStatus = ServiceStatusEnum.Active;
         }
 
+
+        public void Initialize()
+        {
+            this.mainLobby = GetOrAddLobby(1, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
+        }
 
         public LobbyChatRoom GetOrAddLobby(ushort lobbyId, string lobbyName, ushort lobbyType, out bool isCreated)
         {

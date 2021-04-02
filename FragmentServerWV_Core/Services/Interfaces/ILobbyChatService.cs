@@ -54,7 +54,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// <param name="clientIndex">The identifier of the client</param>
         /// <returns>A Task that intends to complete the departure announcement</returns>
         Task AnnounceRoomDeparture(ushort lobbyId, uint clientIndex);
-
+        void Initialize();
     }
 
 }
