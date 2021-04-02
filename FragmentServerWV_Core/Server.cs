@@ -68,7 +68,6 @@ namespace FragmentServerWV
             IClientConnectionService clientConnectionService,
             SimpleConfiguration configuration)
         {
-            Instance = Instance ?? this;
             IPAddress.TryParse(configuration.Get("ip"), out this.ipAddress);
             ushort.TryParse(configuration.Get("port"), out this.port);
 
