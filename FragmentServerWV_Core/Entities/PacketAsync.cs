@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using FragmentServerWV.Services;
 
 namespace FragmentServerWV.Entities
 {
@@ -78,14 +79,22 @@ namespace FragmentServerWV.Entities
         /// <returns><see cref="bool"/></returns>
         public async Task<bool> ReadPacketAsync()
         {
-            logger.Debug("Reading network packet...");
+            logger.Verbose("Asking to read network packet...");
             try
             {
                 byte[] buff = new byte[2];
                 datalen = 0;
-                if (!networkStream.DataAvailable) return false;
+                if (!networkStream.DataAvailable)
+                {
+                    logger.Verbose("No network packet available");
+                    return false;
+                }
                 int read = await networkStream.ReadAsync(buff, 0, 2);
-                if (read == 0) return false;
+                if (read == 0)
+                {
+                    logger.Warning("Somehow read no data? There was supposed to be data!");
+                    return false;
+                }
                 datalen = (ushort)((buff[0] << 8) + buff[1]);
                 data = new byte[datalen];
                 encryptedData = new byte[datalen];
@@ -114,11 +123,13 @@ namespace FragmentServerWV.Entities
             }
             catch
             {
+                logger.Warning("An error occurred attempting to read data from the client. It may not be important, but, still...");
                 return false;
             }
             finally
             {
-                logger.Debug("Completed reading network packet...");
+                logger.LogData(Data, Code, -1, "", ChecksumInPacket, ChecksumOfPacket);
+                logger.Verbose("Completed reading network packet...");
             }
         }
 
