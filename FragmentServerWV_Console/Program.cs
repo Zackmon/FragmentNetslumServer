@@ -10,6 +10,7 @@ using System.Text;
 using Serilog;
 using Serilog.Formatting.Json;
 using System.Linq;
+using FragmentServerWV.Entities;
 
 namespace FragmentServerWV_Console
 {
@@ -23,9 +24,15 @@ namespace FragmentServerWV_Console
         {
             var serviceCollection = InitializeContainer();
             var provider = serviceCollection.BuildServiceProvider();
-            var server = provider.GetRequiredService<Server>();
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            //hack hack
+            provider.GetRequiredService<ILobbyChatService>().Initialize();
+
             var config = provider.GetRequiredService<SimpleConfiguration>();
+            var server = provider.GetRequiredService<Server>();
             server.Start();
+
             CreateHostBuilder(new[] { config.Get("ip") }, provider).Build().Run();
         }
 
@@ -35,9 +42,9 @@ namespace FragmentServerWV_Console
         private static IServiceCollection InitializeContainer()
         {
             return new ServiceCollection()
-                .AddTransient<ILogger>((provider) =>
+                .AddSingleton<ILogger>((provider) =>
                 {
-                    var cfg = provider.GetRequiredService<SimpleConfiguration>();
+                    var cfg = new SimpleConfiguration();
                     var logConfig = new LoggerConfiguration();
 
                     // configure the sinks appropriately
@@ -72,6 +79,7 @@ namespace FragmentServerWV_Console
                 .AddSingleton<ILobbyChatService, LobbyChatService>()
                 .AddSingleton<IMailService, MailService>()
                 .AddSingleton<IBulletinBoardService, BulletinBoardService>()
+                .AddTransient<GameClientAsync>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();
             //return services.BuildServiceProvider();
