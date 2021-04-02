@@ -11,9 +11,9 @@ namespace FragmentServerWV.Services.Interfaces
 
         Task<IList<BbsThreadModel>> GetThreadsAsync(int categoryId);
 
-        Task<IList<BbsPostMetaModel>> GetThreadDetails(int threadId);
+        Task<IList<BbsPostMetaModel>> GetThreadDetailsAsync(int threadId);
 
-        Task<IList<BbsPostBody>> GetThreadPostContent(int postId);
+        Task<IList<BbsPostBody>> GetThreadPostContentAsync(int postId);
 
 
 
