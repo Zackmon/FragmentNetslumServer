@@ -70,6 +70,7 @@ namespace FragmentServerWV_Console
                 .AddSingleton<IClientProviderService, GameClientService>()
                 .AddSingleton<IClientConnectionService, ClientConnectionService>()
                 .AddSingleton<ILobbyChatService, LobbyChatService>()
+                .AddSingleton<IMailService, MailService>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();
             //return services.BuildServiceProvider();
