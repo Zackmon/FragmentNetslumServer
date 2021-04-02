@@ -11,9 +11,15 @@ namespace FragmentServerWV.Services.Interfaces
     {
 
         /// <summary>
-        /// Gets a collection of currently connected <see cref="GameClient"/> instances
+        /// Gets a collection of currently connected <see cref="GameClientAsync"/> instances
         /// </summary>
         ReadOnlyCollection<GameClientAsync> Clients { get; }
+
+        /// <summary>
+        /// Gets a collection of currently connected <see cref="GameClientAsync"/> that have declared themselves as Area Servers
+        /// </summary>
+        ReadOnlyCollection<GameClientAsync> AreaServers { get; }
+
 
 
         /// <summary>
@@ -26,7 +32,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// <summary>
         /// Adds a new client to the <see cref="IClientProviderService"/>
         /// </summary>
-        /// <param name="client">The newly created <see cref="GameClient"/></param>
+        /// <param name="client">The newly created <see cref="GameClientAsync"/></param>
         void AddClient(GameClientAsync client);
 
 
@@ -39,7 +45,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// <summary>
         /// Removes an existing client from <see cref="IClientProviderService"/>
         /// </summary>
-        /// <param name="client"><see cref="GameClient"/> to remove</param>
+        /// <param name="client"><see cref="GameClientAsync"/> to remove</param>
         void RemoveClient(GameClientAsync client);
 
         /// <summary>

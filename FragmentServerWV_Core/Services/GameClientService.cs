@@ -1,9 +1,12 @@
 ﻿using FragmentServerWV.Entities;
 using FragmentServerWV.Enumerations;
 using FragmentServerWV.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net.Sockets;
 
 namespace FragmentServerWV.Services
@@ -14,21 +17,23 @@ namespace FragmentServerWV.Services
         private readonly List<GameClientAsync> clients;
         private readonly ILogger logger;
         private readonly ILobbyChatService lobbyChatService;
-        private readonly SimpleConfiguration simpleConfiguration;
-
-
+        private readonly IServiceProvider provider;
 
         public ReadOnlyCollection<GameClientAsync> Clients => clients.AsReadOnly();
+
+        public ReadOnlyCollection<GameClientAsync> AreaServers => clients.Where(c => c.isAreaServer).ToList().AsReadOnly();
 
         public string ServiceName => "Game Client Service";
 
         public ServiceStatusEnum ServiceStatus { get; private set; }
 
-        public GameClientService(ILogger logger, ILobbyChatService lobbyChatService, SimpleConfiguration simpleConfiguration)
+        
+
+        public GameClientService(ILogger logger, IServiceProvider provider)
         {
             this.logger = logger;
-            this.lobbyChatService = lobbyChatService;
-            this.simpleConfiguration = simpleConfiguration;
+            this.lobbyChatService = provider.GetRequiredService<ILobbyChatService>();
+            this.provider = provider;
             this.clients = new List<GameClientAsync>();
             this.ServiceStatus = ServiceStatusEnum.Active;
         }
@@ -37,7 +42,9 @@ namespace FragmentServerWV.Services
 
         public void AddClient(TcpClient client, uint clientId)
         {
-            this.AddClient(new GameClientAsync(clientId, logger, lobbyChatService, client, simpleConfiguration));
+            var gameClient = provider.GetRequiredService<GameClientAsync>();
+            gameClient.InitializeClient(clientId, client);
+            this.AddClient(gameClient);
         }
 
         public void AddClient(GameClientAsync client)
