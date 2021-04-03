@@ -119,6 +119,12 @@ namespace FragmentServerWV.Entities
                 {
                     code = 0;
                 }
+
+                if (checksum_inpacket != checksum_ofpacket)
+                {
+                    logger.Warning("This packet and its checksum do NOT match! This could be important to investigate");
+                }
+
                 return true;
             }
             catch
