@@ -220,7 +220,15 @@ namespace FragmentServerWV.Entities
                         else
                         {
                             // Packet has been read, bring over what we do now
-                            await HandleIncomingPacket(packet);
+                            try
+                            {
+                                await HandleIncomingPacket(packet);
+                            }
+                            catch (Exception hipException)
+                            {
+                                logger.Error(hipException, $"Client #{clientIndex} has thrown an error parsing a particular packet. Dumping out the contents for later inspection");
+                                logger.LogData(packet.Data, packet.Code, (int)clientIndex, "", packet.ChecksumInPacket, packet.ChecksumOfPacket);
+                            }
                         }
                     }
                 }
@@ -514,15 +522,11 @@ namespace FragmentServerWV.Entities
                 case OpCodes.OPCODE_DATA_LOBBY_EVENT:
                     if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var lcr))
                     {
-                        await lcr.DispatchPublicBroadcastAsync(argument, this.ClientIndex);
+                        await lcr.SendPublicMessageAsync(argument, this.ClientIndex);
                     }
                     break;
                 case OpCodes.OPCODE_DATA_MAILCHECK:
-                    if (DBAcess.getInstance().checkForNewMailByAccountID(ReadAccountID(argument, 0)))
-                        await SendDataPacket(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] { 0x00, 0x00, 0x01, 0x00 });
-                    else
-                        await SendDataPacket(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] { 0x00, 0x01 });
-
+                    await HandleCheckForNewMail(argument);
                     break;
                 case OpCodes.OPCODE_DATA_BBS_GET_UPDATES:
                     await SendDataPacket(0x786b, new byte[] { 0x00, 0x00 });
@@ -541,7 +545,7 @@ namespace FragmentServerWV.Entities
                     //Server.Instance.LobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
                     if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var p))
                     {
-                        await p.DispatchPrivateBroadcastAsync(argument, ClientIndex, destid);
+                        await p.SendDirectMessageAsync(argument, ClientIndex, destid);
                     }
                     break;
                 case OpCodes.OPCODE_DATA_SELECT_CHAR:
@@ -578,280 +582,6 @@ namespace FragmentServerWV.Entities
             }
 
 
-        }
-
-        private async Task HandleSendBbsThreadContent(byte[] argument)
-        {
-            var q = swap32(BitConverter.ToUInt32(argument, 4));
-            var postID = Convert.ToInt32(q);
-            var bbsPostBody = await bulletinBoardService.GetThreadPostContentAsync(postID); // DBAcess.getInstance().GetPostBodyByPostId(postID);
-            var bbsPostData = await bulletinBoardService.ConvertThreadPostToBytesAsync(bbsPostBody);
-            await SendDataPacket(0x781d, bbsPostData);
-        }
-
-        private async Task HandleSendBbsThread(byte[] argument)
-        {
-            var i = swap32(BitConverter.ToUInt32(argument, 0));
-            var threadID = Convert.ToInt32(i);
-            var postMetaList = await bulletinBoardService.GetThreadDetailsAsync(threadID);
-            await SendDataPacket(OpCodes.OPCODE_DATA_BBS_THREAD_LIST, BitConverter.GetBytes(swap32((uint)postMetaList.Count)));
-            foreach (var meta in postMetaList)
-            {
-                var postMetaBytes = await bulletinBoardService.ConvertThreadDetailsToBytesAsync(meta);
-                await SendDataPacket(OpCodes.OPCODE_DATA_BBS_ENTRY_POST_META, postMetaBytes);
-            }
-        }
-
-        private async Task HandleSendBbsMainMenu(byte[] argument)
-        {
-            var u = swap16(BitConverter.ToUInt16(argument, 0));
-            if (u == 0)
-            {
-                var categoryList = await bulletinBoardService.GetCategoriesAsync();
-                await SendDataPacket(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, BitConverter.GetBytes(swap16((ushort)categoryList.Count)));
-                foreach (var category in categoryList)
-                {
-                    var categoryData = await bulletinBoardService.ConvertCategoryToBytesAsync(category);
-                    await SendDataPacket(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, categoryData);
-                }
-            }
-
-            else
-            {
-                var categoryID = Convert.ToInt32(u);
-                var threadsList = await bulletinBoardService.GetThreadsAsync(categoryID);
-                await SendDataPacket(OpCodes.OPCODE_DATA_BBS_THREADLIST, BitConverter.GetBytes(swap16((ushort)threadsList.Count)));
-                foreach (var thread in threadsList)
-                {
-                    var threadData = await bulletinBoardService.ConvertThreadToBytesAsync(thread);
-                    await SendDataPacket(OpCodes.OPCODE_DATA_BBS_ENTRY_THREAD, threadData);
-                }
-            }
-        }
-
-        private async Task HandleGetRankingPlayerInformation(byte[] argument)
-        {
-            uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
-            await SendDataPacket(0x7839, RankingManagementService.GetInstance().getRankingPlayerInfo(rankPlayerID));
-        }
-
-        private async Task HandleGetRankingPageInformation(byte[] argument)
-        {
-            var rankingArgs = swap16(BitConverter.ToUInt16(argument, 0));
-            if (rankingArgs == 0) // get the first ranking page
-            {
-                var rankCategoryList = RankingManagementService.GetInstance().GetRankingCategory();
-                await SendDataPacket(0x7833, BitConverter.GetBytes(swap16((ushort)rankCategoryList.Count)));
-
-                foreach (var category in rankCategoryList)
-                {
-                    await SendDataPacket(0x7835, category);
-                }
-            }
-            else if (rankingArgs >= 8) // get class List
-            {
-                _rankingCategoryID = rankingArgs;
-                var rankClassList = RankingManagementService.GetInstance().GetClassList();
-                await SendDataPacket(0x7833, BitConverter.GetBytes(swap16((ushort)rankClassList.Count)));
-                foreach (var category in rankClassList)
-                {
-                    await SendDataPacket(0x7835, category);
-                }
-            }
-            else
-            {
-                var playerRankingList = RankingManagementService.GetInstance().GetPlayerRanking(_rankingCategoryID, rankingArgs);
-                await SendDataPacket(0x7836, BitConverter.GetBytes(swap32((uint)playerRankingList.Count)));
-                foreach (var player in playerRankingList)
-                {
-                    await SendDataPacket(0x7837, player);
-                }
-            }
-        }
-
-        private async Task HandleCreateBbsPost(byte[] argument)
-        {
-            uint id = swap32(BitConverter.ToUInt32(argument, 0));
-            DBAcess.getInstance().CreateNewPost(argument, id);
-            await SendDataPacket(0x7813, new byte[] { 0x00, 0x00 });
-        }
-
-        private void HandleExtractAreaServerInformation(byte[] argument)
-        {
-            publish_data_2 = argument;
-            ExtractAreaServerData(argument);
-        }
-
-        private async Task HandleGuildView(byte[] argument)
-        {
-            var u = swap16(BitConverter.ToUInt16(argument, 0));
-            currentGuildInvitaionSelection = u;
-            await SendDataPacket(0x772D, GuildManagementService.GetInstance().GetGuildInfo(u));
-        }
-
-        private async Task HandleGuildAcceptOrReject(byte[] argument)
-        {
-            var ms = new MemoryStream();
-            await ms.WriteAsync(new byte[] { 0x76, 0xB0, 0x54, 0x45, 0x53, 0x54, 0x00 });
-            if (argument[1] == 0x08) //accepted the invitation
-            {
-                DBAcess.getInstance().EnrollPlayerInGuild(currentGuildInvitaionSelection, _characterPlayerID, false);
-                await SendDataPacket(0x760A, ms.ToArray()); // send guild ID
-            }
-            else
-            {
-                // rejected
-                await SendDataPacket(0x760A, ms.ToArray()); // send guild ID
-            }
-        }
-
-        private async Task HandleInvitePlayerToGuild(byte[] argument)
-        {
-            var u = swap16(BitConverter.ToUInt16(argument, 0));
-            // Fun fact: we don't check if we're in a guild lobby
-            // 'cause I think this is only possible to invoke from a guild lobby so
-            // screw it
-            if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var guildLobby))
-            {
-                await guildLobby.GuildInvitationAsync(argument, (int)this.clientIndex, u, _guildID);
-                logger.Information($"Invited Player ID {u}");
-                await SendDataPacket(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
-            }
-        }
-
-        private async Task HandlePlayerDonatesCoinsToGuild(byte[] argument)
-        {
-            await SendDataPacket(0x7701, GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
-        }
-
-        private async Task HandlePlayerTakingGuildItem(byte[] argument)
-        {
-            ushort guildIDTakeItem = swap16(BitConverter.ToUInt16(argument, 0));
-            uint itemIDToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
-            ushort quantityToTake = swap16(BitConverter.ToUInt16(argument, 6));
-
-            logger.Debug("Guild ID " + guildIDTakeItem + "\nItem ID to take " + itemIDToTakeOut + "\n quantity to take out " + quantityToTake);
-            await SendDataPacket(0x7711, GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem, itemIDToTakeOut, quantityToTake)); // quantity  to give to the player
-        }
-
-        private async Task HandlePlayerTakingGuildGP(byte[] argument)
-        {
-            ushort guildIDTakeMoney = swap16(BitConverter.ToUInt16(argument, 0));
-            uint amountOfMoneyToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
-
-            logger.Debug("Guild ID " + guildIDTakeMoney + "\nAmount of money to Take out " + amountOfMoneyToTakeOut);
-            await SendDataPacket(0x770F, GuildManagementService.GetInstance().TakeMoneyFromGuild(guildIDTakeMoney, amountOfMoneyToTakeOut)); // amount of money to give to the player 
-        }
-
-        private async Task HandleGuildDetailsBeingUpdated(byte[] argument)
-        {
-            await SendDataPacket(0x761D, GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument, _guildID));
-        }
-
-        private async Task HandleGuildBeingDissolved()
-        {
-            await SendDataPacket(0x761A, GuildManagementService.GetInstance().DestroyGuild(_guildID));
-        }
-
-        private async Task HandleKickingPlayerFromGuild(byte[] argument)
-        {
-            uint playerToKick = swap32(BitConverter.ToUInt32(argument, 0));
-            await SendDataPacket(0x7865, GuildManagementService.GetInstance().KickPlayerFromGuild(_guildID, playerToKick));
-        }
-
-        private async Task HandlePlayerLeavingGuild()
-        {
-            await SendDataPacket(0x7617, GuildManagementService.GetInstance().LeaveGuild(_guildID, _characterPlayerID));
-        }
-
-        private async Task HandleGuildMasterLeaving(byte[] argument)
-        {
-            uint assigningPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
-            await SendDataPacket(0x788E, GuildManagementService.GetInstance().LeaveGuildAndAssignMaster(_guildID, assigningPlayerID));
-        }
-
-        private async Task HandlePlayerUpdatingItemPricingAndAvailability(byte[] argument)
-        {
-            uint GeneralPrice = swap32(BitConverter.ToUInt32(argument, 0));
-            uint MemberPrice = swap32(BitConverter.ToUInt32(argument, 4));
-            bool isGeneral = BitConverter.ToBoolean(argument, 8);
-            bool isMember = BitConverter.ToBoolean(argument, 9);
-
-            Console.Write("GenePrice " + GeneralPrice + "\nMemberPrice " + MemberPrice + "\nisGeneral " + isGeneral + "\nisMember " + isMember);
-
-
-            await SendDataPacket(0x7705, GuildManagementService.GetInstance().AddItemToGuildInventory(_guildID, _itemDontationID,
-                _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember, isGuildMaster)); // how many to deduct from the player
-        }
-
-        private async Task HandlePlayerDonatesItemToGuild(byte[] argument)
-        {
-            _itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
-            _itemDonationQuantity = swap16(BitConverter.ToUInt16(argument, 6));
-            await SendDataPacket(0x7704, GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_guildID, _itemDontationID));
-        }
-
-        private async Task HandlePlayerBuysGuildItem(byte[] argument)
-        {
-            await SendDataPacket(0x770D, GuildManagementService.GetInstance().BuyItemFromGuild(argument));
-        }
-
-        private async Task HandleGetGuildItems(byte[] argument)
-        {
-            var u = swap16(BitConverter.ToUInt16(argument, 0));
-            List<byte[]> allGuildItems =
-                GuildManagementService.GetInstance().GetAllGuildItemsWithSettings(u);
-            await SendDataPacket(0x7729, BitConverter.GetBytes(swap16((ushort)allGuildItems.Count)));
-
-            foreach (var item in allGuildItems)
-            {
-                await SendDataPacket(0x772A, item);
-            }
-        }
-
-        private async Task HandleGetGuildItemsForPurchase(byte[] argument)
-        {
-            var u = swap16(BitConverter.ToUInt16(argument, 0));
-            List<byte[]> membersItemList = GuildManagementService.GetInstance().GetGuildItems(u, false);
-            await SendDataPacket(0x7709, BitConverter.GetBytes(swap16((ushort)membersItemList.Count))); // number of items
-
-            foreach (var item in membersItemList)
-            {
-                await SendDataPacket(0x770a, item);
-            }
-        }
-
-        private async Task HandleGetGuildMemberList(byte[] argument)
-        {
-            var u = swap16(BitConverter.ToUInt16(argument, 0));
-            if (u == 0)// Guild Member Category List
-            {
-                List<byte[]> listOfClasses = GuildManagementService.GetInstance().GetClassList();
-                await SendDataPacket(0x7611, BitConverter.GetBytes(swap16((ushort)listOfClasses.Count))); //Size of List
-                foreach (var className in listOfClasses)
-                {
-                    await SendDataPacket(0x7613, className);// send categories    
-                }
-
-            }
-            else //MemberList in that Category
-            {
-                List<byte[]> memberList =
-                    GuildManagementService.GetInstance().GetGuildMembersListByClass(_guildID, u, _characterPlayerID);
-                await SendDataPacket(0x7614, BitConverter.GetBytes(swap16((ushort)memberList.Count)));//Size of List
-
-                foreach (var member in memberList)
-                {
-                    await SendDataPacket(0x7615, member); //Member Details
-                }
-
-            }
-        }
-
-        private async Task HandleGetGuildActiveMembers(byte[] argument)
-        {
-            var guildId = swap16(BitConverter.ToUInt16(argument, 0));
-            await SendDataPacket(0x789d, GuildManagementService.GetInstance().GetGuildInfo(guildId));
         }
 
         internal async Task SendRegularPacket(ushort code, byte[] data, uint checksum)
@@ -1187,6 +917,292 @@ namespace FragmentServerWV.Entities
             _guildID = u;
             isGuildMaster = true;
             await SendDataPacket(0x7601, BitConverter.GetBytes(swap16(u)));
+        }
+
+        private async Task HandleCheckForNewMail(byte[] argument)
+        {
+            if (DBAcess.getInstance().checkForNewMailByAccountID(ReadAccountID(argument, 0)))
+            {
+                await SendDataPacket(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] { 0x00, 0x00, 0x01, 0x00 });
+            }
+            else
+            {
+                await SendDataPacket(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] { 0x00, 0x01 });
+            }
+        }
+
+        private async Task HandleSendBbsThreadContent(byte[] argument)
+        {
+            var q = swap32(BitConverter.ToUInt32(argument, 4));
+            var postID = Convert.ToInt32(q);
+            var bbsPostBody = await bulletinBoardService.GetThreadPostContentAsync(postID); // DBAcess.getInstance().GetPostBodyByPostId(postID);
+            var bbsPostData = await bulletinBoardService.ConvertThreadPostToBytesAsync(bbsPostBody);
+            await SendDataPacket(0x781d, bbsPostData);
+        }
+
+        private async Task HandleSendBbsThread(byte[] argument)
+        {
+            var i = swap32(BitConverter.ToUInt32(argument, 0));
+            var threadID = Convert.ToInt32(i);
+            var postMetaList = await bulletinBoardService.GetThreadDetailsAsync(threadID);
+            await SendDataPacket(OpCodes.OPCODE_DATA_BBS_THREAD_LIST, BitConverter.GetBytes(swap32((uint)postMetaList.Count)));
+            foreach (var meta in postMetaList)
+            {
+                var postMetaBytes = await bulletinBoardService.ConvertThreadDetailsToBytesAsync(meta);
+                await SendDataPacket(OpCodes.OPCODE_DATA_BBS_ENTRY_POST_META, postMetaBytes);
+            }
+        }
+
+        private async Task HandleSendBbsMainMenu(byte[] argument)
+        {
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+            if (u == 0)
+            {
+                var categoryList = await bulletinBoardService.GetCategoriesAsync();
+                await SendDataPacket(OpCodes.OPCODE_DATA_BBS_CATEGORYLIST, BitConverter.GetBytes(swap16((ushort)categoryList.Count)));
+                foreach (var category in categoryList)
+                {
+                    var categoryData = await bulletinBoardService.ConvertCategoryToBytesAsync(category);
+                    await SendDataPacket(OpCodes.OPCODE_DATA_BBS_ENTRY_CATEGORY, categoryData);
+                }
+            }
+
+            else
+            {
+                var categoryID = Convert.ToInt32(u);
+                var threadsList = await bulletinBoardService.GetThreadsAsync(categoryID);
+                await SendDataPacket(OpCodes.OPCODE_DATA_BBS_THREADLIST, BitConverter.GetBytes(swap16((ushort)threadsList.Count)));
+                foreach (var thread in threadsList)
+                {
+                    var threadData = await bulletinBoardService.ConvertThreadToBytesAsync(thread);
+                    await SendDataPacket(OpCodes.OPCODE_DATA_BBS_ENTRY_THREAD, threadData);
+                }
+            }
+        }
+
+        private async Task HandleGetRankingPlayerInformation(byte[] argument)
+        {
+            uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
+            await SendDataPacket(0x7839, RankingManagementService.GetInstance().getRankingPlayerInfo(rankPlayerID));
+        }
+
+        private async Task HandleGetRankingPageInformation(byte[] argument)
+        {
+            var rankingArgs = swap16(BitConverter.ToUInt16(argument, 0));
+            if (rankingArgs == 0) // get the first ranking page
+            {
+                var rankCategoryList = RankingManagementService.GetInstance().GetRankingCategory();
+                await SendDataPacket(0x7833, BitConverter.GetBytes(swap16((ushort)rankCategoryList.Count)));
+
+                foreach (var category in rankCategoryList)
+                {
+                    await SendDataPacket(0x7835, category);
+                }
+            }
+            else if (rankingArgs >= 8) // get class List
+            {
+                _rankingCategoryID = rankingArgs;
+                var rankClassList = RankingManagementService.GetInstance().GetClassList();
+                await SendDataPacket(0x7833, BitConverter.GetBytes(swap16((ushort)rankClassList.Count)));
+                foreach (var category in rankClassList)
+                {
+                    await SendDataPacket(0x7835, category);
+                }
+            }
+            else
+            {
+                var playerRankingList = RankingManagementService.GetInstance().GetPlayerRanking(_rankingCategoryID, rankingArgs);
+                await SendDataPacket(0x7836, BitConverter.GetBytes(swap32((uint)playerRankingList.Count)));
+                foreach (var player in playerRankingList)
+                {
+                    await SendDataPacket(0x7837, player);
+                }
+            }
+        }
+
+        private async Task HandleCreateBbsPost(byte[] argument)
+        {
+            uint id = swap32(BitConverter.ToUInt32(argument, 0));
+            DBAcess.getInstance().CreateNewPost(argument, id);
+            await SendDataPacket(0x7813, new byte[] { 0x00, 0x00 });
+        }
+
+        private void HandleExtractAreaServerInformation(byte[] argument)
+        {
+            publish_data_2 = argument;
+            ExtractAreaServerData(argument);
+        }
+
+        private async Task HandleGuildView(byte[] argument)
+        {
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+            currentGuildInvitaionSelection = u;
+            await SendDataPacket(0x772D, GuildManagementService.GetInstance().GetGuildInfo(u));
+        }
+
+        private async Task HandleGuildAcceptOrReject(byte[] argument)
+        {
+            var ms = new MemoryStream();
+            await ms.WriteAsync(new byte[] { 0x76, 0xB0, 0x54, 0x45, 0x53, 0x54, 0x00 });
+            if (argument[1] == 0x08) //accepted the invitation
+            {
+                DBAcess.getInstance().EnrollPlayerInGuild(currentGuildInvitaionSelection, _characterPlayerID, false);
+                await SendDataPacket(0x760A, ms.ToArray()); // send guild ID
+            }
+            else
+            {
+                // rejected
+                await SendDataPacket(0x760A, ms.ToArray()); // send guild ID
+            }
+        }
+
+        private async Task HandleInvitePlayerToGuild(byte[] argument)
+        {
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+            // Fun fact: we don't check if we're in a guild lobby
+            // 'cause I think this is only possible to invoke from a guild lobby so
+            // screw it
+            if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var guildLobby))
+            {
+                await guildLobby.InviteClientToGuildAsync(argument, (int)this.clientIndex, u, _guildID);
+                logger.Information($"Invited Player ID {u}");
+                await SendDataPacket(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
+            }
+        }
+
+        private async Task HandlePlayerDonatesCoinsToGuild(byte[] argument)
+        {
+            await SendDataPacket(0x7701, GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
+        }
+
+        private async Task HandlePlayerTakingGuildItem(byte[] argument)
+        {
+            ushort guildIDTakeItem = swap16(BitConverter.ToUInt16(argument, 0));
+            uint itemIDToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
+            ushort quantityToTake = swap16(BitConverter.ToUInt16(argument, 6));
+
+            logger.Debug("Guild ID " + guildIDTakeItem + "\nItem ID to take " + itemIDToTakeOut + "\n quantity to take out " + quantityToTake);
+            await SendDataPacket(0x7711, GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem, itemIDToTakeOut, quantityToTake)); // quantity  to give to the player
+        }
+
+        private async Task HandlePlayerTakingGuildGP(byte[] argument)
+        {
+            ushort guildIDTakeMoney = swap16(BitConverter.ToUInt16(argument, 0));
+            uint amountOfMoneyToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
+
+            logger.Debug("Guild ID " + guildIDTakeMoney + "\nAmount of money to Take out " + amountOfMoneyToTakeOut);
+            await SendDataPacket(0x770F, GuildManagementService.GetInstance().TakeMoneyFromGuild(guildIDTakeMoney, amountOfMoneyToTakeOut)); // amount of money to give to the player 
+        }
+
+        private async Task HandleGuildDetailsBeingUpdated(byte[] argument)
+        {
+            await SendDataPacket(0x761D, GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument, _guildID));
+        }
+
+        private async Task HandleGuildBeingDissolved()
+        {
+            await SendDataPacket(0x761A, GuildManagementService.GetInstance().DestroyGuild(_guildID));
+        }
+
+        private async Task HandleKickingPlayerFromGuild(byte[] argument)
+        {
+            uint playerToKick = swap32(BitConverter.ToUInt32(argument, 0));
+            await SendDataPacket(0x7865, GuildManagementService.GetInstance().KickPlayerFromGuild(_guildID, playerToKick));
+        }
+
+        private async Task HandlePlayerLeavingGuild()
+        {
+            await SendDataPacket(0x7617, GuildManagementService.GetInstance().LeaveGuild(_guildID, _characterPlayerID));
+        }
+
+        private async Task HandleGuildMasterLeaving(byte[] argument)
+        {
+            uint assigningPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
+            await SendDataPacket(0x788E, GuildManagementService.GetInstance().LeaveGuildAndAssignMaster(_guildID, assigningPlayerID));
+        }
+
+        private async Task HandlePlayerUpdatingItemPricingAndAvailability(byte[] argument)
+        {
+            uint GeneralPrice = swap32(BitConverter.ToUInt32(argument, 0));
+            uint MemberPrice = swap32(BitConverter.ToUInt32(argument, 4));
+            bool isGeneral = BitConverter.ToBoolean(argument, 8);
+            bool isMember = BitConverter.ToBoolean(argument, 9);
+
+            Console.Write("GenePrice " + GeneralPrice + "\nMemberPrice " + MemberPrice + "\nisGeneral " + isGeneral + "\nisMember " + isMember);
+
+
+            await SendDataPacket(0x7705, GuildManagementService.GetInstance().AddItemToGuildInventory(_guildID, _itemDontationID,
+                _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember, isGuildMaster)); // how many to deduct from the player
+        }
+
+        private async Task HandlePlayerDonatesItemToGuild(byte[] argument)
+        {
+            _itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
+            _itemDonationQuantity = swap16(BitConverter.ToUInt16(argument, 6));
+            await SendDataPacket(0x7704, GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_guildID, _itemDontationID));
+        }
+
+        private async Task HandlePlayerBuysGuildItem(byte[] argument)
+        {
+            await SendDataPacket(0x770D, GuildManagementService.GetInstance().BuyItemFromGuild(argument));
+        }
+
+        private async Task HandleGetGuildItems(byte[] argument)
+        {
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+            List<byte[]> allGuildItems =
+                GuildManagementService.GetInstance().GetAllGuildItemsWithSettings(u);
+            await SendDataPacket(0x7729, BitConverter.GetBytes(swap16((ushort)allGuildItems.Count)));
+
+            foreach (var item in allGuildItems)
+            {
+                await SendDataPacket(0x772A, item);
+            }
+        }
+
+        private async Task HandleGetGuildItemsForPurchase(byte[] argument)
+        {
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+            List<byte[]> membersItemList = GuildManagementService.GetInstance().GetGuildItems(u, false);
+            await SendDataPacket(0x7709, BitConverter.GetBytes(swap16((ushort)membersItemList.Count))); // number of items
+
+            foreach (var item in membersItemList)
+            {
+                await SendDataPacket(0x770a, item);
+            }
+        }
+
+        private async Task HandleGetGuildMemberList(byte[] argument)
+        {
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+            if (u == 0)// Guild Member Category List
+            {
+                List<byte[]> listOfClasses = GuildManagementService.GetInstance().GetClassList();
+                await SendDataPacket(0x7611, BitConverter.GetBytes(swap16((ushort)listOfClasses.Count))); //Size of List
+                foreach (var className in listOfClasses)
+                {
+                    await SendDataPacket(0x7613, className);// send categories    
+                }
+
+            }
+            else //MemberList in that Category
+            {
+                List<byte[]> memberList =
+                    GuildManagementService.GetInstance().GetGuildMembersListByClass(_guildID, u, _characterPlayerID);
+                await SendDataPacket(0x7614, BitConverter.GetBytes(swap16((ushort)memberList.Count)));//Size of List
+
+                foreach (var member in memberList)
+                {
+                    await SendDataPacket(0x7615, member); //Member Details
+                }
+
+            }
+        }
+
+        private async Task HandleGetGuildActiveMembers(byte[] argument)
+        {
+            var guildId = swap16(BitConverter.ToUInt16(argument, 0));
+            await SendDataPacket(0x789d, GuildManagementService.GetInstance().GetGuildInfo(guildId));
         }
 
         #endregion
