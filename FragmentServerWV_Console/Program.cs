@@ -42,7 +42,7 @@ namespace FragmentServerWV_Console
         private static IServiceCollection InitializeContainer()
         {
             return new ServiceCollection()
-                .AddSingleton<ILogger>((provider) =>
+                .AddTransient<ILogger>((provider) =>
                 {
                     var cfg = new SimpleConfiguration();
                     var logConfig = new LoggerConfiguration();
@@ -82,7 +82,6 @@ namespace FragmentServerWV_Console
                 .AddTransient<GameClientAsync>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();
-            //return services.BuildServiceProvider();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args, IServiceProvider p)
@@ -100,6 +99,8 @@ namespace FragmentServerWV_Console
                         services.AddSingleton(p.GetRequiredService<IClientProviderService>());
                         services.AddSingleton(p.GetRequiredService<IClientConnectionService>());
                         services.AddSingleton(p.GetRequiredService<ILobbyChatService>());
+                        services.AddSingleton(p.GetRequiredService<IMailService>());
+                        services.AddSingleton(p.GetRequiredService<IBulletinBoardService>());
                         services.AddSingleton(p.GetRequiredService<SimpleConfiguration>());
                         services.AddSingleton(p.GetRequiredService<Server>());
                     });
