@@ -53,7 +53,7 @@ namespace FragmentServerWV.Services
         /// <param name="bytes">The byte array to convert</param>
         /// <param name="bytesPerLine">how many bytes should be displayed per line</param>
         /// <returns>A string representation</returns>
-        private static string HexDump(byte[] bytes, int bytesPerLine = 16)
+        public static string HexDump(this byte[] bytes, int bytesPerLine = 16)
         {
             if (bytes == null) return "<null>";
             int bytesLength = bytes.Length;
