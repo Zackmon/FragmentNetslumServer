@@ -40,6 +40,14 @@ namespace FragmentServerWV.Services.Interfaces
         /// </remarks>
         void EndListening();
 
+        /// <summary>
+        /// Restarts <see cref="IClientConnectionService"/> in the event that it was shutdown
+        /// </summary>
+        /// <remarks>
+        /// This method will do nothing if the system is still running properly
+        /// </remarks>
+        void RestartService();
+
     }
 
 }

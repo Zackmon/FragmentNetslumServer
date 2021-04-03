@@ -16,6 +16,9 @@ namespace FragmentServerWV.Services
         private TcpListener listener;
         private CancellationTokenSource tokenSource;
 
+        private IPAddress lastIpAddress;
+        private ushort lastPort;
+
         public string ServiceName => "Client Connection Service";
 
         public ServiceStatusEnum ServiceStatus { get; private set; }
@@ -45,6 +48,8 @@ namespace FragmentServerWV.Services
             tokenSource = new CancellationTokenSource();
             listener = new TcpListener(ipAddress, port);
             Task.Run(async () => await InternalConnectionLoop(tokenSource.Token));
+            this.lastIpAddress = ipAddress;
+            this.lastPort = port;
         }
 
         public void EndListening()
@@ -54,7 +59,22 @@ namespace FragmentServerWV.Services
             logger.Information($"A cancellation request has been submitted");
         }
 
-
+        public void RestartService()
+        {
+            // Don't restart if we're already running
+            // or if the last known IP address is null
+            if (this.ServiceStatus == ServiceStatusEnum.Active)
+            {
+                throw new NotSupportedException("As ironic as it seems, you cannot currently restart the service while it is running");
+            }
+            if (this.lastIpAddress is null)
+            {
+                throw new InvalidOperationException("The service has not been run before and has no last known IP address to re-bind to");
+            }
+            this.logger.Information($"The {nameof(ClientConnectionService)} is being restarted...");
+            this.BeginListening(lastIpAddress, lastPort);
+            this.logger.Information($"The {nameof(ClientConnectionService)} has been restarted");
+        }
 
         private async Task InternalConnectionLoop(CancellationToken token)
         {
@@ -107,6 +127,7 @@ namespace FragmentServerWV.Services
                 // on the listener variable and allow GC to reclaim it
                 listener = null;
                 this.ServiceStatus = ServiceStatusEnum.Inactive;
+                this.tokenSource.Dispose();
             }
         }
 
