@@ -4,6 +4,7 @@ using FragmentServerWV.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV
@@ -38,16 +39,7 @@ namespace FragmentServerWV
 
         public async Task DispatchAllStatusAsync(int clientIndex)
         {
-            GameClientAsync client = null;
-            foreach(var c in clientProviderService.Clients)
-            {
-                if (c.ClientIndex == clientIndex)
-                {
-                    client = c;
-                    break;
-                }
-            }
-            if (client is null) return;
+            if (!clientProviderService.TryGetClient((uint)clientIndex, out var client)) return;
             foreach (var c in clientProviderService.Clients)
                 if (c.ClientIndex != clientIndex && c.LobbyIndex == ID)
                     await client.SendDataPacket(0x7009, c.last_status);
@@ -89,7 +81,7 @@ namespace FragmentServerWV
             }
         }
 
-        public async Task DispatchPublicBroadcastAsync(byte[] data, int clientIndex)
+        public async Task SendPublicMessageAsync(byte[] data, int clientIndex)
         {
             try
             {
@@ -119,7 +111,7 @@ namespace FragmentServerWV
             }
         }
 
-        public async Task DispatchPrivateBroadcastAsync(byte[] data, int sourceClientIndex, int destinationClientIndex)
+        public async Task SendDirectMessageAsync(byte[] data, int sourceClientIndex, int destinationClientIndex)
         {
 
             int srcid = FindRoomIndexById(sourceClientIndex);
@@ -147,7 +139,33 @@ namespace FragmentServerWV
 
         }
 
-        public async Task GuildInvitationAsync(byte[] data, int inviter, int invitee, ushort guildID)
+        public async Task SendServerMessageAsync(byte[] data)
+        {
+            foreach (var client in clientProviderService.Clients)
+            {
+                if (client.LobbyIndex != ID) continue;
+                await client.SendDataPacket(0x7862, data);
+            }
+        }
+
+        public async Task SendServerMessageAsync(string message)
+        {
+            using var m = new MemoryStream();
+            var e = Encoding.GetEncoding("Shift-JIS");
+
+            // this first write is a standard payload for a message that will appear as if the player
+            // send it along to the server. It's roughly 16 bytes
+            await m.WriteAsync(new byte[] { 255, 255, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            // now get the message payload
+            await m.WriteAsync(e.GetBytes(message));
+
+            // and send it off
+            await SendServerMessageAsync(m.ToArray());
+        }
+
+
+        public async Task InviteClientToGuildAsync(byte[] data, int inviter, int invitee, ushort guildID)
         {
             int srcid = FindRoomIndexById(inviter);
             int towho = Users[invitee - 1];
