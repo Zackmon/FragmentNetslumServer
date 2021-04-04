@@ -170,13 +170,20 @@ namespace FragmentServerWV.Entities
             ns = client.GetStream();
             ns.ReadTimeout = 100;
             ns.WriteTimeout = 100;
-
             to_crypto = new Crypto();
             from_crypto = new Crypto();
             ipEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
             tokenSource = new CancellationTokenSource();
+
+            double pingTime = 5000;
+            var rawPing = simpleConfiguration.Get("ping", "5000");
+            if (!double.TryParse(rawPing, out pingTime))
+            {
+                logger.Warning($"Unable to process the keep-alive ping value ({rawPing}). Defaulting to 5 seconds.");
+            }
+
             Task.Run(async () => await InternalConnectionLoop(tokenSource.Token));
-            this.pingTimer = new System.Timers.Timer(TimeSpan.FromMilliseconds(10_000).TotalMilliseconds)
+            this.pingTimer = new System.Timers.Timer(pingTime)
             {
                 AutoReset = true,
                 Enabled = true
