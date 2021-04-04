@@ -17,6 +17,9 @@ namespace FragmentServerWV
     /// </summary>
     public sealed class LobbyChatRoom
     {
+
+        private const int MAXIMUM_MESSAGE_LENGTH = 30;
+
         private readonly string name;
         private readonly ushort id;
         private readonly ushort type;
@@ -188,10 +191,10 @@ namespace FragmentServerWV
         public async Task SendServerMessageAsync(string message)
         {
             // we will probably need to chunk the message up if it's too big
-            if (message.Length > 20)
+            if (message.Length > MAXIMUM_MESSAGE_LENGTH)
             {
                 var chunkIndex = 1;
-                foreach (var chunk in message.ChunksUpto(16))
+                foreach (var chunk in message.ChunksUpto(MAXIMUM_MESSAGE_LENGTH - 4))
                 {
                     await SendServerMessageAsync($"{chunkIndex++}. {chunk}");
                 }
