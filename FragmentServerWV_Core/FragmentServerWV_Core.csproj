@@ -25,9 +25,6 @@
     <Content Include="hibernate.cfg.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Update="lobbies.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="settings.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
