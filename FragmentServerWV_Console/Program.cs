@@ -11,6 +11,7 @@ using Serilog;
 using Serilog.Formatting.Json;
 using System.Linq;
 using FragmentServerWV.Entities;
+using Serilog.Events;
 
 namespace FragmentServerWV_Console
 {
@@ -51,7 +52,7 @@ namespace FragmentServerWV_Console
                     var sinks = cfg.Get("sinks")?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     if (sinks.Contains("console", StringComparer.OrdinalIgnoreCase))
                     {
-                        logConfig.WriteTo.Console(Serilog.Events.LogEventLevel.Verbose);
+                        logConfig.WriteTo.Console();
                     }
                     if (sinks.Contains("file", StringComparer.OrdinalIgnoreCase))
                     {
@@ -72,6 +73,12 @@ namespace FragmentServerWV_Console
                             fileSizeLimitBytes: ONE_GIGABYTE,
                             encoding: Encoding.UTF8);
                     }
+
+                    // set the minimum level
+                    logConfig.MinimumLevel.Verbose();
+                    logConfig.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                        .Enrich.FromLogContext();
+
                     return logConfig.CreateLogger();
                 })
                 .AddSingleton<IClientProviderService, GameClientService>()
@@ -89,6 +96,7 @@ namespace FragmentServerWV_Console
             StringBuilder sb = new StringBuilder();
             sb.Append("http://").Append(args[0]).Append(":5000");
             return Host.CreateDefaultBuilder(args)
+                .UseSerilog(logger: p.GetRequiredService<ILogger>())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureServices((context, services) =>
