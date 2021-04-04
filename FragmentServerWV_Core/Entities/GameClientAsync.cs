@@ -32,7 +32,7 @@ namespace FragmentServerWV.Entities
         private NetworkStream ns;
         private TcpClient client;
         private uint clientIndex;
-        internal short currentLobbyIndex = -1;
+        //internal short currentLobbyIndex = -1;
         internal byte[] to_key;
         internal byte[] from_key;
         internal ushort client_seq_nr;
@@ -79,7 +79,6 @@ namespace FragmentServerWV.Entities
         public ushort _itemDonationQuantity = 0;
         public ushort currentGuildInvitaionSelection = 0;
         public ushort _rankingCategoryID = 0;
-        public ushort currentLobbyType = 0;
         #endregion Player Data
 
         #region Events
@@ -97,11 +96,6 @@ namespace FragmentServerWV.Entities
         /// Gets the current Client Index
         /// </summary>
         public int ClientIndex => (int)clientIndex;
-
-        /// <summary>
-        /// Gets the current Lobby Index
-        /// </summary>
-        public short LobbyIndex => currentLobbyIndex;
 
         /// <summary>
         /// Gets the currently logged in Player ID
@@ -330,9 +324,9 @@ namespace FragmentServerWV.Entities
                     await HandleLobbyRoomEntrance(argument);
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_STATUS_UPDATE:
-                    if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var rm))
+                    if (lobbyChatService.TryFindLobby(this, out var rm))
                     {
-                        await rm.DispatchStatusAsync(argument, (int)clientIndex);
+                        await rm.UpdateLobbyStatusAsync(argument, (int)clientIndex);
                     }
                     break;
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
@@ -374,7 +368,10 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(OpCodes.OPCODE_DATA_UNREGISTER_CHAROK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_EXITROOM:
-                    await lobbyChatService.AnnounceRoomDeparture((ushort)currentLobbyIndex, clientIndex);
+                    if (lobbyChatService.TryFindLobby(this, out var lobby))
+                    {
+                        await lobbyChatService.AnnounceRoomDeparture(lobby, clientIndex);
+                    }
                     await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_EXITROOM_OK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_RETURN_DESKTOP:
@@ -520,7 +517,7 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_EVENT:
-                    if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var lcr))
+                    if (lobbyChatService.TryFindLobby(this, out var lcr))
                     {
                         await lcr.SendPublicMessageAsync(argument, this.ClientIndex);
                     }
@@ -541,9 +538,8 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(0x787F, new byte[] { 0x00, 0x00 });
                     break;
                 case 0x788C:
-                    ushort destid = swap16(BitConverter.ToUInt16(argument, 2));
-                    //Server.Instance.LobbyChatRooms[room_index].DispatchPrivateBroadcast(argument, this.index, destid);
-                    if (lobbyChatService.TryGetLobby((ushort)LobbyIndex, out var p))
+                    var destid = swap16(BitConverter.ToUInt16(argument, 2));
+                    if (lobbyChatService.TryFindLobby(this, out var p))
                     {
                         await p.SendDirectMessageAsync(argument, ClientIndex, destid);
                     }
@@ -652,8 +648,8 @@ namespace FragmentServerWV.Entities
         private async Task HandleLobbyRoomEntrance(byte[] argument)
         {
             LobbyChatRoom room;
-            currentLobbyIndex = (short)swap16(BitConverter.ToUInt16(argument, 0));
-            currentLobbyType = swap16(BitConverter.ToUInt16(argument, 2));
+            var currentLobbyIndex = (short)swap16(BitConverter.ToUInt16(argument, 0));
+            var currentLobbyType = swap16(BitConverter.ToUInt16(argument, 2));
             logger.Information("Lobby Room ID: {@room_index}", currentLobbyIndex);
             logger.Information("Lobby Type ID: {@lobbyType}", currentLobbyType);
 
@@ -667,10 +663,9 @@ namespace FragmentServerWV.Entities
                 lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out room);
             }
 
-            await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Users.Count)));
-            room.Users.Add((int)this.clientIndex);
-            logger.Information("Client #" + this.clientIndex + " : Lobby '" + room.name + "' now has " + room.Users.Count + " Users");
-            await room.DispatchAllStatusAsync((int)this.clientIndex);
+            await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Clients.Count)));
+            await room.ClientJoinedLobbyAsync(this);
+            logger.Information("Client #" + this.clientIndex + " : Lobby '" + room.Name + "' now has " + room.Clients.Count + " Users");
         }
 
         private async Task HandleIncomingIpData(byte[] argument)
@@ -742,7 +737,7 @@ namespace FragmentServerWV.Entities
 
             foreach (var room in lobbyChatService.Lobbies.Values)
             {
-                if (room.type == OpCodes.LOBBY_TYPE_MAIN)
+                if (room.Type == OpCodes.LOBBY_TYPE_MAIN)
                 {
                     nonGuildLobbies.Add(room);
                 }
@@ -753,11 +748,11 @@ namespace FragmentServerWV.Entities
             {
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap16((ushort)room.ID)), 0, 2);
-                foreach (char c in room.name)
+                foreach (char c in room.Name)
                     m.WriteByte((byte)c);
                 m.WriteByte(0);
-                m.Write(BitConverter.GetBytes(swap16((ushort)room.Users.Count)), 0, 2);
-                m.Write(BitConverter.GetBytes(swap16((ushort)(room.Users.Count + 1))), 0, 2);
+                m.Write(BitConverter.GetBytes(swap16((ushort)room.Clients.Count)), 0, 2);
+                m.Write(BitConverter.GetBytes(swap16((ushort)(room.Clients.Count + 1))), 0, 2);
                 while (((m.Length + 2) % 8) != 0) m.WriteByte(0); // looks like some form of padding to align the message
                 await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_ENTRY_LOBBY, m.ToArray());
             }
@@ -1059,12 +1054,10 @@ namespace FragmentServerWV.Entities
         private async Task HandleInvitePlayerToGuild(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
-            // Fun fact: we don't check if we're in a guild lobby
-            // 'cause I think this is only possible to invoke from a guild lobby so
-            // screw it
-            if (lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out var guildLobby))
+            // This is probably only possible in the MAIN lobby so
+            if (lobbyChatService.TryFindLobby(this, out var lobby))
             {
-                await guildLobby.InviteClientToGuildAsync(argument, (int)this.clientIndex, u, _guildID);
+                await lobby.InviteClientToGuildAsync(argument, (int)this.clientIndex, u, _guildID);
                 logger.Information($"Invited Player ID {u}");
                 await SendDataPacket(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
             }

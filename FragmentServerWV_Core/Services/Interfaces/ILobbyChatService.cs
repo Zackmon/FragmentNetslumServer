@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using FragmentServerWV.Entities;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV.Services.Interfaces
@@ -54,7 +55,28 @@ namespace FragmentServerWV.Services.Interfaces
         /// <param name="clientIndex">The identifier of the client</param>
         /// <returns>A Task that intends to complete the departure announcement</returns>
         Task AnnounceRoomDeparture(ushort lobbyId, uint clientIndex);
+
+        /// <summary>
+        /// Initializes the Lobby Service
+        /// </summary>
         void Initialize();
+
+        /// <summary>
+        /// Attempts to locate the lobby where the client is currently at
+        /// </summary>
+        /// <param name="clientIndex">The index of the client</param>
+        /// <param name="lobbyChatRoom">The discovered <see cref="LobbyChatRoom"/></param>
+        /// <returns>True or false depending on whether or not the lobby was found</returns>
+        bool TryFindLobby(uint clientIndex, out LobbyChatRoom lobbyChatRoom);
+
+        /// <summary>
+        /// Attempts to locate the lobby where the client is currently at
+        /// </summary>
+        /// <param name="gameClientAsync">The game client reference</param>
+        /// <param name="lobbyChatRoom">The discovered <see cref="LobbyChatRoom"/></param>
+        /// <returns>True or false depending on whether or not the lobby was found</returns>
+        bool TryFindLobby(GameClientAsync gameClientAsync, out LobbyChatRoom lobbyChatRoom);
+
     }
 
 }

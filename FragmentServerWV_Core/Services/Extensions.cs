@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace FragmentServerWV.Services
@@ -175,6 +176,12 @@ namespace FragmentServerWV.Services
             result |= ((data >> 16) & 0xFF) << 8;
             result |= (data >> 24) & 0xFF;
             return result;
+        }
+
+        public static IEnumerable<string> ChunksUpto(this string str, int maxChunkSize)
+        {
+            for (int i = 0; i < str.Length; i += maxChunkSize)
+                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
 
     }

@@ -1,10 +1,11 @@
-﻿using FragmentServerWV.Enumerations;
+﻿using FragmentServerWV.Entities;
+using FragmentServerWV.Enumerations;
 using FragmentServerWV.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV.Services
@@ -37,6 +38,7 @@ namespace FragmentServerWV.Services
         public void Initialize()
         {
             this.mainLobby = GetOrAddLobby(1, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
+            this.mainLobby = GetOrAddLobby(2, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
         }
 
         public LobbyChatRoom GetOrAddLobby(ushort lobbyId, string lobbyName, ushort lobbyType, out bool isCreated)
@@ -47,7 +49,7 @@ namespace FragmentServerWV.Services
             {
                 localCreated = true;
                 this.logger.Information("Lobby {@lobbyId} does not exist. Creating a new Lobby named '{@lobbyName}'", lobbyId, lobbyName);
-                return new LobbyChatRoom(lobbyName, lobbyId, lobbyType, provider.GetRequiredService<IClientProviderService>());
+                return new LobbyChatRoom(lobbyName, lobbyId, lobbyType);
             });
             isCreated = localCreated;
             return lobby;
@@ -71,8 +73,7 @@ namespace FragmentServerWV.Services
         {
             logger.Information("Client #{@clientIndex} is leaving their lobby", clientIndex);
             await lobbyChatRoom.ClientLeavingRoomAsync((int)clientIndex);
-            lobbyChatRoom.Users.Remove((int)clientIndex);
-            logger.Information($"Lobby '{lobbyChatRoom.name}' now has {lobbyChatRoom.Users.Count:N0} Users");
+            logger.Information($"Lobby '{lobbyChatRoom.Name}' now has {lobbyChatRoom.Clients.Count:N0} Users");
             await Task.Yield();
         }
 
@@ -82,6 +83,27 @@ namespace FragmentServerWV.Services
             {
                 await AnnounceRoomDeparture(lobby, clientIndex);
             }
+        }
+
+        public bool TryFindLobby(uint clientIndex, out LobbyChatRoom lobbyChatRoom)
+        {
+            lobbyChatRoom = null;
+            foreach(var lobby in Lobbies)
+            {
+                var lobbyId = lobby.Key;
+                var lcr = lobby.Value;
+                if (lcr.Clients.Any(c => c.ClientIndex == clientIndex))
+                {
+                    lobbyChatRoom = lcr;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool TryFindLobby(GameClientAsync gameClientAsync, out LobbyChatRoom lobbyChatRoom)
+        {
+            return TryFindLobby((uint)gameClientAsync.ClientIndex, out lobbyChatRoom);
         }
     }
 

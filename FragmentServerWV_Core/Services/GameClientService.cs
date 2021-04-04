@@ -78,7 +78,7 @@ namespace FragmentServerWV.Services
             return false;
         }
 
-        private void Client_OnGameClientDisconnected(object sender, System.EventArgs e)
+        private void Client_OnGameClientDisconnected(object sender, EventArgs e)
         {
             if (!(sender is GameClientAsync client)) return;
             RemoveClient(client);
@@ -86,9 +86,9 @@ namespace FragmentServerWV.Services
             {
                 DBAcess.getInstance().setPlayerAsOffline(client.PlayerID);
             }
-            if (!client.IsAreaServer)
+            if (!client.IsAreaServer && lobbyChatService.TryFindLobby(client, out var lobby))
             {
-                lobbyChatService.AnnounceRoomDeparture((ushort)client.LobbyIndex, (uint)client.ClientIndex);
+                lobbyChatService.AnnounceRoomDeparture(lobby, (uint)client.ClientIndex);
             }
             client.OnGameClientDisconnected -= Client_OnGameClientDisconnected;
         }
