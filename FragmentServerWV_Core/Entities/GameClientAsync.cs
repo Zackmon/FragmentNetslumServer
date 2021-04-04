@@ -107,6 +107,11 @@ namespace FragmentServerWV.Entities
         /// </summary>
         public bool IsAreaServer => isAreaServer;
 
+        /// <summary>
+        /// Gets the friendly display name for this client
+        /// </summary>
+        public string Name => encoding.GetString(isAreaServer ? areaServerName : char_id);
+
         #endregion
 
         #region Area Server Properties
@@ -158,6 +163,8 @@ namespace FragmentServerWV.Entities
             this.bulletinBoardService = bulletinBoardService;
         }
 
+
+
         /// <summary>
         /// Initializes the client with the appropriate seed data
         /// </summary>
@@ -165,6 +172,7 @@ namespace FragmentServerWV.Entities
         /// <param name="tcpClient">The connected <see cref="TcpClient"/></param>
         public void InitializeClient(uint clientIndex, TcpClient tcpClient)
         {
+            logger.Verbose("Client #{@clientIndex} is being initialized", clientIndex);
             this.client = tcpClient;
             this.clientIndex = clientIndex;
             ns = client.GetStream();
@@ -174,6 +182,7 @@ namespace FragmentServerWV.Entities
             from_crypto = new Crypto();
             ipEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
             tokenSource = new CancellationTokenSource();
+            logger.Verbose("Client #{@clientIndex} is connecting from {@ipEndPoint}", clientIndex, ipEndPoint);
 
             double pingTime = 5000;
             var rawPing = simpleConfiguration.Get("ping", "5000");
@@ -191,14 +200,15 @@ namespace FragmentServerWV.Entities
             this.pingTimer.Elapsed += PingTimer_Elapsed;
         }
 
-
         /// <summary>
         /// Tells the Game Client to disconnect safely
         /// </summary>
         public void Exit()
         {
+            logger.Verbose("Client #{@clientIndex} is being requested to Exit", clientIndex);
             tokenSource.Cancel();
         }
+
 
 
         private async Task InternalConnectionLoop(CancellationToken token)
@@ -206,7 +216,11 @@ namespace FragmentServerWV.Entities
             var tickRate = Convert.ToInt32(simpleConfiguration.Get("tick", "30"));
             try
             {
-                using (token.Register(() => client.Close()))
+                using (token.Register(() =>
+                {
+                    logger.Verbose("Client #{@clientIndex} has been closed safely", clientIndex);
+                    client.Close();
+                }))
                 {
                     while (!token.IsCancellationRequested)
                     {
@@ -215,7 +229,7 @@ namespace FragmentServerWV.Entities
 
                         if (!readResult)
                         {
-                            logger.Debug("Client #{@clientIndex} has no data at this time; suspending for a short duration", clientIndex);
+                            logger.Verbose("Client #{@clientIndex} has no data at this time; suspending for {@tickRate} milliseconds", clientIndex, tickRate);
                             await Task.Delay(TimeSpan.FromMilliseconds(tickRate));
                         }
                         else
@@ -265,7 +279,7 @@ namespace FragmentServerWV.Entities
         private async Task HandleIncomingPacket(PacketAsync packet)
         {
             var responseStream = new MemoryStream();
-            logger.LogData(packet.Data, packet.Code, (int)clientIndex, "Recv Data", packet.ChecksumInPacket, packet.ChecksumOfPacket);
+            logger.LogData(packet.Data, packet.Code, (int)clientIndex, nameof(HandleIncomingPacket), packet.ChecksumInPacket, packet.ChecksumOfPacket);
             switch (packet.Code)
             {
                 case 0x0002: // I don't know this opcode
@@ -298,8 +312,8 @@ namespace FragmentServerWV.Entities
                     await HandleIncomingDataPacket(packet);
                     break;
                 default:
-                    logger.Information("Client Handler #" + clientIndex + ": Received packet with unknown code");
-                    // we might break here but for now we're OK
+                    // For now we are not disconnecting on an unhandled code
+                    logger.Information("Client Handler #{@clientIndex}: Received packet with unhandled code", clientIndex);
                     break;
             }
         }
@@ -313,7 +327,7 @@ namespace FragmentServerWV.Entities
             var m = new MemoryStream();
             await m.WriteAsync(data, 10, arglen);
             var argument = m.ToArray();
-            logger.LogData(data, code, (int)clientIndex, "Recv Data 0X30", 0, 0);
+            logger.LogData(data, code, (int)clientIndex, nameof(HandleIncomingDataPacket), packet.ChecksumInPacket, packet.ChecksumOfPacket);
 
             switch(code)
             {
@@ -331,19 +345,10 @@ namespace FragmentServerWV.Entities
                     await HandleLobbyRoomEntrance(argument);
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_STATUS_UPDATE:
-                    if (lobbyChatService.TryFindLobby(this, out var rm))
-                    {
-                        await rm.UpdateLobbyStatusAsync(argument, (int)clientIndex);
-                    }
+                    await HandleLobbyRoomUpdate(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
-                    int end = argument.Length - 1;
-                    while (argument[end] == 0) end--;
-                    end++;
-                    m = new MemoryStream();
-                    m.Write(argument, 65, end - 65);
-                    publish_data_1 = m.ToArray();
-                    await SendDataPacket(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1_OK, new byte[] { 0x00, 0x01 });
+                    m = await HandlePublishDetails1(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_IPPORT:
                     await HandleIncomingIpData(argument);
@@ -544,7 +549,7 @@ namespace FragmentServerWV.Entities
                 case 0x787E: // enter ranking screen
                     await SendDataPacket(0x787F, new byte[] { 0x00, 0x00 });
                     break;
-                case 0x788C:
+                case 0x788C: // looks to be sending a direct message
                     var destid = swap16(BitConverter.ToUInt16(argument, 2));
                     if (lobbyChatService.TryFindLobby(this, out var p))
                     {
@@ -552,24 +557,21 @@ namespace FragmentServerWV.Entities
                     }
                     break;
                 case OpCodes.OPCODE_DATA_SELECT_CHAR:
-
                     await SendDataPacket(OpCodes.OPCODE_DATA_SELECT_CHAROK, new byte[] { 0x00, 0x00 });
-
                     break;
                 case OpCodes.OPCODE_DATA_SELECT2_CHAR:
-
                     await SendDataPacket(OpCodes.OPCODE_DATA_SELECT2_CHAROK, new byte[] { 0x30, 0x30, 0x30, 0x30 });
                     break;
                 case OpCodes.OPCODE_DATA_LOGON:
                     if (argument[1] == OpCodes.OPCODE_DATA_SERVERKEY_CHANGE)
                     {
-                        logger.Information("Client #" + this.ClientIndex + " : New Area Server Joined");
+                        logger.Information("Client #{@clientIndex} has identified itself as an Area Server", clientIndex);
                         isAreaServer = true;
-                        await SendDataPacket(0x78AC, new byte[] { 0xDE, 0xAD });
+                        await SendDataPacket(OpCodes.OPCODE_DATA_AREASERVER_OK, new byte[] { 0xDE, 0xAD });
                     }
                     else
                     {
-                        logger.Information("Client #" + ClientIndex + " : New Game Client Joined");
+                        logger.Information("Client #{@clientIndex} has identified itself as a Game Client (PS2 / PCSX2)", clientIndex);
                         await SendDataPacket(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] { 0x74, 0x32 });
                     }
 
@@ -578,14 +580,14 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(OpCodes.OPCODE_DATA_AS_PUBLISH_OK, new byte[] { 0x00, 0x00 });
                     break;
                 default:
-                    logger.Information("Client #" + this.ClientIndex +
-                                  " : \n !!!UNKNOWN DATA CODE RECEIVED, PLEASE REPORT : 0x" +
-                                  code.ToString("X4") + "!!!\n");
+                    logger.Warning("Client #{@clientIndex} has submitted an unknown opcode: 0x{@code:X4}", clientIndex, code);
                     break;
             }
 
 
         }
+
+
 
         internal async Task SendRegularPacket(ushort code, byte[] data, uint checksum)
         {
@@ -596,7 +598,7 @@ namespace FragmentServerWV.Entities
                 responseStream.WriteByte((byte)(checksum & 0xFF));
                 await responseStream.WriteAsync(data, 0, data.Length);
                 var buff = responseStream.ToArray();
-                logger.LogData(buff, code, (int)clientIndex, "Send Data", (ushort)checksum, (ushort)checksum);
+                logger.LogData(buff, code, (int)clientIndex, nameof(SendRegularPacket), (ushort)checksum, (ushort)checksum);
                 buff = to_crypto.Encrypt(buff);
                 var len = (ushort)(buff.Length + 2);
                 responseStream = new MemoryStream();
@@ -609,7 +611,7 @@ namespace FragmentServerWV.Entities
             }
             catch (Exception e)
             {
-                logger.Error(e, "An error has occurred sending a packet to the Client; disconnecting the client for now");
+                logger.Error(e, "There was an issue sending a packet of data to Client #{@clientIndex}; disconnecting the Client", clientIndex);
                 tokenSource.Cancel();
             }
 
@@ -627,11 +629,12 @@ namespace FragmentServerWV.Entities
                 await responseStream.WriteAsync(data, 0, data.Length);
                 var checksum = Crypto.Checksum(responseStream.ToArray());
                 while (((responseStream.Length + 2) & 7) != 0) responseStream.WriteByte(0);
+                logger.LogData(responseStream.ToArray(), code, (int)clientIndex, nameof(SendDataPacket), (ushort)checksum, (ushort)checksum);
                 await SendRegularPacket(OpCodes.OPCODE_DATA, responseStream.ToArray(), checksum);
             }
             catch (Exception e)
             {
-                logger.Error(e, "An error has occurred sending a data packet to the Client; disconnecting the client for now");
+                logger.Error(e, "There was an issue sending a packet of data to Client #{@clientIndex}; disconnecting the Client", clientIndex);
                 tokenSource.Cancel();
             }
         }
@@ -643,9 +646,9 @@ namespace FragmentServerWV.Entities
                 pingTimer.Dispose();
                 return;
             }
-            logger.Debug($"Client #{clientIndex} is ready to PING");
+            logger.Debug("Client #{@clientIndex} is ready to PING", clientIndex);
             await SendDataPacket(OpCodes.OPCODE_DATA_PING, new byte[0]);
-            logger.Debug($"Client #{clientIndex} has finished pinging");
+            logger.Debug("Client #{@clientIndex} has finished pinging", clientIndex);
         }
 
 
@@ -1205,6 +1208,27 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x789d, GuildManagementService.GetInstance().GetGuildInfo(guildId));
         }
 
+        private async Task<MemoryStream> HandlePublishDetails1(byte[] argument)
+        {
+            MemoryStream m;
+            int end = argument.Length - 1;
+            while (argument[end] == 0) end--;
+            end++;
+            m = new MemoryStream();
+            m.Write(argument, 65, end - 65);
+            publish_data_1 = m.ToArray();
+            await SendDataPacket(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1_OK, new byte[] { 0x00, 0x01 });
+            return m;
+        }
+
+        private async Task HandleLobbyRoomUpdate(byte[] argument)
+        {
+            if (lobbyChatService.TryFindLobby(this, out var rm))
+            {
+                await rm.UpdateLobbyStatusAsync(argument, (int)clientIndex);
+            }
+        }
+
         #endregion
 
 
@@ -1264,14 +1288,14 @@ namespace FragmentServerWV.Entities
 
             charModelFile = "xf" + classLetter + modelNumber + modelType + "_" + colorCode;
 
-            logger.Information("Player Information");
-            logger.Information("gold coin count " + goldCoinCount);
-            logger.Information("silver coin count " + silverCoinCount);
-            logger.Information("bronze coin count " + bronzeCoinCount);
+            //logger.Information("Player Information");
+            //logger.Information("gold coin count " + goldCoinCount);
+            //logger.Information("silver coin count " + silverCoinCount);
+            //logger.Information("bronze coin count " + bronzeCoinCount);
 
-            logger.Information("Character Date \n save_slot " + save_slot + "\n char_id " + encoding.GetString(save_id) + " \n char_name " + encoding.GetString(char_id) +
-                              "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting " + encoding.GetString(greeting) + "\n charmodel " + char_model + "\n char_hp " + char_HP +
-                              "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter " + online_god_counter + "\n offline god counter " + offline_godcounter + "\n\n\n\n full byte araray " + BitConverter.ToString(data));
+            //logger.Information("Character Date \n save_slot " + save_slot + "\n char_id " + encoding.GetString(save_id) + " \n char_name " + encoding.GetString(char_id) +
+            //                  "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting " + encoding.GetString(greeting) + "\n charmodel " + char_model + "\n char_hp " + char_HP +
+            //                  "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter " + online_god_counter + "\n offline god counter " + offline_godcounter + "\n\n\n\n full byte araray " + BitConverter.ToString(data));
 
             return DBAcess.getInstance().PlayerLogin(this);
         }
