@@ -37,8 +37,8 @@ namespace FragmentServerWV.Services
 
         public void Initialize()
         {
-            this.mainLobby = GetOrAddLobby(1, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
-            this.mainLobby = GetOrAddLobby(2, "Main Lobby", OpCodes.LOBBY_TYPE_MAIN, out var _);
+            this.mainLobby = GetOrAddLobby(1, "Main Lobby 1", OpCodes.LOBBY_TYPE_MAIN, out var _);
+            this.mainLobby = GetOrAddLobby(2, "Main Lobby 2", OpCodes.LOBBY_TYPE_MAIN, out var _);
         }
 
         public LobbyChatRoom GetOrAddLobby(ushort lobbyId, string lobbyName, ushort lobbyType, out bool isCreated)
