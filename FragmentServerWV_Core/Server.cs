@@ -105,31 +105,36 @@ namespace FragmentServerWV
             logger.Information("The server has been told to shutdown...");
             this.clientConnectionService.EndListening();
             logger.Information("New connections are no longer being accepted");
-            foreach (var lcs in lobbyChatService.Lobbies)
+
+            if (gameClientService.Clients.Any())
             {
-                var lobby = lcs.Value;
-                await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
-                await lobby.SendServerMessageAsync("IN APPROX 1 MINUTE");
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
-                await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
-                await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+                foreach (var lcs in lobbyChatService.Lobbies)
+                {
+                    var lobby = lcs.Value;
+                    await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
+                    await lobby.SendServerMessageAsync("IN APPROX 1 MINUTE");
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+                    await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
+                    await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(30));
+                foreach (var lcs in lobbyChatService.Lobbies)
+                {
+                    var lobby = lcs.Value;
+                    await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
+                    await lobby.SendServerMessageAsync("IN APPROX 30 SECONDS");
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+                    await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
+                    await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+                }
+                await Task.Delay(TimeSpan.FromSeconds(30));
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(30));
-            foreach (var lcs in lobbyChatService.Lobbies)
-            {
-                var lobby = lcs.Value;
-                await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
-                await lobby.SendServerMessageAsync("IN APPROX 30 SECONDS");
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
-                await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
-                await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
-            }
-            await Task.Delay(TimeSpan.FromSeconds(30));
-
-
+            logger.Information("The server is now closing");
             foreach (var client in GameClientService.Clients)
             {
+                logger.Verbose($"Shutting down {client.Name}");
                 client.Exit();
             }
 
