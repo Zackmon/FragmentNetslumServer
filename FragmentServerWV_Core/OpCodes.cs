@@ -472,6 +472,7 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
         public const ushort OPCODE_PRIVATE_BROADCAST = 0x788c;
         public const ushort OPCODE_GUILD_VIEW = 0x772c;
         public const ushort OPCODE_DATA_GET_GUILD_INFO_RESPONSE = 0x7740;
+        public const ushort OPCODE_DATA_AREASERVER_OK = 0x78AC;
 
 
         public const ushort OPCODE_DATA_GUILD_CREATE = 0x7600;
