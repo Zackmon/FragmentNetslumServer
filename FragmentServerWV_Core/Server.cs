@@ -33,7 +33,7 @@ namespace FragmentServerWV
         private readonly CancellationTokenSource tokenSource;
         private readonly IPAddress ipAddress;
         private readonly ushort port;
-
+        private readonly ILogger logger;
         private readonly IClientProviderService gameClientService;
         private readonly ILobbyChatService lobbyChatService;
         private readonly IClientConnectionService clientConnectionService;
@@ -63,6 +63,7 @@ namespace FragmentServerWV
 
 
         public Server(
+            ILogger logger,
             IClientProviderService gameClientService,
             ILobbyChatService lobbyChatService,
             IClientConnectionService clientConnectionService,
@@ -70,8 +71,7 @@ namespace FragmentServerWV
         {
             IPAddress.TryParse(configuration.Get("ip"), out this.ipAddress);
             ushort.TryParse(configuration.Get("port"), out this.port);
-
-
+            this.logger = logger;
             this.gameClientService = gameClientService;
             this.lobbyChatService = lobbyChatService;
             this.clientConnectionService = clientConnectionService;
@@ -90,9 +90,9 @@ namespace FragmentServerWV
         /// <summary>
         /// Requests for the server to stop listening
         /// </summary>
-        public void Stop()
+        public async Task Stop()
         {
-            this.SafeShutdownInternal();
+            await this.SafeShutdownInternal();
         }
 
         public void StartProxy(string targetIp) => throw new NotImplementedException("TODO: Tell formless to look at C++ code if you need this otherwise nah.");
@@ -100,10 +100,39 @@ namespace FragmentServerWV
 
 
 
-        private void SafeShutdownInternal()
+        private async Task SafeShutdownInternal()
         {
+            logger.Information("The server has been told to shutdown...");
+            this.clientConnectionService.EndListening();
+            logger.Information("New connections are no longer being accepted");
+            foreach (var lcs in lobbyChatService.Lobbies)
+            {
+                var lobby = lcs.Value;
+                await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
+                await lobby.SendServerMessageAsync("IN APPROX 1 MINUTE");
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
+                await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
+                await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            foreach (var lcs in lobbyChatService.Lobbies)
+            {
+                var lobby = lcs.Value;
+                await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
+                await lobby.SendServerMessageAsync("IN APPROX 30 SECONDS");
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
+                await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
+                await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+            }
+            await Task.Delay(TimeSpan.FromSeconds(30));
+
+
             foreach (var client in GameClientService.Clients)
+            {
                 client.Exit();
+            }
+
         }
 
     }
