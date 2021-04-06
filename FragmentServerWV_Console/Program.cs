@@ -75,7 +75,7 @@ namespace FragmentServerWV_Console
                     }
 
                     // set the minimum level
-                    logConfig.MinimumLevel.Verbose();
+                    logConfig.MinimumLevel.Warning();
                     logConfig.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                         .Enrich.FromLogContext();
 
