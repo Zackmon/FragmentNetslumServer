@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -67,12 +68,21 @@ namespace FragmentServerWV.Services
             using (ISession session = _sessionFactory.OpenSession())
             {
                 using ITransaction transaction = session.BeginTransaction();
-                threadLists.AddRange(
-                    session.Query<BbsThreadModel>().Where
-                            (x => x.categoryID == categoryID)
-                        .ToList());
+                var threads = session.CreateSQLQuery(@"SELECT
+	                th.threadID,
+                    th.threadTitle,
+                    th.categoryID
+                FROM
+	                BBS_Threads th
+                INNER JOIN BBS_Post_Meta pm ON pm.threadID = th.threadID
+                ORDER BY
+	                pm.Date DESC")
+                    .AddEntity(typeof(BbsThreadModel))
+                    .List<BbsThreadModel>()
+                    .Where(x => x.categoryID == categoryID)
+                    .Distinct(new BbsThreadModelComparer());
+                threadLists.AddRange(threads);
                 transaction.Commit();
-
                 session.Close();
             }
 
@@ -751,5 +761,14 @@ namespace FragmentServerWV.Services
             get => _messageOfTheDay;
             set => _messageOfTheDay = value;
         }
+
+
+        private sealed class BbsThreadModelComparer : IEqualityComparer<BbsThreadModel>
+        {
+            public bool Equals([AllowNull] BbsThreadModel x, [AllowNull] BbsThreadModel y) => x.threadID == y.threadID;
+
+            public int GetHashCode([DisallowNull] BbsThreadModel obj) => obj.threadID.GetHashCode();
+        }
+
     }
 }
