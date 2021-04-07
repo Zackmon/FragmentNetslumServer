@@ -34,6 +34,10 @@ namespace FragmentServerWV.Services
 
         public async Task<byte[]> ConvertThreadDetailsToBytesAsync(BbsPostMetaModel postMetaModel)
         {
+            const int MAX_USERNAME_LENGTH = 16;
+            const int MAX_SUBTITLE_LENGTH = 17;
+            const int MAX_TITLE_LENGTH = 32;
+
             var m = new MemoryStream();
             await m.WriteAsync(BitConverter.GetBytes(swap32((uint)postMetaModel.unk0)), 0, 4); //unk
             await m.WriteAsync(BitConverter.GetBytes(swap32((uint)postMetaModel.postID)), 0, 4); //postid
@@ -44,10 +48,10 @@ namespace FragmentServerWV.Services
             await m.WriteAsync(BitConverter.GetBytes(swap32((uint)secondsSinceEpoch)), 0, 4); //date
 
             // Setting the username
-            if (postMetaModel.username.Length > 16) //if the lenghth is more than 15 char then truncate 
+            if (postMetaModel.username.Length > MAX_USERNAME_LENGTH)
             {
-                byte[] temp = new byte[17];
-                Buffer.BlockCopy(postMetaModel.username, 0, temp, 0, 16);
+                byte[] temp = new byte[MAX_USERNAME_LENGTH];
+                Buffer.BlockCopy(postMetaModel.username, 0, temp, 0, MAX_USERNAME_LENGTH);
                 postMetaModel.username = temp;
             }
 
@@ -56,17 +60,16 @@ namespace FragmentServerWV.Services
             while (m.Length < 0x20) m.WriteByte(0);
 
             //setting the Subtitle
-            if (postMetaModel.subtitle.Length > 17) //if the lengh is more than 17 then truncate
+            if (postMetaModel.subtitle.Length > MAX_SUBTITLE_LENGTH)
             {
-                byte[] temp = new byte[17];
-                Buffer.BlockCopy(postMetaModel.subtitle, 0, temp, 0, 17);
+                byte[] temp = new byte[MAX_SUBTITLE_LENGTH];
+                Buffer.BlockCopy(postMetaModel.subtitle, 0, temp, 0, MAX_SUBTITLE_LENGTH);
                 postMetaModel.subtitle = temp;
             }
 
             byte[] subtitleBytes = postMetaModel.subtitle;
             await m.WriteAsync(subtitleBytes, 0, subtitleBytes.Length); // subtitles
             while (m.Length < 0x32) m.WriteByte(0);
-
 
             //setting unk3
             if (postMetaModel.unk3.Length > 45)
@@ -76,16 +79,13 @@ namespace FragmentServerWV.Services
 
             byte[] unk3Bytes = encoding.GetBytes(postMetaModel.unk3);
             await m.WriteAsync(unk3Bytes, 0, unk3Bytes.Length);
-
             while (m.Length < 0x60) m.WriteByte(0);
 
-
             //setting the title
-
-            if (postMetaModel.title.Length > 32) //if the length is more than 17 then truncate
+            if (postMetaModel.title.Length > MAX_TITLE_LENGTH)
             {
-                byte[] temp = new byte[32];
-                Buffer.BlockCopy(postMetaModel.title, 0, temp, 0, 32);
+                byte[] temp = new byte[MAX_TITLE_LENGTH];
+                Buffer.BlockCopy(postMetaModel.title, 0, temp, 0, MAX_TITLE_LENGTH);
                 postMetaModel.title = temp;
             }
 
