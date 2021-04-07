@@ -134,7 +134,7 @@ namespace FragmentServerWV.Entities
             }
             finally
             {
-                logger.LogData(Data, Code, -1, "", ChecksumInPacket, ChecksumOfPacket);
+                //logger.LogData(Data, Code, -1, "", ChecksumInPacket, ChecksumOfPacket);
                 logger.Verbose("Completed reading network packet...");
             }
         }
