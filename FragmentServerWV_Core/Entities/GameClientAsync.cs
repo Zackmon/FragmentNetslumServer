@@ -18,9 +18,12 @@ namespace FragmentServerWV.Entities
 
         private CancellationTokenSource tokenSource;
         private System.Timers.Timer pingTimer;
+
         private readonly Encoding encoding;
         private readonly SimpleConfiguration simpleConfiguration;
-        
+        private readonly TimeSpan DefaultPingTimeout;
+        private readonly TimeSpan EnhancedPingTimeout = TimeSpan.FromMilliseconds(500);
+
         internal IPEndPoint ipEndPoint;
         private Crypto to_crypto;
         private Crypto from_crypto;
@@ -32,7 +35,6 @@ namespace FragmentServerWV.Entities
         private NetworkStream ns;
         private TcpClient client;
         private uint clientIndex;
-        //internal short currentLobbyIndex = -1;
         internal byte[] to_key;
         internal byte[] from_key;
         internal ushort client_seq_nr;
@@ -161,6 +163,15 @@ namespace FragmentServerWV.Entities
             this.clientProviderService = clientProviderService;
             this.mailService = mailService;
             this.bulletinBoardService = bulletinBoardService;
+
+            double pingTime = 5000;
+            var rawPing = simpleConfiguration.Get("ping", "5000");
+            if (!double.TryParse(rawPing, out pingTime))
+            {
+                logger.Warning($"Unable to process the keep-alive ping value ({rawPing}). Defaulting to 5 seconds.");
+            }
+            DefaultPingTimeout = TimeSpan.FromMilliseconds(pingTime);
+
         }
 
 
@@ -184,15 +195,8 @@ namespace FragmentServerWV.Entities
             tokenSource = new CancellationTokenSource();
             logger.Verbose("Client #{@clientIndex} is connecting from {@ipEndPoint}", clientIndex, ipEndPoint);
 
-            double pingTime = 5000;
-            var rawPing = simpleConfiguration.Get("ping", "5000");
-            if (!double.TryParse(rawPing, out pingTime))
-            {
-                logger.Warning($"Unable to process the keep-alive ping value ({rawPing}). Defaulting to 5 seconds.");
-            }
-
             Task.Run(async () => await InternalConnectionLoop(tokenSource.Token));
-            this.pingTimer = new System.Timers.Timer(pingTime)
+            this.pingTimer = new System.Timers.Timer(DefaultPingTimeout.TotalMilliseconds)
             {
                 AutoReset = true,
                 Enabled = true
@@ -329,7 +333,13 @@ namespace FragmentServerWV.Entities
             var argument = m.ToArray();
             logger.LogData(data, code, (int)clientIndex, nameof(HandleIncomingDataPacket), packet.ChecksumInPacket, packet.ChecksumOfPacket);
 
-            switch(code)
+            // Reset the ping timer
+            if (this.pingTimer.Interval != DefaultPingTimeout.TotalMilliseconds)
+            {
+                this.pingTimer.Interval = DefaultPingTimeout.TotalMilliseconds;
+            }
+
+            switch (code)
             {
                 case OpCodes.OPCODE_DATA_PING:
                 case OpCodes.OPCODE_DATA_LOBBY_FAVORITES_AS_INQUIRY:
@@ -847,6 +857,10 @@ namespace FragmentServerWV.Entities
 
                     await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_ENTRY_SERVER, m.ToArray());
                 }
+
+                // Shorten the TTL / ping timer so we can detect more
+                // quickly when a player disconnects and hops over to an area server.
+                pingTimer.Interval = EnhancedPingTimeout.TotalMilliseconds;
 
             }
         }
