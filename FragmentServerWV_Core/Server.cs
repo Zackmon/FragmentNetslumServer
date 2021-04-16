@@ -1,6 +1,7 @@
 ﻿using FragmentServerWV.Exceptions;
 using FragmentServerWV.Services;
 using FragmentServerWV.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -28,41 +29,21 @@ namespace FragmentServerWV
     /// </remarks>
     public sealed class Server
     {
-        private const int ONE_GIGABYTE = 1073741824;
 
-        // This is our only static variable in this class.
-        // Everything else will be instance specific.
-        // Maintaining state in a global static class is
-        // notoriously difficult and exposing ONLY a single
-        // static property at least narrows this window
-        // considerably. In the future, I may suggest introducing
-        // a DI framework of sorts to piece together everything
-        private static Server instance;
         private readonly CancellationTokenSource tokenSource;
         private readonly IPAddress ipAddress;
         private readonly ushort port;
-
+        private readonly ILogger logger;
         private readonly IClientProviderService gameClientService;
         private readonly ILobbyChatService lobbyChatService;
         private readonly IClientConnectionService clientConnectionService;
-        private readonly IUnityContainer container;
         
 
 
         /// <summary>
         /// Gets the globally available instance of <see cref="Server"/>
         /// </summary>
-        public static Server Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new Server();
-                }
-                return instance;
-            }
-        }
+        public static Server Instance { get; private set; }
 
         /// <summary>
         /// Gets the token for cancellation
@@ -79,40 +60,21 @@ namespace FragmentServerWV
         /// </summary>
         public ILobbyChatService LobbyChatService => lobbyChatService;
 
-        /// <summary>
-        /// Gets the default <see cref="IUnityContainer"/> that the entire system should be using
-        /// </summary>
-        /// <remarks>
-        /// End state: Nobody uses this property.
-        /// </remarks>
-        public IUnityContainer Container => container;
 
 
-        /// <summary>
-        /// Creates a new instance of <see cref="Server"/> using the information exposed from the <see cref="Config"/> class
-        /// </summary>
-        /// <remarks>
-        /// If any of the configuration items has an invalid entry, you might see a weird error coming from the constructor. Verify the settings text file and ensure that:
-        /// 1. ip is set to at least 0.0.0.0
-        /// 2. port is set to a valid number in the range of 1 <= x <= 65535
-        /// 3. logsize is a valid POSITIVE number. While logsize can be negative, you're in for a bad time if you put this as negative
-        /// </remarks>
-        public Server() : this(
-            IPAddress.Parse(Config.configs["ip"]),
-            Convert.ToUInt16(Config.configs["port"])) { }
-
-        internal Server(
-            IPAddress ipAddress,
-            ushort port)
+        public Server(
+            ILogger logger,
+            IClientProviderService gameClientService,
+            ILobbyChatService lobbyChatService,
+            IClientConnectionService clientConnectionService,
+            SimpleConfiguration configuration)
         {
-            this.ipAddress = ipAddress;
-            this.port = port;
-            container = this.InitializeContainer();
-
-
-            this.gameClientService = container.Resolve<IClientProviderService>();
-            this.lobbyChatService = container.Resolve<ILobbyChatService>();
-            this.clientConnectionService = container.Resolve<IClientConnectionService>();
+            IPAddress.TryParse(configuration.Get("ip"), out this.ipAddress);
+            ushort.TryParse(configuration.Get("port"), out this.port);
+            this.logger = logger;
+            this.gameClientService = gameClientService;
+            this.lobbyChatService = lobbyChatService;
+            this.clientConnectionService = clientConnectionService;
             this.tokenSource = new CancellationTokenSource();
         }
 
@@ -128,10 +90,9 @@ namespace FragmentServerWV
         /// <summary>
         /// Requests for the server to stop listening
         /// </summary>
-        public void Stop()
+        public async Task Stop()
         {
-
-            this.SafeShutdownInternal();
+            await this.SafeShutdownInternal();
         }
 
         public void StartProxy(string targetIp) => throw new NotImplementedException("TODO: Tell formless to look at C++ code if you need this otherwise nah.");
@@ -139,51 +100,43 @@ namespace FragmentServerWV
 
 
 
-        private void SafeShutdownInternal()
+        private async Task SafeShutdownInternal()
         {
-            foreach (var client in GameClientService.Clients)
-                client.Exit();
-        }
+            logger.Information("The server has been told to shutdown...");
+            this.clientConnectionService.EndListening();
+            logger.Information("New connections are no longer being accepted");
 
-        private IUnityContainer InitializeContainer()
-        {
-            return new UnityContainer()
-                .RegisterFactory<ILogger>((container) =>
+            if (gameClientService.Clients.Any())
+            {
+                foreach (var lcs in lobbyChatService.Lobbies)
                 {
-                    var logConfig = new LoggerConfiguration();
+                    var lobby = lcs.Value;
+                    await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
+                    await lobby.SendServerMessageAsync("IN APPROX 1 MINUTE");
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+                    await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
+                    await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+                }
 
-                    // configure the sinks appropriately
-                    var sinks = Config.configs["sinks"]?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    if (sinks.Contains("console", StringComparer.OrdinalIgnoreCase))
-                    {
-                        logConfig.WriteTo.Console();
-                    }
-                    if (sinks.Contains("file", StringComparer.OrdinalIgnoreCase))
-                    {
-                        var path = Config.configs["folder"];
-                        if (!System.IO.Directory.Exists(path))
-                        {
-                            System.IO.Directory.CreateDirectory(path);
-                        }
+                await Task.Delay(TimeSpan.FromSeconds(30));
+                foreach (var lcs in lobbyChatService.Lobbies)
+                {
+                    var lobby = lcs.Value;
+                    await lobby.SendServerMessageAsync("ATTN: SERVER WILL CLOSE");
+                    await lobby.SendServerMessageAsync("IN APPROX 30 SECONDS");
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+                    await lobby.SendServerMessageAsync("TRANSFER TO AREA SERVER");
+                    await lobby.SendServerMessageAsync("OR YOU WILL BE DC'D");
+                }
+                await Task.Delay(TimeSpan.FromSeconds(30));
+            }
 
-                        logConfig.WriteTo.File(
-                            formatter: new JsonFormatter(),
-                            path: path,
-                            buffered: true,
-                            flushToDiskInterval: TimeSpan.FromMinutes(1),
-                            rollingInterval: RollingInterval.Minute,
-                            rollOnFileSizeLimit: true,
-                            retainedFileCountLimit: 31,
-                            encoding: Encoding.UTF8);
-                    }
-
-
-
-                    return logConfig.CreateLogger();
-                }, new ContainerControlledLifetimeManager())
-                .RegisterSingleton<IClientProviderService, GameClientService>()
-                .RegisterSingleton<IClientConnectionService, ClientConnectionService>()
-                .RegisterSingleton<ILobbyChatService, LobbyChatService>();
+            logger.Information("The server is now closing");
+            foreach (var client in GameClientService.Clients)
+            {
+                logger.Verbose($"Shutting down {client.Name}");
+                client.Exit();
+            }
 
         }
 

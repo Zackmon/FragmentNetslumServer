@@ -9,7 +9,7 @@ namespace FragmentServerWV.Services.Interfaces
     /// <remarks>
     /// The implementation of this service should not block at any instance
     /// </remarks>
-    public interface IClientConnectionService
+    public interface IClientConnectionService: IBaseService
     {
 
         /// <summary>
@@ -39,6 +39,14 @@ namespace FragmentServerWV.Services.Interfaces
         /// As a programmer note, this is more like disabling a 'login' server rather than shutting down existing connections
         /// </remarks>
         void EndListening();
+
+        /// <summary>
+        /// Restarts <see cref="IClientConnectionService"/> in the event that it was shutdown
+        /// </summary>
+        /// <remarks>
+        /// This method will do nothing if the system is still running properly
+        /// </remarks>
+        void RestartService();
 
     }
 

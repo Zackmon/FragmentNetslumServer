@@ -101,6 +101,8 @@ dataType 5 = userGreeting
         public const ushort OPCODE_DATA_LOBBY_ENTERROOM = 0x7006;
         public const ushort OPCODE_DATA_LOBBY_ENTERROOM_OK = 0x7007;
 
+        public const ushort OPCODE_DATA_LOBBY_STATUS_UPDATE = 0x7009;
+
         public const ushort OPCODE_DATA_LOBBY_CHATROOM_GETLIST = 0x7406;
         public const ushort OPCODE_DATA_LOBBY_CHATROOM_CATEGORY = 0x7407;
 
@@ -256,14 +258,16 @@ struct registerChar
         public const ushort OPCODE_DATA_BBS_THREAD_GETMENU = 0x7818;
         public const ushort OPCODE_DATA_BBS_THREAD_LIST = 0x7819;
         public const ushort OPCODE_DATA_BBS_ENTRY_POST_META = 0x781a;
-
         public const ushort OPCODE_DATA_BBS_THREAD_ENTRY_POST = 0x781b;
+        public const ushort OPCODE_DATA_BBS_THREAD_GET_CONTENT = 0x781c;
 //7819
 //781a
 //781b
 
 
-//These happen upon entering ALTIMIT DESKTOP
+        public const ushort OPCODE_RANKING_VIEW_ALL = 0x7832;
+        public const ushort OPCODE_RANKING_VIEW_PLAYER = 0x7838;
+        //These happen upon entering ALTIMIT DESKTOP
         public const ushort OPCODE_DATA_MAILCHECK = 0x7867;
         public const ushort OPCODE_DATA_MAILCHECK_OK = 0x7868;
 
@@ -461,5 +465,40 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
 
         public const ushort LOBBY_TYPE_GUILD = 0x7418;
         public const ushort LOBBY_TYPE_MAIN = 0x7403;
+        public const ushort OPCODE_CLIENT_LEAVING_LOBBY = 0x700a;
+        public const ushort ARGUMENT_INVITE_TO_GUILD = 0x7606;
+        public const ushort OPCODE_INVITE_TO_GUILD = 0x7603;
+        public const ushort OPCODE_ACCEPT_GUILD_INVITE = 0x7607;
+        public const ushort OPCODE_PRIVATE_BROADCAST = 0x788c;
+        public const ushort OPCODE_GUILD_VIEW = 0x772c;
+        public const ushort OPCODE_DATA_GET_GUILD_INFO_RESPONSE = 0x7740;
+        public const ushort OPCODE_DATA_AREASERVER_OK = 0x78AC;
+
+
+        public const ushort OPCODE_DATA_GUILD_CREATE = 0x7600;
+        public const ushort OPCODE_DATA_GUILD_GET_ALL_GUILDS = 0x7722;
+        public const ushort OPCODE_DATA_GUILD_GET_LIST_OF_ITEMS = 0x772F;
+        public const ushort OPCODE_DATA_GUILD_GETMENU = 0x7733;
+        public const ushort OPCODE_DATA_GUILD_GET_INFO = 0x7739;
+
+
+        public const ushort OPCODE_DATA_GUILD_LOGGEDIN_MEMBERS = 0x789c;
+        public const ushort OPCODE_DATA_GUILD_MEMBERLIST = 0x7610;
+        public const ushort OPCODE_DATA_GUILD_GETITEMS_TOBUY = 0x7708;
+        public const ushort OPCODE_DATA_GUILD_GETITEMS = 0x7728;
+        public const ushort OPCODE_DATA_GUILD_BUY_ITEM = 0x770C;
+        public const ushort OPCODE_DATA_GUILD_DONATE_ITEM = 0x7702;
+        public const ushort OPCODE_DATA_GUILD_GET_DONATION_SETTINGS = 0x7879;
+        public const ushort OPCODE_DATA_GUILD_UPDATEITEM_PRICING_AVAILABILITY = 0x7703;
+        public const ushort OPCODE_DATA_GUILD_UPDATEITEM_PRICING = 0x7712;
+        public const ushort OPCODE_DATA_GUILD_GM_LEAVING = 0x788D;
+        public const ushort OPCODE_DATA_GUILD_PLAYER_LEAVING = 0x7616;
+        public const ushort OPCODE_DATA_GUILD_PLAYER_KICKED = 0x7864;
+        public const ushort OPCODE_DATA_GUILD_DISSOLVED = 0x7619;
+        public const ushort OPCODE_DATA_GUILD_UPDATE_DETAILS = 0x761C;
+        public const ushort OPCODE_DATA_GUILD_TAKE_GP = 0x770E;
+        public const ushort OPCODE_DATA_GUILD_TAKE_ITEM = 0x7710;
+        public const ushort OPCODE_DATA_GUILD_DONATE_COINS = 0x7700;
+
     }
 }

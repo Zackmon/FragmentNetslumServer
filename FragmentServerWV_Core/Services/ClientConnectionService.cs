@@ -1,4 +1,5 @@
-﻿using FragmentServerWV.Services.Interfaces;
+﻿using FragmentServerWV.Enumerations;
+using FragmentServerWV.Services.Interfaces;
 using Serilog;
 using System;
 using System.Net;
@@ -14,6 +15,14 @@ namespace FragmentServerWV.Services
         private readonly ILogger logger;
         private TcpListener listener;
         private CancellationTokenSource tokenSource;
+
+        private IPAddress lastIpAddress;
+        private ushort lastPort;
+
+        public string ServiceName => "Client Connection Service";
+
+        public ServiceStatusEnum ServiceStatus { get; private set; }
+
 
         public ClientConnectionService(
             IClientProviderService clientProviderService,
@@ -39,6 +48,8 @@ namespace FragmentServerWV.Services
             tokenSource = new CancellationTokenSource();
             listener = new TcpListener(ipAddress, port);
             Task.Run(async () => await InternalConnectionLoop(tokenSource.Token));
+            this.lastIpAddress = ipAddress;
+            this.lastPort = port;
         }
 
         public void EndListening()
@@ -48,11 +59,27 @@ namespace FragmentServerWV.Services
             logger.Information($"A cancellation request has been submitted");
         }
 
-
+        public void RestartService()
+        {
+            // Don't restart if we're already running
+            // or if the last known IP address is null
+            if (this.ServiceStatus == ServiceStatusEnum.Active)
+            {
+                throw new NotSupportedException("As ironic as it seems, you cannot currently restart the service while it is running");
+            }
+            if (this.lastIpAddress is null)
+            {
+                throw new InvalidOperationException("The service has not been run before and has no last known IP address to re-bind to");
+            }
+            this.logger.Information($"The {nameof(ClientConnectionService)} is being restarted...");
+            this.BeginListening(lastIpAddress, lastPort);
+            this.logger.Information($"The {nameof(ClientConnectionService)} has been restarted");
+        }
 
         private async Task InternalConnectionLoop(CancellationToken token)
         {
             listener.Start();
+            this.ServiceStatus = ServiceStatusEnum.Active;
             uint clientIds = 1;
             try
             {
@@ -99,6 +126,8 @@ namespace FragmentServerWV.Services
                 // At the end of it all, we need to remove the reference
                 // on the listener variable and allow GC to reclaim it
                 listener = null;
+                this.ServiceStatus = ServiceStatusEnum.Inactive;
+                this.tokenSource.Dispose();
             }
         }
 

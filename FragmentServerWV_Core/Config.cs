@@ -1,29 +1,61 @@
-﻿using System;
-using System.IO;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.IO;
 
 namespace FragmentServerWV
 {
-    public static class Config
+
+    /// <summary>
+    /// A simple key-value pair configuration class that also supports line comments
+    /// </summary>
+    /// <remarks>
+    /// INI lite
+    /// </remarks>
+    public sealed class SimpleConfiguration
     {
-        public static Dictionary<string, string> configs;
-        public static void Load()
+
+        private readonly Dictionary<string, string> configurationValues;
+
+
+        /// <summary>
+        /// Gets a <see cref="ReadOnlyDictionary{TKey, TValue}"/> that represents the loaded configuration
+        /// </summary>
+        public ReadOnlyDictionary<string, string> Values => new ReadOnlyDictionary<string, string>(configurationValues);
+
+        /// <summary>
+        /// Creates a new instance of the Configuration class
+        /// </summary>
+        public SimpleConfiguration()
         {
-            configs = new Dictionary<string, string>();
+            configurationValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (File.Exists("settings.txt"))
             {
-                string[] lines = File.ReadAllLines("settings.txt");
-                foreach(string line in lines)
-                    if (line.Trim() != "" && !line.Trim().StartsWith("#"))
+                var lines = File.ReadAllLines("settings.txt");
+                foreach (var line in lines)
+                {
+                    var clean = line.Trim();
+                    if (!string.IsNullOrWhiteSpace(clean) && !clean.StartsWith("#"))
                     {
-                        string[] parts = line.Split('=');
-                        if (parts.Length == 2)
-                            configs.Add(parts[0].Trim().ToLower(), parts[1].Trim());
+                        var parts = line.Split('=');
+                        var key = parts[0].Trim();
+                        var value = string.Join('=', parts[1..]).Trim();
+                        configurationValues.Add(key.ToLowerInvariant(), value);
                     }
+                }
+                    
             }
         }
+
+        /// <summary>
+        /// Retrieves a value if it exists, otherwise returns <paramref name="default"/>
+        /// </summary>
+        /// <param name="name">The name of the configuration value</param>
+        /// <param name="default">The value to return if <paramref name="name"/> doesn't exist</param>
+        /// <returns><see cref="string"/></returns>
+        public string Get(string name, string @default = "") => configurationValues.ContainsKey(name) ? configurationValues[name] : @default;
+
     }
+
 }

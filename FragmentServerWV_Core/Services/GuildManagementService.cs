@@ -1,9 +1,7 @@
-﻿using System;
+﻿using FragmentServerWV.Models;
+using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
-using System.Text;
-using FragmentServerWV.Models;
 
 namespace FragmentServerWV.Services
 {
@@ -38,11 +36,11 @@ namespace FragmentServerWV.Services
             if (characterRepositoryModel.GuildMaster == 1) // the player is guild master
             {
                 m.Write(new byte[]{0x01});
-                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)characterRepositoryModel.GuildID)));
+                m.Write(BitConverter.GetBytes(((ushort)characterRepositoryModel.GuildID).Swap()));
             }else if (characterRepositoryModel.GuildMaster == 2) // the player is a normal member
             {
                 m.Write(new byte[]{0x02});
-                m.Write(BitConverter.GetBytes(GameClient.swap16((ushort)characterRepositoryModel.GuildID)));
+                m.Write(BitConverter.GetBytes(((ushort)characterRepositoryModel.GuildID).Swap()));
             }
             else
             {
