@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FragmentServerWV.Attributies;
 
 namespace FragmentServerWV.Entities
 {
@@ -665,6 +666,7 @@ namespace FragmentServerWV.Entities
 
         #region Packet Handlers
 
+        [OpCode(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM)]
         private async Task HandleLobbyRoomEntrance(byte[] argument)
         {
             LobbyChatRoom room;
@@ -688,6 +690,7 @@ namespace FragmentServerWV.Entities
             logger.Information("Client #" + this.clientIndex + " : Lobby '" + room.Name + "' now has " + room.Clients.Count + " Users");
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_AS_IPPORT)]
         private async Task HandleIncomingIpData(byte[] argument)
         {
             ipdata = argument;
@@ -719,6 +722,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(OpCodes.OPCODE_DATA_AS_IPPORT_OK, new byte[] { 0x00, 0x00 });
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_SAVEID)]
         private async Task HandleSaveIdToAccountIdAssociation(byte[] argument)
         {
             MemoryStream m;
@@ -736,6 +740,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x742A, response);
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_REGISTER_CHAR)]
         private async Task HandleCharacterRegistrationAndGuildDetails(byte[] argument)
         {
             _characterPlayerID = ExtractCharacterData(argument);
@@ -751,6 +756,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(OpCodes.OPCODE_DATA_REGISTER_CHAROK, guildStatus);
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_LOBBY_GETMENU)]
         private async Task HandleLobbyMenu()
         {
             var nonGuildLobbies = new List<LobbyChatRoom>();
@@ -778,6 +784,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_MAIL_GET)]
         private async Task HandleMailInbox(byte[] argument)
         {
             var accountId = ReadAccountID(argument, 0);
@@ -791,6 +798,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_MAIL_GET_MAIL_BODY)]
         private async Task HandleMailContentRequest(byte[] argument)
         {
             var mailId = (int)swap32(BitConverter.ToUInt32(argument, 4));
@@ -799,6 +807,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(OpCodes.OPCODE_DATA_MAIL_GET_MAIL_BODY_RESPONSE, messageBody);
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_GETLIST)]
         private async Task HandleGetAreaServers(byte[] data)
         {
             // Zero indicates "gimme the list of categories"
@@ -865,6 +874,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GET_ALL_GUILDS)]
         private async Task HandleGetGuildListForShopping(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -890,6 +900,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GET_LIST_OF_ITEMS)]
         private async Task HandleGetGuildStoreItems(byte[] argument)
         {
             var guildId = swap16(BitConverter.ToUInt16(argument, 0));
@@ -903,6 +914,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GETMENU)]
         private async Task HandleGetGuildMenu(byte[] argument)
         {
             var mode = swap16(BitConverter.ToUInt16(argument, 0));
@@ -924,12 +936,14 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GET_INFO)]
         private async Task HandleRetrieveGuildDetails(byte[] argument)
         {
             var guildId = swap16(BitConverter.ToUInt16(argument, 0));
             await SendDataPacket(OpCodes.OPCODE_DATA_GET_GUILD_INFO_RESPONSE, GuildManagementService.GetInstance().GetGuildInfo(guildId));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_CREATE)]
         private async Task HandleGuildCreation(byte[] argument)
         {
             var u = GuildManagementService.GetInstance().CreateGuild(argument, _characterPlayerID);
@@ -938,6 +952,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x7601, BitConverter.GetBytes(swap16(u)));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_MAILCHECK)]
         private async Task HandleCheckForNewMail(byte[] argument)
         {
             if (DBAcess.getInstance().checkForNewMailByAccountID(ReadAccountID(argument, 0)))
@@ -950,6 +965,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_BBS_THREAD_GET_CONTENT)]
         private async Task HandleSendBbsThreadContent(byte[] argument)
         {
             var q = swap32(BitConverter.ToUInt32(argument, 4));
@@ -959,6 +975,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x781d, bbsPostData);
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_BBS_THREAD_GETMENU)]
         private async Task HandleSendBbsThread(byte[] argument)
         {
             var i = swap32(BitConverter.ToUInt32(argument, 0));
@@ -972,6 +989,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_BBS_GETMENU)]
         private async Task HandleSendBbsMainMenu(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -999,12 +1017,14 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_RANKING_VIEW_PLAYER)]
         private async Task HandleGetRankingPlayerInformation(byte[] argument)
         {
             uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
             await SendDataPacket(0x7839, RankingManagementService.GetInstance().getRankingPlayerInfo(rankPlayerID));
         }
 
+        [OpCode(OpCodes.OPCODE_RANKING_VIEW_ALL)]
         private async Task HandleGetRankingPageInformation(byte[] argument)
         {
             var rankingArgs = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1039,6 +1059,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode( OpCodes.OPCODE_DATA_BBS_POST)]
         private async Task HandleCreateBbsPost(byte[] argument)
         {
             uint id = swap32(BitConverter.ToUInt32(argument, 0));
@@ -1046,12 +1067,14 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x7813, new byte[] { 0x00, 0x00 });
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_AS_UPDATE_STATUS)]
         private void HandleExtractAreaServerInformation(byte[] argument)
         {
             publish_data_2 = argument;
             ExtractAreaServerData(argument);
         }
 
+        [OpCode(OpCodes.OPCODE_GUILD_VIEW)]
         private async Task HandleGuildView(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1059,6 +1082,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x772D, GuildManagementService.GetInstance().GetGuildInfo(u));
         }
 
+        [OpCode(OpCodes.OPCODE_ACCEPT_GUILD_INVITE)]
         private async Task HandleGuildAcceptOrReject(byte[] argument)
         {
             var ms = new MemoryStream();
@@ -1075,6 +1099,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_INVITE_TO_GUILD)]
         private async Task HandleInvitePlayerToGuild(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1087,11 +1112,13 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_DONATE_COINS)]
         private async Task HandlePlayerDonatesCoinsToGuild(byte[] argument)
         {
             await SendDataPacket(0x7701, GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_TAKE_ITEM)]
         private async Task HandlePlayerTakingGuildItem(byte[] argument)
         {
             ushort guildIDTakeItem = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1102,6 +1129,7 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x7711, GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem, itemIDToTakeOut, quantityToTake)); // quantity  to give to the player
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_TAKE_GP)]
         private async Task HandlePlayerTakingGuildGP(byte[] argument)
         {
             ushort guildIDTakeMoney = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1111,33 +1139,39 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x770F, GuildManagementService.GetInstance().TakeMoneyFromGuild(guildIDTakeMoney, amountOfMoneyToTakeOut)); // amount of money to give to the player 
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_UPDATE_DETAILS)]
         private async Task HandleGuildDetailsBeingUpdated(byte[] argument)
         {
             await SendDataPacket(0x761D, GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument, _guildID));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_DISSOLVED)]
         private async Task HandleGuildBeingDissolved()
         {
             await SendDataPacket(0x761A, GuildManagementService.GetInstance().DestroyGuild(_guildID));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_PLAYER_KICKED)]
         private async Task HandleKickingPlayerFromGuild(byte[] argument)
         {
             uint playerToKick = swap32(BitConverter.ToUInt32(argument, 0));
             await SendDataPacket(0x7865, GuildManagementService.GetInstance().KickPlayerFromGuild(_guildID, playerToKick));
         }
 
+        [OpCode( OpCodes.OPCODE_DATA_GUILD_PLAYER_LEAVING)]
         private async Task HandlePlayerLeavingGuild()
         {
             await SendDataPacket(0x7617, GuildManagementService.GetInstance().LeaveGuild(_guildID, _characterPlayerID));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GM_LEAVING)]
         private async Task HandleGuildMasterLeaving(byte[] argument)
         {
             uint assigningPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
             await SendDataPacket(0x788E, GuildManagementService.GetInstance().LeaveGuildAndAssignMaster(_guildID, assigningPlayerID));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_UPDATEITEM_PRICING_AVAILABILITY)]
         private async Task HandlePlayerUpdatingItemPricingAndAvailability(byte[] argument)
         {
             uint GeneralPrice = swap32(BitConverter.ToUInt32(argument, 0));
@@ -1152,6 +1186,7 @@ namespace FragmentServerWV.Entities
                 _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember, isGuildMaster)); // how many to deduct from the player
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_DONATE_ITEM)]
         private async Task HandlePlayerDonatesItemToGuild(byte[] argument)
         {
             _itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
@@ -1159,11 +1194,13 @@ namespace FragmentServerWV.Entities
             await SendDataPacket(0x7704, GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_guildID, _itemDontationID));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_BUY_ITEM)]
         private async Task HandlePlayerBuysGuildItem(byte[] argument)
         {
             await SendDataPacket(0x770D, GuildManagementService.GetInstance().BuyItemFromGuild(argument));
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GETITEMS)]
         private async Task HandleGetGuildItems(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1177,6 +1214,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_GETITEMS_TOBUY)]
         private async Task HandleGetGuildItemsForPurchase(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1189,6 +1227,7 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_MEMBERLIST)]
         private async Task HandleGetGuildMemberList(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
@@ -1216,12 +1255,14 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_GUILD_LOGGEDIN_MEMBERS)]
         private async Task HandleGetGuildActiveMembers(byte[] argument)
         {
             var guildId = swap16(BitConverter.ToUInt16(argument, 0));
             await SendDataPacket(0x789d, GuildManagementService.GetInstance().GetGuildInfo(guildId));
         }
 
+        [OpCode( OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1)]
         private async Task<MemoryStream> HandlePublishDetails1(byte[] argument)
         {
             MemoryStream m;
@@ -1235,6 +1276,7 @@ namespace FragmentServerWV.Entities
             return m;
         }
 
+        [OpCode(OpCodes.OPCODE_DATA_LOBBY_STATUS_UPDATE)]
         private async Task HandleLobbyRoomUpdate(byte[] argument)
         {
             if (lobbyChatService.TryFindLobby(this, out var rm))
