@@ -178,6 +178,12 @@ namespace FragmentServerWV.Services
             return result;
         }
 
+        public static ushort swap16(ushort data) => data.Swap();
+        public static ushort swap16(ushort? data) => data?.Swap() ?? 0;
+        public static uint swap32(uint data) => data.Swap();
+        public static uint swap32(uint? data) => data?.Swap() ?? 0;
+
+
         public static IEnumerable<string> ChunksUpto(this string str, int maxChunkSize)
         {
             for (int i = 0; i < str.Length; i += maxChunkSize)
