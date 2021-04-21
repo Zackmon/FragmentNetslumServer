@@ -32,6 +32,7 @@ namespace FragmentServerWV.Entities
         private readonly IClientProviderService clientProviderService;
         private readonly IMailService mailService;
         private readonly IBulletinBoardService bulletinBoardService;
+        private readonly IOpCodeProviderService opCodeHandler;
         private NetworkStream ns;
         private TcpClient client;
         private uint clientIndex;
@@ -148,6 +149,7 @@ namespace FragmentServerWV.Entities
             IClientProviderService clientProviderService,
             IMailService mailService,
             IBulletinBoardService bulletinBoardService,
+            IOpCodeProviderService opCodeHandler,
             SimpleConfiguration simpleConfiguration)
         {
             // Why are we doing this?
@@ -163,10 +165,9 @@ namespace FragmentServerWV.Entities
             this.clientProviderService = clientProviderService;
             this.mailService = mailService;
             this.bulletinBoardService = bulletinBoardService;
-
-            double pingTime = 5000;
+            this.opCodeHandler = opCodeHandler;
             var rawPing = simpleConfiguration.Get("ping", "5000");
-            if (!double.TryParse(rawPing, out pingTime))
+            if (!double.TryParse(rawPing, out double pingTime))
             {
                 logger.Warning($"Unable to process the keep-alive ping value ({rawPing}). Defaulting to 5 seconds.");
             }
@@ -673,7 +674,7 @@ namespace FragmentServerWV.Entities
 
 
 
-        #region Packet Handlers
+#region Packet Handlers
 
         private async Task HandleLobbyRoomEntrance(byte[] argument)
         {
@@ -1253,10 +1254,10 @@ namespace FragmentServerWV.Entities
             }
         }
 
-        #endregion
+#endregion
 
 
-        #region Miscellaneous Helper Methods
+#region Miscellaneous Helper Methods
 
         static ushort swap16(ushort data) => data.Swap();
 
@@ -1367,7 +1368,7 @@ namespace FragmentServerWV.Entities
             areaServerStatus = data[pos++];
         }
 
-        #endregion Miscellaneous Helper Methods
+#endregion Miscellaneous Helper Methods
 
     }
 }
