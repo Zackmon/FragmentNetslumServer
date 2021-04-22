@@ -28,6 +28,11 @@ namespace FragmentServerWV_Console
             var provider = serviceCollection.BuildServiceProvider();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            //hack hack
+            provider.GetRequiredService<ILobbyChatService>().Initialize();
+            provider.GetRequiredService<IOpCodeProviderService>();
+
+
             var config = provider.GetRequiredService<SimpleConfiguration>();
             var server = provider.GetRequiredService<Server>();
             server.Start();
@@ -85,6 +90,7 @@ namespace FragmentServerWV_Console
                 .AddSingleton<ILobbyChatService, LobbyChatService>()
                 .AddSingleton<IMailService, MailService>()
                 .AddSingleton<IBulletinBoardService, BulletinBoardService>()
+                .AddSingleton<IOpCodeProviderService, OpCodeProviderService>()
                 .AddTransient<GameClientAsync>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();

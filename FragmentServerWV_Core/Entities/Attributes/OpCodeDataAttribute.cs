@@ -1,9 +1,12 @@
-﻿namespace FragmentServerWV.Entities.Attributes
+﻿using System;
+
+namespace FragmentServerWV.Entities.Attributes
 {
 
     /// <summary>
     /// Defines an OpCode that is explicitly intended for usage with the data OpCode (0x30)
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class OpCodeDataAttribute : OpCodeAttribute
     {
 

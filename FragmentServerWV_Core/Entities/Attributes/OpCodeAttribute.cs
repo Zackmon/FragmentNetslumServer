@@ -5,6 +5,7 @@ namespace FragmentServerWV.Entities.Attributes
     /// <summary>
     /// Defines a non-data based OpCode
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class OpCodeAttribute : Attribute
     {
 

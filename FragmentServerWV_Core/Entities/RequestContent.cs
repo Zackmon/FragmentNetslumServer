@@ -1,4 +1,8 @@
-﻿namespace FragmentServerWV.Entities
+﻿using System.IO;
+using System;
+using static FragmentServerWV.Services.Extensions;
+
+namespace FragmentServerWV.Entities
 {
 
     /// <summary>
@@ -43,14 +47,24 @@
         {
             this.Client = gameClient;
             this.OpCode = packet.Code;
+            this.Data = packet.Data;
 
             if (this.OpCode == OpCodes.OPCODE_DATA)
             {
 
-            }
-            else
-            {
+                // For the DATA opcode, we have some special handling
+                // that needs to occur now. This additional logic is
+                // responsible for the "data opcode" and also properly
+                // decoding the data payload
+                var data = packet.Data;
+                Client.SetClientSequenceNumber(swap16(BitConverter.ToUInt16(data, 2)));
+                var arglen = (ushort)(swap16(BitConverter.ToUInt16(data, 6)) - 2);
+                var code = swap16(BitConverter.ToUInt16(data, 8));
+                var m = new MemoryStream();
+                m.Write(data, 10, arglen);
 
+                this.DataOpCode = code;
+                this.Data = m.ToArray();
             }
 
         }
