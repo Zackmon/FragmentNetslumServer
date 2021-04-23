@@ -1,6 +1,10 @@
-﻿using Serilog;
+﻿using FragmentServerWV.Entities.Attributes;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace FragmentServerWV.Services
@@ -188,6 +192,30 @@ namespace FragmentServerWV.Services
         {
             for (int i = 0; i < str.Length; i += maxChunkSize)
                 yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+        }
+
+        public static string ConvertHandlerToString(Type handlerType)
+        {
+            var builder = new StringBuilder();
+            var opCode = handlerType.GetCustomAttribute<OpCodeAttribute>()?.OpCode;
+            var dataOpCodes = handlerType.GetCustomAttributes<OpCodeDataAttribute>()?.Select(c => c.DataOpCode) ?? new List<ushort>();
+            var displayName = handlerType.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? handlerType.Name;
+            var description = handlerType.GetCustomAttribute<DescriptionAttribute>()?.Description ?? "No Description Provided";
+
+            // How dare you >:(
+            if (opCode is null) throw new ArgumentException(nameof(handlerType));
+
+
+            builder.Append($"{displayName} ({opCode:X2})");
+
+            if (dataOpCodes.Any())
+            {
+                builder.Append($"/{string.Join(',', dataOpCodes.Select(c => $"{c:X2}"))}");
+            }
+
+            builder.Append($" - {displayName}: {description}");
+
+            return builder.ToString();
         }
 
     }

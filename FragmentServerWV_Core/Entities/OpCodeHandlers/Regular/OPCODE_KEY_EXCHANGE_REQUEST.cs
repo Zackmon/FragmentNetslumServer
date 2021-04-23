@@ -1,12 +1,15 @@
 ﻿using FragmentServerWV.Entities.Attributes;
 using FragmentServerWV.Services.Interfaces;
+using System.ComponentModel;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
 {
-    [OpCode(OpCodes.OPCODE_KEY_EXCHANGE_REQUEST)]
+    [OpCode(OpCodes.OPCODE_KEY_EXCHANGE_REQUEST),
+        DisplayName("Key Exchange Handler"),
+        Description("Handles initializing encryption & decryption keys on the connected Client")]
     public sealed class OPCODE_KEY_EXCHANGE_REQUEST : IOpCodeHandler
     {
         public async Task<ResponseContent> HandleIncomingRequestAsync(RequestContent request)
