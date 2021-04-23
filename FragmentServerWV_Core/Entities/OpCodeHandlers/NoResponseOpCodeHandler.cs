@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace FragmentServerWV.Entities.OpCodeHandlers
 {
+    /// <summary>
+    /// A base class <see cref="IOpCodeHandler"/> that does not have an actual response to the client
+    /// </summary>
     public abstract class NoResponseOpCodeHandler : IOpCodeHandler
     {
         public virtual Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)

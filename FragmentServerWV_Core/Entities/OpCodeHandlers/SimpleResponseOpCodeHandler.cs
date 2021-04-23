@@ -4,6 +4,12 @@ using System.Threading.Tasks;
 
 namespace FragmentServerWV.Entities.OpCodeHandlers
 {
+    /// <summary>
+    /// A base class <see cref="IOpCodeHandler"/> that supports a single response of a predictable result to the client
+    /// </summary>
+    /// <remarks>
+    /// This is only useful when the response is deterministic. Thankfully, there are several OPCODES where the response is indeed deterministic
+    /// </remarks>
     public abstract class SimpleResponseOpCodeHandler : IOpCodeHandler
     {
         private readonly ushort responseOpCode;
