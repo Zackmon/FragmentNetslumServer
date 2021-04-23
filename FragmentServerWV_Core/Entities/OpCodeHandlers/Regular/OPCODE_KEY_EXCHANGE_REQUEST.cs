@@ -1,5 +1,6 @@
 ﻿using FragmentServerWV.Entities.Attributes;
 using FragmentServerWV.Services.Interfaces;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Security.Cryptography;
@@ -12,7 +13,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
         Description("Handles initializing encryption & decryption keys on the connected Client")]
     public sealed class OPCODE_KEY_EXCHANGE_REQUEST : IOpCodeHandler
     {
-        public async Task<ResponseContent> HandleIncomingRequestAsync(RequestContent request)
+        public async Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
             var responseStream = new MemoryStream();
             responseStream.Write(request.Data, 4, 16);
@@ -37,7 +38,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
             var responseArray = responseStream.ToArray();
             var checksum = Crypto.Checksum(responseArray);
             await responseStream.DisposeAsync();
-            return new ResponseContent(request, OpCodes.OPCODE_KEY_EXCHANGE_RESPONSE, responseArray, checksum);
+            return new[] { new ResponseContent(request, OpCodes.OPCODE_KEY_EXCHANGE_RESPONSE, responseArray, checksum) };
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FragmentServerWV.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV.Services.Interfaces
@@ -15,7 +16,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// </summary>
         /// <param name="request">The incoming <see cref="RequestContent"/></param>
         /// <returns>A promise to handle the packet asynchronously</returns>
-        Task<ResponseContent> HandleIncomingRequestAsync(RequestContent request);
+        Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request);
 
     }
 

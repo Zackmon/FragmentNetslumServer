@@ -22,7 +22,7 @@ namespace FragmentServerWV.Services.Interfaces
         /// </summary>
         /// <param name="gameClient">The <see cref="GameClientAsync"/> that submitted the request</param>
         /// <param name="packet">The <see cref="PacketAsync"/> to handle</param>
-        Task<ResponseContent> HandlePacketAsync(GameClientAsync gameClient, PacketAsync packet);
+        Task<IEnumerable<ResponseContent>> HandlePacketAsync(GameClientAsync gameClient, PacketAsync packet);
 
         /// <summary>
         /// Determines whether or not <see cref="IOpCodeProviderService"/> can currently handle this <see cref="PacketAsync"/>

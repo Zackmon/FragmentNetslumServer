@@ -4,6 +4,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -272,18 +273,21 @@ namespace FragmentServerWV.Entities
 #if !USE_NEW_HANDLER && !USE_HYBRID_APPROACH
                                 await HandleIncomingPacket(packet);
 #elif USE_HYBRID_APPROACH
-
                                 if (opCodeHandler.CanHandleRequest(packet))
                                 {
-                                    var response = await opCodeHandler.HandlePacketAsync(this, packet);
-                                    if (response is null)
+                                    var responses = await opCodeHandler.HandlePacketAsync(this, packet);
+                                    if (responses is null)
                                     {
                                         logger.Fatal("A packet handler just returned NULL on a provided packet. This should not happen!");
                                         return;
                                     }
-                                    if (response == ResponseContent.Empty) continue;
-                                    if (response.Data.Length > 0) await ns.WriteAsync(response.Data);
-                                    if (response.Request.OpCode == OpCodes.OPCODE_DATA) server_seq_nr++;
+                                    if (responses.All(c => c == ResponseContent.Empty)) continue;
+                                    if (responses.Any(c => c.Request.OpCode == OpCodes.OPCODE_DATA)) server_seq_nr++;
+                                    foreach (var response in responses)
+                                    {
+                                        if (response.Data.Length == 0) continue;
+                                        await ns.WriteAsync(response.Data);
+                                    }
                                 }
                                 else
                                 {
@@ -417,18 +421,17 @@ namespace FragmentServerWV.Entities
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
                     await HandlePublishDetails1(argument);
                     break;
-                case OpCodes.OPCODE_DATA_AS_IPPORT:
-                    await HandleIncomingIpData(argument);
-                    break;
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2:
                     await SendDataPacket(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS2_OK, new byte[] { 0xDE, 0xAD });
+                    break;
+                case OpCodes.OPCODE_DATA_AS_IPPORT:
+                    await HandleIncomingIpData(argument);
                     break;
                 case OpCodes.OPCODE_DATA_LOGON_AS2:
                     await SendDataPacket(0x701C, new byte[] { 0x02, 0x11 });
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_CHATROOM_GETLIST:
-                    await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY,
-                        new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
                     await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_CHATROOM_CATEGORY, new byte[] { 0x00, 0x01, 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_AS_UPDATE_USERNUM:

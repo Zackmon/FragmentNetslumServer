@@ -87,7 +87,7 @@ namespace FragmentServerWV.Services
 
 
 
-        public async Task<ResponseContent> HandlePacketAsync(GameClientAsync gameClient, PacketAsync packet)
+        public async Task<IEnumerable<ResponseContent>> HandlePacketAsync(GameClientAsync gameClient, PacketAsync packet)
         {
             var requestContent = new RequestContent(gameClient, packet);
             IOpCodeHandler handler = null;
