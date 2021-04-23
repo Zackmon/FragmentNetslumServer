@@ -6,7 +6,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers
 {
     public abstract class NoResponseOpCodeHandler : IOpCodeHandler
     {
-        public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
+        public virtual Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
             => Task.FromResult<IEnumerable<ResponseContent>>(new[] { ResponseContent.Empty });
     }
 }
