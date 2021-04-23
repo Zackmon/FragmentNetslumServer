@@ -197,7 +197,7 @@ namespace FragmentServerWV.Services
         public static string ConvertHandlerToString(Type handlerType)
         {
             var builder = new StringBuilder();
-            var opCode = handlerType.GetCustomAttribute<OpCodeAttribute>()?.OpCode;
+            var opCode = handlerType.GetCustomAttributes<OpCodeAttribute>()?.FirstOrDefault()?.OpCode;
             var dataOpCodes = handlerType.GetCustomAttributes<OpCodeDataAttribute>()?.Select(c => c.DataOpCode) ?? new List<ushort>();
             var displayName = handlerType.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? handlerType.Name;
             var description = handlerType.GetCustomAttribute<DescriptionAttribute>()?.Description ?? "No Description Provided";

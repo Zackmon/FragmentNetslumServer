@@ -50,16 +50,17 @@ namespace FragmentServerWV.Services
 
             foreach(var handler in handlerTypes)
             {
-                var opCodeAttr = handler.GetCustomAttribute<OpCodeAttribute>();
+                var opCodeAttrs = handler.GetCustomAttributes<OpCodeAttribute>();
                 var dataOpCodeAttr = handler.GetCustomAttributes<OpCodeDataAttribute>();
 
-                if (opCodeAttr is null)
+                if (opCodeAttrs is null || !opCodeAttrs.Any())
                 {
                     logger.Warning($"{{@handler}} was bypassed: No defined instance of {nameof(OpCodeAttribute)} available for query", handler);
                     continue;
                 }
 
-                switch(opCodeAttr.OpCode)
+
+                switch(opCodeAttrs.First().OpCode)
                 {
                     case OpCodes.OPCODE_DATA:
                         if (((dataOpCodeAttr?.Count() ?? 0) == 0))
@@ -77,7 +78,7 @@ namespace FragmentServerWV.Services
                         }
                         break;
                     default:
-                        opCodeProviders.Add(opCodeAttr.OpCode, handler);
+                        opCodeProviders.Add(opCodeAttrs.First().OpCode, handler);
                         break;
                 }
                 this.discoveredTypes.Add(handler);
