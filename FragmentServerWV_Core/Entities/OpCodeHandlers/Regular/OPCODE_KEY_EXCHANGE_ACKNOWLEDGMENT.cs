@@ -1,6 +1,5 @@
 ﻿using FragmentServerWV.Entities.Attributes;
 using FragmentServerWV.Services.Interfaces;
-using System;
 using System.Threading.Tasks;
 
 namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
@@ -10,7 +9,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
     {
         public Task<ResponseContent> HandleIncomingRequestAsync(RequestContent request)
         {
-            
+            return new Task<ResponseContent>(() => ResponseContent.Empty);
         }
     }
 }
