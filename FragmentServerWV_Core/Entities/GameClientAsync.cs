@@ -276,8 +276,8 @@ namespace FragmentServerWV.Entities
                                 if (opCodeHandler.CanHandleRequest(packet))
                                 {
                                     var response = await opCodeHandler.HandlePacketAsync(this, packet);
-                                    await ns.WriteAsync(response.Data);
-                                    server_seq_nr++;
+                                    if (response != null) await ns.WriteAsync(response.Data);
+                                    if (response.Request.OpCode == OpCodes.OPCODE_DATA) server_seq_nr++;
                                 }
                                 else
                                 {
