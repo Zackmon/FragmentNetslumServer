@@ -11,6 +11,13 @@ namespace FragmentServerWV.Entities
     public sealed class ResponseContent
     {
 
+        private static readonly ResponseContent empty = new ResponseContent(null, 0, new byte[0], null);
+
+        /// <summary>
+        /// Gets an empty <see cref="ResponseContent"/>
+        /// </summary>
+        public static ResponseContent Empty => empty;
+
         /// <summary>
         /// Gets the <see cref="RequestContent"/> that generated this <see cref="ResponseContent"/>
         /// </summary>
@@ -53,6 +60,10 @@ namespace FragmentServerWV.Entities
             this.OpCode = responseOpCode;
             this.Data = responseData;
             this.Checksum = checksum;
+            if (request is null)
+            {
+                return;
+            }
             if (checksum is null)
             {
                 this.CreateDataPacketResponse();
