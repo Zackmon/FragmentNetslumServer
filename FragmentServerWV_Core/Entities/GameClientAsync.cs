@@ -276,7 +276,13 @@ namespace FragmentServerWV.Entities
                                 if (opCodeHandler.CanHandleRequest(packet))
                                 {
                                     var response = await opCodeHandler.HandlePacketAsync(this, packet);
-                                    if (response != null) await ns.WriteAsync(response.Data);
+                                    if (response is null)
+                                    {
+                                        logger.Fatal("A packet handler just returned NULL on a provided packet. This should not happen!");
+                                        return;
+                                    }
+                                    if (response == ResponseContent.Empty) continue;
+                                    if (response.Data.Length > 0) await ns.WriteAsync(response.Data);
                                     if (response.Request.OpCode == OpCodes.OPCODE_DATA) server_seq_nr++;
                                 }
                                 else
