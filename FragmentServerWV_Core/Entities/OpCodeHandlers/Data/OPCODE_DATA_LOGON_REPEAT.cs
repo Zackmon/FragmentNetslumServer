@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FragmentServerWV.Entities.OpCodeHandlers.Data
 {
-    [OpCode(OpCodes.OPCODE_DATA), OpCodeData(OpCodes.OPCODE_DATA_LOGON_REPEAT)]
+    [OpCodeData(OpCodes.OPCODE_DATA_LOGON_REPEAT)]
     public sealed class OPCODE_DATA_LOGON_REPEAT : IOpCodeHandler
     {
         public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request) =>

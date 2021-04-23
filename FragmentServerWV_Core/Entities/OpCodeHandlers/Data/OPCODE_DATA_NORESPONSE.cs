@@ -3,8 +3,7 @@ using System.ComponentModel;
 
 namespace FragmentServerWV.Entities.OpCodeHandlers.Data
 {
-    [OpCode(OpCodes.OPCODE_DATA),
-        OpCodeData(OpCodes.OPCODE_DATA_PING),
+    [OpCodeData(OpCodes.OPCODE_DATA_PING),
         OpCodeData(OpCodes.OPCODE_DATA_LOBBY_FAVORITES_AS_INQUIRY),
         OpCodeData(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS3),
         OpCodeData(OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS4),
