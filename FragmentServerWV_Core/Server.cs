@@ -90,9 +90,9 @@ namespace FragmentServerWV
 
         private async Task SafeShutdownInternal()
         {
-            logger.Information("The server has been told to shutdown...");
+            logger.Warning("The server has been told to shutdown...");
             this.clientConnectionService.EndListening();
-            logger.Information("New connections are no longer being accepted");
+            logger.Warning("New connections are no longer being accepted");
 
             if (gameClientService.Clients.Any())
             {
@@ -119,10 +119,10 @@ namespace FragmentServerWV
                 await Task.Delay(TimeSpan.FromSeconds(30));
             }
 
-            logger.Information("The server is now closing");
+            logger.Warning("The server is now closing");
             foreach (var client in GameClientService.Clients)
             {
-                logger.Verbose($"Shutting down {client.Name}");
+                logger.Verbose($"Disconnecting {client.Name}");
                 client.Exit();
             }
 

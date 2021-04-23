@@ -30,8 +30,15 @@ namespace FragmentServerWV_Console
 
             //hack hack
             provider.GetRequiredService<ILobbyChatService>().Initialize();
-            provider.GetRequiredService<IOpCodeProviderService>();
+            var iocps = provider.GetRequiredService<IOpCodeProviderService>();
+            var logger = provider.GetRequiredService<ILogger>();
 
+            logger.Debug("BEGIN - OPCODES");
+            foreach (var t in iocps.Handlers)
+            {
+                logger.Debug(Extensions.ConvertHandlerToString(t));
+            }
+            logger.Debug("END - OPCODES");
 
             var config = provider.GetRequiredService<SimpleConfiguration>();
             var server = provider.GetRequiredService<Server>();
@@ -78,10 +85,8 @@ namespace FragmentServerWV_Console
                     }
 
                     // set the minimum level
-                    logConfig.MinimumLevel.Warning();
-                    logConfig.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-                        .Enrich.FromLogContext()
-                        .Enrich.WithExceptionDetails();
+                    logConfig.MinimumLevel.Information();
+                    logConfig.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Fatal).Enrich.FromLogContext();
 
                     return logConfig.CreateLogger();
                 })

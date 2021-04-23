@@ -44,7 +44,7 @@ namespace FragmentServerWV.Services
             {
                 throw new NotSupportedException($"Multiple calls to {nameof(BeginListening)} is not supported");
             }
-            logger.Information("Opening TCP Listener on {@ipAddress}:{@port}", ipAddress.ToString(), port);
+            logger.Debug("Opening TCP Listener on {@ipAddress}:{@port}", ipAddress.ToString(), port);
             tokenSource = new CancellationTokenSource();
             listener = new TcpListener(ipAddress, port);
             Task.Run(async () => await InternalConnectionLoop(tokenSource.Token));
@@ -54,9 +54,9 @@ namespace FragmentServerWV.Services
 
         public void EndListening()
         {
-            logger.Information($"The {nameof(ClientConnectionService)} has had a shutdown requested");
+            logger.Debug($"The {nameof(ClientConnectionService)} has had a shutdown requested");
             tokenSource.Cancel();
-            logger.Information($"A cancellation request has been submitted");
+            logger.Debug($"A cancellation request has been submitted");
         }
 
         public void RestartService()

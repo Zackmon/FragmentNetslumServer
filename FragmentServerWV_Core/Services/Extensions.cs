@@ -206,11 +206,11 @@ namespace FragmentServerWV.Services
             if (opCode is null) throw new ArgumentException(nameof(handlerType));
 
 
-            builder.Append($"{displayName} ({opCode:X2})");
+            builder.Append($"{displayName} (0x{opCode:X2})");
 
             if (dataOpCodes.Any())
             {
-                builder.Append($"/{string.Join(',', dataOpCodes.Select(c => $"{c:X2}"))}");
+                builder.Append($"/{string.Join(',', dataOpCodes.Select(c => $"0x{c:X2}"))}");
             }
 
             builder.Append($" - {displayName}: {description}");

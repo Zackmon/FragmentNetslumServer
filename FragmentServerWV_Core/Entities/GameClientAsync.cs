@@ -362,7 +362,7 @@ namespace FragmentServerWV.Entities
                     break;
                 default:
                     // For now we are not disconnecting on an unhandled code
-                    logger.Information("Client Handler #{@clientIndex}: Received packet with unhandled code", clientIndex);
+                    logger.Debug("Client Handler #{@clientIndex}: Received packet with unhandled code", clientIndex);
                     break;
             }
         }
@@ -721,8 +721,8 @@ namespace FragmentServerWV.Entities
             LobbyChatRoom room;
             var currentLobbyIndex = (short)swap16(BitConverter.ToUInt16(argument, 0));
             var currentLobbyType = swap16(BitConverter.ToUInt16(argument, 2));
-            logger.Information("Lobby Room ID: {@room_index}", currentLobbyIndex);
-            logger.Information("Lobby Type ID: {@lobbyType}", currentLobbyType);
+            logger.Verbose("Lobby Room ID: {@room_index}", currentLobbyIndex);
+            logger.Verbose("Lobby Type ID: {@lobbyType}", currentLobbyType);
 
             if (currentLobbyType == OpCodes.LOBBY_TYPE_GUILD) //Guild Room
             {
@@ -736,7 +736,8 @@ namespace FragmentServerWV.Entities
 
             await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Clients.Count)));
             await room.ClientJoinedLobbyAsync(this);
-            logger.Information("Client #" + this.clientIndex + " : Lobby '" + room.Name + "' now has " + room.Clients.Count + " Users");
+
+            logger.Information("Client #{@clientIndex} has joined Lobby {@lobbyName}. There are now {@lobbySize} client(s) in the room", new { clientIndex, lobbyName = room.Name, lobbySize = room.Clients.Count });
         }
 
         private async Task HandleIncomingIpData(byte[] argument)
@@ -753,20 +754,6 @@ namespace FragmentServerWV.Entities
             argument[1] = byte.Parse(ipAddress[2]);
             argument[0] = byte.Parse(ipAddress[3]);
             externalIPAddress = argument;
-
-            logger.Information("Area Server Client #" + clientIndex + " : Local IP=" +
-                          ipdata[3] + "." +
-                          ipdata[2] + "." +
-                          ipdata[1] + "." +
-                          ipdata[0] + " Port:" +
-                          swap16(BitConverter.ToUInt16(ipdata, 4)));
-
-            logger.Information("Area Server Client #" + clientIndex + " : External IP=" +
-                          externalIPAddress[3] + "." +
-                          externalIPAddress[2] + "." +
-                          externalIPAddress[1] + "." +
-                          externalIPAddress[0] + " Port:" +
-                          swap16(BitConverter.ToUInt16(externalIPAddress, 4)));
             await SendDataPacket(OpCodes.OPCODE_DATA_AS_IPPORT_OK, new byte[] { 0x00, 0x00 });
         }
 
@@ -856,7 +843,7 @@ namespace FragmentServerWV.Entities
             if (data[1] == 0)
             {
 
-                logger.Information($"Client #{clientIndex} has requested the list of available categories");
+                logger.Information("Client #{@clientIndex} has requested the list of available categories for Area Server Selection", clientIndex);
 
                 // Tell the game there's ONE category
                 await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_CATEGORYLIST, new byte[] { 0x00, 0x01 });
@@ -874,7 +861,7 @@ namespace FragmentServerWV.Entities
             }
             else
             {
-                logger.Information($"Client #{clientIndex} has requested the list of area servers for the MAIN category");
+                logger.Information("Client #{@clientIndex} has requested the list of area servers for the MAIN category", clientIndex);
 
                 // We don't care about categories any longer. We're here for the list of servers
                 var areaServers = clientProviderService.AreaServers;
@@ -1133,7 +1120,6 @@ namespace FragmentServerWV.Entities
             if (lobbyChatService.TryFindLobby(this, out var lobby))
             {
                 await lobby.InviteClientToGuildAsync(argument, (int)this.clientIndex, u, _guildID);
-                logger.Information($"Invited Player ID {u}");
                 await SendDataPacket(0x7604, new byte[] { 0x00, 0x00 }); //send to confirm that the player accepted the invite 
             }
         }
@@ -1352,16 +1338,6 @@ namespace FragmentServerWV.Entities
             colorCode = GetCharacterModelColorCode(char_model);
 
             charModelFile = "xf" + classLetter + modelNumber + modelType + "_" + colorCode;
-
-            //logger.Information("Player Information");
-            //logger.Information("gold coin count " + goldCoinCount);
-            //logger.Information("silver coin count " + silverCoinCount);
-            //logger.Information("bronze coin count " + bronzeCoinCount);
-
-            //logger.Information("Character Date \n save_slot " + save_slot + "\n char_id " + encoding.GetString(save_id) + " \n char_name " + encoding.GetString(char_id) +
-            //                  "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting " + encoding.GetString(greeting) + "\n charmodel " + char_model + "\n char_hp " + char_HP +
-            //                  "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter " + online_god_counter + "\n offline god counter " + offline_godcounter + "\n\n\n\n full byte araray " + BitConverter.ToString(data));
-
             return DBAcess.getInstance().PlayerLogin(this);
         }
 

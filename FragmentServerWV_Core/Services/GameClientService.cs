@@ -51,7 +51,7 @@ namespace FragmentServerWV.Services
         {
             this.logger.Information($"Client {client.ClientIndex} has connected");
             this.clients.Add(client);
-            this.logger.Information($"There are {clients.Count} connected clients");
+            this.logger.Information($"There are {clients.Count:N0} connected clients");
             client.OnGameClientDisconnected += Client_OnGameClientDisconnected;
         }
 
@@ -59,9 +59,9 @@ namespace FragmentServerWV.Services
 
         public void RemoveClient(GameClientAsync client)
         {
-            this.logger.Information($"Client {client.ClientIndex} is disconnecting");
+            this.logger.Information($"Client {client.ClientIndex} has disconnected");
             this.clients.Remove(client);
-            this.logger.Information($"There are {clients.Count} connected clients");
+            this.logger.Information($"There are {clients.Count:N0} connected clients");
         }
 
         public bool TryGetClient(uint index, out GameClientAsync client)

@@ -38,7 +38,7 @@ namespace FragmentServerWV.Services
 
         public async Task<IList<MailMetaModel>> GetMailAsync(int accountId)
         {
-            logger.Information($"Account {accountId} has requested their mail", accountId);
+            logger.Debug($"Account {accountId} has requested their mail", accountId);
             return await Task.Run(() => DBAcess.getInstance().GetAccountMail(accountId));
         }
 
@@ -93,9 +93,9 @@ namespace FragmentServerWV.Services
                 Mail_Face_ID = encoding.GetString(face)
             };
 
-            logger.Information($"An email has been sent by {sender} to {receiver}. Saving...", sender, receiver);
+            logger.Debug($"An email has been sent by {sender} to {receiver}. Saving...", sender, receiver);
             await Task.Run(() => DBAcess.getInstance().CreateNewMail(metaModel, bodyModel));
-            logger.Information("The email has been saved to the database");
+            logger.Debug("The email has been saved to the database");
         }
 
         public async Task<byte[]> ConvertMailMetaIntoBytes(MailMetaModel mail)
