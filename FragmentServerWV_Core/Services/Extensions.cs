@@ -3,6 +3,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -216,6 +217,19 @@ namespace FragmentServerWV.Services
             builder.Append($" - {displayName}: {description}");
 
             return builder.ToString();
+        }
+
+        public static byte[] ReadByteString(byte[] data, int pos)
+        {
+            var m = new MemoryStream();
+            while (true)
+            {
+                byte b = data[pos++];
+                m.WriteByte(b);
+                if (b == 0) break;
+                if (pos >= data.Length) break;
+            }
+            return m.ToArray();
         }
 
     }
