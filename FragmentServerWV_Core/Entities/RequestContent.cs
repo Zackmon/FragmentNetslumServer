@@ -69,6 +69,21 @@ namespace FragmentServerWV.Entities
 
         }
 
+        /// <summary>
+        /// A shortcut method to create a response
+        /// </summary>
+        /// <param name="responseOpCode">The OpCode to respond with</param>
+        /// <param name="responseData">The data to transmit</param>
+        /// <param name="checksum">An optional checksum of the data</param>
+        /// <returns><see cref="ResponseContent"/></returns>
+        public ResponseContent CreateResponse(
+            ushort responseOpCode,
+            byte[] responseData,
+            uint? checksum = null)
+        {
+            return new ResponseContent(this, responseOpCode, responseData, checksum);
+        }
+
     }
 
 }
