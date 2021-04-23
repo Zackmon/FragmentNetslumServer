@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
 {
     [OpCode(OpCodes.OPCODE_KEY_EXCHANGE_REQUEST),
-        DisplayName("Key Exchange Handler"),
         Description("Handles initializing encryption & decryption keys on the connected Client")]
     public sealed class OPCODE_KEY_EXCHANGE_REQUEST : IOpCodeHandler
     {
