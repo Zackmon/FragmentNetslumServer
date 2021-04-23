@@ -33,12 +33,12 @@ namespace FragmentServerWV_Console
             var iocps = provider.GetRequiredService<IOpCodeProviderService>();
             var logger = provider.GetRequiredService<ILogger>();
 
-            logger.Debug("BEGIN - OPCODES");
+            logger.Information("BEGIN - OPCODES");
             foreach (var t in iocps.Handlers)
             {
-                logger.Debug(Extensions.ConvertHandlerToString(t));
+                logger.Information(Extensions.ConvertHandlerToString(t));
             }
-            logger.Debug("END - OPCODES");
+            logger.Information("END - OPCODES");
 
             var config = provider.GetRequiredService<SimpleConfiguration>();
             var server = provider.GetRequiredService<Server>();
