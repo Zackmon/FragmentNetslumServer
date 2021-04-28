@@ -26,7 +26,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Lobby
             var responses = new List<ResponseContent>();
             var nonGuildLobbies = new List<LobbyChatRoom>(lobbyChatService.Lobbies.Values.Where(c => c.Type == OpCodes.LOBBY_TYPE_MAIN));
 
-            responses.Add(request.CreateResponse(OpCodes.OPCODE_DATA_LOBBY_LOBBYLIST, BitConverter.GetBytes(swap16((ushort)nonGuildLobbies.Count)));
+            responses.Add(request.CreateResponse(OpCodes.OPCODE_DATA_LOBBY_LOBBYLIST, BitConverter.GetBytes(swap16((ushort)nonGuildLobbies.Count))));
             foreach (var room in nonGuildLobbies)
             {
                 var m = new MemoryStream();
