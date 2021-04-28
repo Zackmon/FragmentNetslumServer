@@ -57,7 +57,10 @@ namespace FragmentServerWV.Entities
                 // responsible for the "data opcode" and also properly
                 // decoding the data payload
                 var data = packet.Data;
-                Client.SetClientSequenceNumber(swap16(BitConverter.ToUInt16(data, 2)));
+                if (Client != null) // Client can be NULL if we're just asking 'can we handle this'
+                {
+                    Client.SetClientSequenceNumber(swap16(BitConverter.ToUInt16(data, 2)));
+                }
                 var arglen = (ushort)(swap16(BitConverter.ToUInt16(data, 6)) - 2);
                 var code = swap16(BitConverter.ToUInt16(data, 8));
                 var m = new MemoryStream();
