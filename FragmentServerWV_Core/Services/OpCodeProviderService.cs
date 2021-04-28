@@ -2,6 +2,7 @@
 using FragmentServerWV.Entities.Attributes;
 using FragmentServerWV.Enumerations;
 using FragmentServerWV.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -98,13 +99,13 @@ namespace FragmentServerWV.Services
                     var key = (OpCodes.OPCODE_DATA, requestContent.DataOpCode ?? throw new InvalidOperationException());
                     if (opCodeDataProviders.ContainsKey(key))
                     {
-                        handler = serviceProvider.GetService(opCodeDataProviders[key]) as IOpCodeHandler;
+                        handler = ActivatorUtilities.CreateInstance(serviceProvider, opCodeDataProviders[key]) as IOpCodeHandler;
                     }
                     break;
                 default:
                     if (opCodeProviders.ContainsKey(packet.Code))
                     {
-                        handler = serviceProvider.GetService(opCodeProviders[packet.Code]) as IOpCodeHandler;
+                        handler = ActivatorUtilities.CreateInstance(serviceProvider, opCodeProviders[packet.Code]) as IOpCodeHandler;
                     }
                     break;
             }
