@@ -26,8 +26,8 @@ namespace FragmentServerWV.Entities
         private readonly TimeSpan EnhancedPingTimeout = TimeSpan.FromMilliseconds(500);
 
         internal IPEndPoint ipEndPoint;
-        private Crypto to_crypto;
-        private Crypto from_crypto;
+        internal Crypto to_crypto;
+        internal Crypto from_crypto;
         private readonly ILogger logger;
         private readonly ILobbyChatService lobbyChatService;
         private readonly IClientProviderService clientProviderService;
@@ -225,9 +225,10 @@ namespace FragmentServerWV.Entities
         /// Initializes the decryption key system for the client
         /// </summary>
         /// <param name="key">The decryption key to use</param>
-        public void InitializeDecryptionKey(byte[] key)
+        public void InitializeDecryptionKey(byte[] key, bool actuallyInit = false)
         {
             from_key = key;
+            if (!actuallyInit) return;
             from_crypto.PrepareStructure(key);
         }
 
@@ -235,9 +236,10 @@ namespace FragmentServerWV.Entities
         /// Initializes the encryption key system for the client
         /// </summary>
         /// <param name="key">The encryption key to use</param>
-        public void InitializeEncryptionKey(byte[] key)
+        public void InitializeEncryptionKey(byte[] key, bool actuallyInit = false)
         {
             to_key = key;
+            if (!actuallyInit) return;
             to_crypto.PrepareStructure(key);
         }
 

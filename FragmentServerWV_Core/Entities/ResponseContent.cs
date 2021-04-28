@@ -94,7 +94,7 @@ namespace FragmentServerWV.Entities
             data ??= this.Data;
             checksum ??= this.Checksum;
 
-            var to_crypto = new Crypto(Request.Client.to_key);
+            var to_crypto = Request.Client.to_crypto;
             var responseStream = new MemoryStream();
             responseStream.WriteByte((byte)(checksum >> 8));
             responseStream.WriteByte((byte)(checksum & 0xFF));
