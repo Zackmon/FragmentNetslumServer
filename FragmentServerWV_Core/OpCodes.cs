@@ -477,7 +477,13 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
 
         public const ushort OPCODE_DATA_GUILD_CREATE = 0x7600;
         public const ushort OPCODE_DATA_GUILD_GET_ALL_GUILDS = 0x7722;
+        public const ushort OPCODE_DATA_GUILD_GROUP_COUNT = 0x7723;
+        public const ushort OPCODE_DATA_GUILD_GROUP_CATEGORY = 0x7725;
+        public const ushort OPCODE_DATA_GUILD_COUNT = 0x7726;
+        public const ushort OPCODE_DATA_GUILD_ENTRY = 0x7727;
         public const ushort OPCODE_DATA_GUILD_GET_LIST_OF_ITEMS = 0x772F;
+        public const ushort OPCODE_DATA_GUILD_ITEMS_COUNT = 0x7730;
+        public const ushort OPCODE_DATA_GUILD_ITEM_DETAILS = 0x7731;
         public const ushort OPCODE_DATA_GUILD_GETMENU = 0x7733;
         public const ushort OPCODE_DATA_GUILD_GET_INFO = 0x7739;
 
