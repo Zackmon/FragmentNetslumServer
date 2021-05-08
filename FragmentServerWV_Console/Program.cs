@@ -29,7 +29,7 @@ namespace FragmentServerWV_Console
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             //hack hack
-            provider.GetRequiredService<ILobbyChatService>().Initialize();
+            //provider.GetRequiredService<ILobbyChatService>().Initialize();
             var iocps = provider.GetRequiredService<IOpCodeProviderService>();
             var logger = provider.GetRequiredService<ILogger>();
 

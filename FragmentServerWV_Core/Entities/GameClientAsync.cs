@@ -308,34 +308,35 @@ namespace FragmentServerWV.Entities
                             }
                         }
                     }
+                    catch (ObjectDisposedException ode)
+                    {
+                        logger.Error(ode, $"The {nameof(GameClientAsync)} was told to shutdown or threw some sort of error; cleaning up the Client");
+                    }
+                    catch (InvalidOperationException ioe)
+                    {
+                        // Either tcpListener.Start wasn't called (a bug!)
+                        // or the CancellationToken was cancelled before
+                        // we started accepting (giving an InvalidOperationException),
+                        // or the CancellationToken was cancelled after
+                        // we started accepting (giving an ObjectDisposedException).
+                        //
+                        // In the latter two cases we should surface the cancellation
+                        // exception, or otherwise rethrow the original exception.
+                        logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
+                        token.ThrowIfCancellationRequested();
+                        logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                    }
+                    catch (OperationCanceledException oce)
+                    {
+                        logger.Error(oce, $"The {nameof(GameClientAsync)} was told to explicitly shutdown and no further action is necessary");
+                    }
+                    finally
+                    {
+                        OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
+                    }
                 }
             }
-            catch (ObjectDisposedException ode)
-            {
-                logger.Error(ode, $"The {nameof(GameClientAsync)} was told to shutdown or threw some sort of error; cleaning up the Client");
-            }
-            catch (InvalidOperationException ioe)
-            {
-                // Either tcpListener.Start wasn't called (a bug!)
-                // or the CancellationToken was cancelled before
-                // we started accepting (giving an InvalidOperationException),
-                // or the CancellationToken was cancelled after
-                // we started accepting (giving an ObjectDisposedException).
-                //
-                // In the latter two cases we should surface the cancellation
-                // exception, or otherwise rethrow the original exception.
-                logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
-                token.ThrowIfCancellationRequested();
-                logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
-            }
-            catch (OperationCanceledException oce)
-            {
-                logger.Error(oce, $"The {nameof(GameClientAsync)} was told to explicitly shutdown and no further action is necessary");
-            }
-            finally
-            {
-                OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
-            }
+
         }
 
         private async Task HandleIncomingPacket(PacketAsync packet)
@@ -555,13 +556,13 @@ namespace FragmentServerWV.Entities
                 case OpCodes.OPCODE_DATA_GUILD_DONATE_COINS:// donate Coins to Guild
                     await HandlePlayerDonatesCoinsToGuild(argument);
                     break;
-                case OpCodes.OPCODE_INVITE_TO_GUILD: //invite player to Guild
+                case OpCodes.OPCODE_DATA_INVITE_TO_GUILD: //invite player to Guild
                     await HandleInvitePlayerToGuild(argument);
                     break;
-                case OpCodes.OPCODE_ACCEPT_GUILD_INVITE: //accept Guild Invitation
+                case OpCodes.OPCODE_DATA_ACCEPT_GUILD_INVITE: //accept Guild Invitation
                     await HandleGuildAcceptOrReject(argument);
                     break;
-                case OpCodes.OPCODE_GUILD_VIEW: //get Guild info (in lobby )
+                case OpCodes.OPCODE_DATA_GUILD_VIEW: //get Guild info (in lobby )
                     await HandleGuildView(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_UPDATE_STATUS:
