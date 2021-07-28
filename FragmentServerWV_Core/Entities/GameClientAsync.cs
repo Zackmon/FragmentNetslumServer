@@ -267,8 +267,14 @@ namespace FragmentServerWV.Entities
                 // In the latter two cases we should surface the cancellation
                 // exception, or otherwise rethrow the original exception.
                 logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
-                token.ThrowIfCancellationRequested();
-                logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                if (token.IsCancellationRequested)
+                {
+                    logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown via the cancellation token. This error can more than likely be discarded.");
+                }
+                else
+                {
+                    logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                }
             }
             catch (OperationCanceledException oce)
             {
