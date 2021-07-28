@@ -114,8 +114,14 @@ namespace FragmentServerWV.Services
                 // In the latter two cases we should surface the cancellation
                 // exception, or otherwise rethrow the original exception.
                 logger.Error(ioe, $"The {nameof(ClientConnectionService)} was told to shutdown, or errored, before an incoming connection attempt was made. More context is necessary to see if this Error can be safely ignored");
-                token.ThrowIfCancellationRequested();
-                logger.Error(ioe, $"The {nameof(ClientConnectionService)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                if(token.IsCancellationRequested)
+                {
+                    logger.Error(ioe, $"The {nameof(ClientConnectionService)} was told to shutdown.");
+                }
+                else
+                {
+                    logger.Error(ioe, $"The {nameof(ClientConnectionService)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                }
             }
             catch (OperationCanceledException oce)
             {
