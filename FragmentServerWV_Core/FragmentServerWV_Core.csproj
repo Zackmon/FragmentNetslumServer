@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
   
 
@@ -50,6 +50,9 @@
     <EmbeddedResource Include="Models\Mapping\GuildItemShopModel.hbm.xml" />
     <None Remove="Models\Mapping\GuildRepositoryModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\GuildRepositoryModel.hbm.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FragmentServerWV_PubSub\FragmentServerWV_PubSub.csproj" />
   </ItemGroup>
 
 <!--
