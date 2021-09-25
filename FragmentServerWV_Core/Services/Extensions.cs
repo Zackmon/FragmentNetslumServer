@@ -39,7 +39,7 @@ namespace FragmentServerWV.Services
             }
             try
             {
-                logger?.Debug(sb.ToString());
+                logger?.Information(sb.ToString());
             }
             catch
             {
