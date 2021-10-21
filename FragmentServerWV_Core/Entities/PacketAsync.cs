@@ -110,7 +110,7 @@ namespace FragmentServerWV.Entities
                         encryptedData = m.ToArray();
                         data = crypto.Decrypt(m.ToArray());
                         checksum_inpacket = (ushort)((data[0] << 8) + data[1]);
-                        m = new MemoryStream();
+                        m.SetLength(0);
                         await m.WriteAsync(data, 2, datalen - 2);
                         checksum_ofpacket = Crypto.Checksum(m.ToArray());
                     }
@@ -120,10 +120,10 @@ namespace FragmentServerWV.Entities
                     code = 0;
                 }
 
-                if (checksum_inpacket != checksum_ofpacket)
-                {
-                    logger.Warning("This packet and its checksum do NOT match! This could be important to investigate");
-                }
+                // if (checksum_inpacket != checksum_ofpacket)
+                // {
+                //     logger.Warning("This packet and its checksum do NOT match! This could be important to investigate");
+                // }
 
                 return true;
             }
