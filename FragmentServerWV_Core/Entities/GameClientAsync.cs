@@ -301,8 +301,7 @@ namespace FragmentServerWV.Entities
                     {
                         rng.GetBytes(to_key);
                     }
-                    await responseStream.DisposeAsync();
-                    responseStream = new MemoryStream();
+                    responseStream.SetLength(0);
                     responseStream.WriteByte(0);
                     responseStream.WriteByte(0x10);
                     responseStream.Write(from_key, 0, 16);
@@ -616,7 +615,7 @@ namespace FragmentServerWV.Entities
                 logger.LogData(buff, code, (int)clientIndex, nameof(SendRegularPacket), (ushort)checksum, (ushort)checksum);
                 buff = to_crypto.Encrypt(buff);
                 var len = (ushort)(buff.Length + 2);
-                responseStream = new MemoryStream();
+                responseStream.SetLength(0);
                 responseStream.WriteByte((byte)(len >> 8));
                 responseStream.WriteByte((byte)(len & 0xFF));
                 responseStream.WriteByte((byte)(code >> 8));
