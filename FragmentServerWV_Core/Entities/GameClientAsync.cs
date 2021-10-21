@@ -329,12 +329,18 @@ namespace FragmentServerWV.Entities
         private async Task HandleIncomingDataPacket(PacketAsync packet)
         {
             var data = packet.Data;
+
             client_seq_nr = swap16(BitConverter.ToUInt16(data, 2));
+
             var arglen = (ushort)(swap16(BitConverter.ToUInt16(data, 6)) - 2);
             var code = swap16(BitConverter.ToUInt16(data, 8));
-            var m = new MemoryStream();
-            await m.WriteAsync(data, 10, arglen);
-            var argument = m.ToArray();
+            var argument = new byte[data.Length - 10];
+            if (arglen > data.Length - 10)
+            {
+                logger.Debug($"Adjusted arglen from {arglen} to {data.Length - 10}");
+                arglen = (ushort)(data.Length - 10);
+            }
+            Buffer.BlockCopy(data, 10, argument, 0, arglen);
             logger.LogData(data, code, (int)clientIndex, nameof(HandleIncomingDataPacket), packet.ChecksumInPacket, packet.ChecksumOfPacket);
 
             // Reset the ping timer
@@ -362,7 +368,7 @@ namespace FragmentServerWV.Entities
                     await HandleLobbyRoomUpdate(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
-                    m = await HandlePublishDetails1(argument);
+                    await HandlePublishDetails1(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_IPPORT:
                     await HandleIncomingIpData(argument);
