@@ -28,9 +28,6 @@ namespace FragmentServerWV_Console
             var provider = serviceCollection.BuildServiceProvider();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            //hack hack
-            provider.GetRequiredService<ILobbyChatService>().Initialize();
-
             var config = provider.GetRequiredService<SimpleConfiguration>();
             var server = provider.GetRequiredService<Server>();
             server.Start();

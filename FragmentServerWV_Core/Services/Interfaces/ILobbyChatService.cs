@@ -57,11 +57,6 @@ namespace FragmentServerWV.Services.Interfaces
         Task AnnounceRoomDeparture(ushort lobbyId, uint clientIndex);
 
         /// <summary>
-        /// Initializes the Lobby Service
-        /// </summary>
-        void Initialize();
-
-        /// <summary>
         /// Attempts to locate the lobby where the client is currently at
         /// </summary>
         /// <param name="clientIndex">The index of the client</param>
