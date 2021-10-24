@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace FragmentServerWV_WebApi.Controllers
 { 
     [ApiController]
-    [Route("refreshMod")]
+    [Route("motd")]
     public class RefreshMod : ControllerBase
     {
         private readonly ILogger<RefreshMod> _logger;
@@ -23,5 +23,13 @@ namespace FragmentServerWV_WebApi.Controllers
            
             return "Message Of the Day Refreshed";
         }
+
+        [HttpPut]
+        public IActionResult Put(string motd)
+        {
+            DBAcess.getInstance().SetMessageOfDay(motd);
+            return Ok();
+        }
+
     }
 }

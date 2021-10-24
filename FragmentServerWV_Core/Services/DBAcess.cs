@@ -762,6 +762,23 @@ namespace FragmentServerWV.Services
             set => _messageOfTheDay = value;
         }
 
+        public void SetMessageOfDay(string message)
+        {
+            using (ISession session = _sessionFactory.OpenSession())
+            {
+                using ITransaction transaction = session.BeginTransaction();
+
+
+                var messageModel = session.Query<MessageOfTheDayModel>()
+                    .SingleOrDefault(x => x.Id == 1);
+                messageModel.Message = message;
+                session.Update(messageModel);
+                _messageOfTheDay = message;
+                transaction.Commit();
+                session.Close();
+            }
+        }
+
 
         private sealed class BbsThreadModelComparer : IEqualityComparer<BbsThreadModel>
         {
