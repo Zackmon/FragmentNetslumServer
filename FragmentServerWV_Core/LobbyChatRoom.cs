@@ -96,8 +96,8 @@ namespace FragmentServerWV
             }
             catch (Exception e)
             {
+                // TODO: Support ILogger in LobbyChatRoom
                 Console.WriteLine(e);
-                //throw;
             }
         }
 
@@ -135,8 +135,8 @@ namespace FragmentServerWV
             }
             catch (Exception e)
             {
+                // TODO: Support ILogger in LobbyChatRoom
                 Console.WriteLine(e);
-                //throw;
             }
         }
 

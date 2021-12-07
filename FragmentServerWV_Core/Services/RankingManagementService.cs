@@ -8,11 +8,11 @@ namespace FragmentServerWV.Services
 {
     public class RankingManagementService : BaseManagementService
     {
-     
-        
+
+
         private static RankingManagementService _instance = null;
 
-        
+
 
         public RankingManagementService() : base()
         {
@@ -31,167 +31,171 @@ namespace FragmentServerWV.Services
         public List<byte[]> GetRankingCategory()
         {
             List<byte[]> rankingList = new List<byte[]>();
-            
+
             MemoryStream m = new MemoryStream();
 
             m.Write(BitConverter.GetBytes(swap16(8)));
             m.Write(_encoding.GetBytes("Level"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
 
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(9)));
             m.Write(_encoding.GetBytes("HP"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
 
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(10)));
             m.Write(_encoding.GetBytes("SP"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
 
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(11)));
             m.Write(_encoding.GetBytes("GP"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
 
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(12)));
             m.Write(_encoding.GetBytes("Online Gott Statue"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
 
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(13)));
             m.Write(_encoding.GetBytes("Offline Gott Statue"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
 
 
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(14)));
             m.Write(_encoding.GetBytes("Gold Coin"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
-            
+
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(15)));
             m.Write(_encoding.GetBytes("Silver Coin"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
-            
+
             m = new MemoryStream();
             m.Write(BitConverter.GetBytes(swap16(16)));
             m.Write(_encoding.GetBytes("Bronze Coin"));
-            m.Write(new byte[] {0x00});
+            m.Write(new byte[] { 0x00 });
             rankingList.Add(m.ToArray());
-            
-           
+
+
             return rankingList;
         }
 
 
         public List<byte[]> GetPlayerRanking(ushort categoryID, ushort classID)
         {
-
-            List<CharacterRepositoryModel> characterList = DBAcess.getInstance().GetRanking(categoryID, classID);
-            
-            List<byte[]> rankingList = new List<byte[]>();
-
-            MemoryStream m = new MemoryStream();
-            
-            foreach (var player in characterList)
+            lock (this)
             {
-                m = new MemoryStream();
-                m.Write(player.CharachterName);
-                m.Write(BitConverter.GetBytes(swap32((uint)player.PlayerID)));
-                rankingList.Add(m.ToArray());
-            }
+                List<CharacterRepositoryModel> characterList = DBAcess.getInstance().GetRanking(categoryID, classID);
 
-            return rankingList;
+                List<byte[]> rankingList = new List<byte[]>();
+
+                MemoryStream m = new MemoryStream();
+
+                foreach (var player in characterList)
+                {
+                    m = new MemoryStream();
+                    m.Write(player.CharachterName);
+                    m.Write(BitConverter.GetBytes(swap32((uint)player.PlayerID)));
+                    rankingList.Add(m.ToArray());
+                }
+
+                return rankingList;
+            }
         }
 
 
         public byte[] getRankingPlayerInfo(uint playerID)
         {
-            CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerID);
-            GuildRepositoryModel guildRepositoryModel = null;
-            bool inGuild = false;
-            if (characterRepositoryModel.GuildID != 0)
+            lock (this)
             {
-                guildRepositoryModel = DBAcess.getInstance().GetGuildInfo((ushort)characterRepositoryModel.GuildID);
-                inGuild = true;
-            }
+                CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerID);
+                GuildRepositoryModel guildRepositoryModel = null;
+                bool inGuild = false;
+                if (characterRepositoryModel.GuildID != 0)
+                {
+                    guildRepositoryModel = DBAcess.getInstance().GetGuildInfo((ushort)characterRepositoryModel.GuildID);
+                    inGuild = true;
+                }
 
-            MemoryStream m = new MemoryStream();
-            
-            m.Write(characterRepositoryModel.CharachterName);
-            
-            if (characterRepositoryModel.ClassID == 0)
-            {
-                m.Write(new byte[] {0x00});
-            }
-            if (characterRepositoryModel.ClassID == 1)
-            {
-                m.Write(new byte[] {0x01});
-            }
-            if (characterRepositoryModel.ClassID == 2)
-            {
-                m.Write(new byte[] {0x02});
-            }
-            if (characterRepositoryModel.ClassID == 3)
-            {
-                m.Write(new byte[] {0x03});
-            }
-            if (characterRepositoryModel.ClassID == 4)
-            {
-                m.Write(new byte[] {0x04});
-            }
-            if (characterRepositoryModel.ClassID == 5)
-            {
-                m.Write(new byte[] {0x05});
-            }
-            
-            m.Write(BitConverter.GetBytes(swap16((ushort)characterRepositoryModel.CharachterLevel)));
-            m.Write(characterRepositoryModel.Greeting);
+                MemoryStream m = new MemoryStream();
 
-            if (inGuild && guildRepositoryModel != null)
-            {
-                m.Write(guildRepositoryModel.GuildName);
-            }
-            else
-            {
-                m.Write(new byte[]{0x00});
-            }
+                m.Write(characterRepositoryModel.CharachterName);
 
-            m.Write(BitConverter.GetBytes(swap32((uint) characterRepositoryModel.ModelNumber)));
-            
-            if (characterRepositoryModel.OnlineStatus)
-            {
-                m.Write(new byte[] {0x01});
-            }
-            else
-            {
-                m.Write(new byte[] {0x00});
-            }
+                if (characterRepositoryModel.ClassID == 0)
+                {
+                    m.Write(new byte[] { 0x00 });
+                }
+                if (characterRepositoryModel.ClassID == 1)
+                {
+                    m.Write(new byte[] { 0x01 });
+                }
+                if (characterRepositoryModel.ClassID == 2)
+                {
+                    m.Write(new byte[] { 0x02 });
+                }
+                if (characterRepositoryModel.ClassID == 3)
+                {
+                    m.Write(new byte[] { 0x03 });
+                }
+                if (characterRepositoryModel.ClassID == 4)
+                {
+                    m.Write(new byte[] { 0x04 });
+                }
+                if (characterRepositoryModel.ClassID == 5)
+                {
+                    m.Write(new byte[] { 0x05 });
+                }
 
-            if (characterRepositoryModel.GuildMaster == 1)
-            {
-                m.Write(new byte[] {0x01});
-            }
-            else if (characterRepositoryModel.GuildMaster == 2)
-            {
-                m.Write(new byte[] {0x02});
-            }
-            else
-            {
-                m.Write(new byte[] {0x03});
-            }
+                m.Write(BitConverter.GetBytes(swap16((ushort)characterRepositoryModel.CharachterLevel)));
+                m.Write(characterRepositoryModel.Greeting);
 
-            return m.ToArray();
+                if (inGuild && guildRepositoryModel != null)
+                {
+                    m.Write(guildRepositoryModel.GuildName);
+                }
+                else
+                {
+                    m.Write(new byte[] { 0x00 });
+                }
 
+                m.Write(BitConverter.GetBytes(swap32((uint)characterRepositoryModel.ModelNumber)));
+
+                if (characterRepositoryModel.OnlineStatus)
+                {
+                    m.Write(new byte[] { 0x01 });
+                }
+                else
+                {
+                    m.Write(new byte[] { 0x00 });
+                }
+
+                if (characterRepositoryModel.GuildMaster == 1)
+                {
+                    m.Write(new byte[] { 0x01 });
+                }
+                else if (characterRepositoryModel.GuildMaster == 2)
+                {
+                    m.Write(new byte[] { 0x02 });
+                }
+                else
+                {
+                    m.Write(new byte[] { 0x03 });
+                }
+
+                return m.ToArray();
+            }
         }
     }
 }

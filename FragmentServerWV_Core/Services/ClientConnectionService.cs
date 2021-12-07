@@ -79,63 +79,56 @@ namespace FragmentServerWV.Services
         private async Task InternalConnectionLoop(CancellationToken token)
         {
             listener.Start();
-            this.ServiceStatus = ServiceStatusEnum.Active;
             uint clientIds = 1;
-            try
+            using (token.Register(() =>
             {
-
-                using (token.Register(() => listener.Stop()))
+                this.ServiceStatus = ServiceStatusEnum.Inactive;
+                listener.Stop();
+                listener = null;
+            }))
+            {
+                this.ServiceStatus = ServiceStatusEnum.Active;
+                while (!token.IsCancellationRequested)
                 {
-                    while (!token.IsCancellationRequested)
+                    try
                     {
                         logger.Verbose("Invoking AcceptTcpClientAsync()");
                         var incomingConnection = await listener.AcceptTcpClientAsync();
                         logger.Verbose($"AcceptTcpClientAsync() has returned with a client, migrating to {nameof(IClientProviderService)}");
                         clientProviderService.AddClient(incomingConnection, clientIds++);
-                        logger.Verbose("Performing Cancellation Token check...");
-                        token.ThrowIfCancellationRequested();
-                        logger.Verbose("Performing Cancellation Token check...passed");
+                        logger.Verbose("Client Provider Service now has the client");
+                    }
+                    catch (ObjectDisposedException ode)
+                    {
+                        logger.Error(ode, "The service was told to shutdown, or errored, after an incoming connection attempt was made. It is probably safe to ignore this Error as the listener is already shutting down");
+                    }
+                    catch (InvalidOperationException ioe)
+                    {
+                        // Either tcpListener.Start wasn't called (a bug!)
+                        // or the CancellationToken was cancelled before
+                        // we started accepting (giving an InvalidOperationException),
+                        // or the CancellationToken was cancelled after
+                        // we started accepting (giving an ObjectDisposedException).
+                        //
+                        // In the latter two cases we should surface the cancellation
+                        // exception, or otherwise rethrow the original exception.
+                        logger.Error(ioe, $"The {nameof(ClientConnectionService)} was told to shutdown, or errored, before an incoming connection attempt was made. More context is necessary to see if this Error can be safely ignored");
+                        if (token.IsCancellationRequested)
+                        {
+                            logger.Error(ioe, $"The {nameof(ClientConnectionService)} was told to shutdown.");
+                        }
+                        else
+                        {
+                            logger.Error(ioe, $"The {nameof(ClientConnectionService)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                        }
+                    }
+                    catch (OperationCanceledException oce)
+                    {
+                        logger.Error(oce, $"The {nameof(ClientConnectionService)} was told to explicitly shutdown and no further action is necessary");
                     }
                 }
-
-            }
-            catch (ObjectDisposedException ode)
-            {
-                logger.Error(ode, "The service was told to shutdown, or errored, after an incoming connection attempt was made. It is probably safe to ignore this Error as the listener is already shutting down");
-            }
-            catch (InvalidOperationException ioe)
-            {
-                // Either tcpListener.Start wasn't called (a bug!)
-                // or the CancellationToken was cancelled before
-                // we started accepting (giving an InvalidOperationException),
-                // or the CancellationToken was cancelled after
-                // we started accepting (giving an ObjectDisposedException).
-                //
-                // In the latter two cases we should surface the cancellation
-                // exception, or otherwise rethrow the original exception.
-                logger.Error(ioe, $"The {nameof(ClientConnectionService)} was told to shutdown, or errored, before an incoming connection attempt was made. More context is necessary to see if this Error can be safely ignored");
-                if(token.IsCancellationRequested)
-                {
-                    logger.Error(ioe, $"The {nameof(ClientConnectionService)} was told to shutdown.");
-                }
-                else
-                {
-                    logger.Error(ioe, $"The {nameof(ClientConnectionService)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
-                }
-            }
-            catch (OperationCanceledException oce)
-            {
-                logger.Error(oce, $"The {nameof(ClientConnectionService)} was told to explicitly shutdown and no further action is necessary");
-            }
-            finally
-            {
-                // At the end of it all, we need to remove the reference
-                // on the listener variable and allow GC to reclaim it
-                listener = null;
                 this.ServiceStatus = ServiceStatusEnum.Inactive;
-                this.tokenSource.Dispose();
             }
         }
-
     }
 }

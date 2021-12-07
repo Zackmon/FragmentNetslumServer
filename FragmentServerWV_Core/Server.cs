@@ -1,22 +1,10 @@
-﻿using FragmentServerWV.Exceptions;
-using FragmentServerWV.Services;
-using FragmentServerWV.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+﻿using FragmentServerWV.Services.Interfaces;
 using Serilog;
-using Serilog.Formatting.Json;
-using Serilog.Sinks.SystemConsole.Themes;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Unity;
-using Unity.Injection;
-using Unity.Lifetime;
 
 namespace FragmentServerWV
 {

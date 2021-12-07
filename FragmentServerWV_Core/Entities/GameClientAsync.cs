@@ -218,71 +218,70 @@ namespace FragmentServerWV.Entities
         private async Task InternalConnectionLoop(CancellationToken token)
         {
             var tickRate = Convert.ToInt32(simpleConfiguration.Get("tick", "30"));
-            try
+            using (token.Register(() =>
             {
-                using (token.Register(() =>
+                logger.Verbose("Client #{@clientIndex} has been closed safely", clientIndex);
+                client.Close();
+                OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
+            }))
+            {
+                while (!token.IsCancellationRequested)
                 {
-                    logger.Verbose("Client #{@clientIndex} has been closed safely", clientIndex);
-                    client.Close();
-                }))
-                {
-                    while (!token.IsCancellationRequested)
+                    var packet = new PacketAsync(logger, ns, from_crypto);
+
+                    try
                     {
-                        var packet = new PacketAsync(logger, ns, from_crypto);
                         var readResult = await packet.ReadPacketAsync();
 
                         if (!readResult)
                         {
                             logger.Verbose("Client #{@clientIndex} has no data at this time; suspending for {@tickRate} milliseconds", clientIndex, tickRate);
-                            await Task.Delay(TimeSpan.FromMilliseconds(tickRate));
+                            await Task.Delay(TimeSpan.FromMilliseconds(tickRate), token);
                         }
                         else
                         {
-                            // Packet has been read, bring over what we do now
-                            try
-                            {
-                                await HandleIncomingPacket(packet);
-                            }
-                            catch (Exception hipException)
-                            {
-                                logger.Error(hipException, $"Client #{clientIndex} has thrown an error parsing a particular packet. Dumping out the contents for later inspection");
-                                logger.LogData(packet.Data, packet.Code, (int)clientIndex, "", packet.ChecksumInPacket, packet.ChecksumOfPacket);
-                            }
+                            await HandleIncomingPacket(packet);
                         }
                     }
+                    catch (ObjectDisposedException ode)
+                    {
+                        logger.Error(ode, $"The {nameof(GameClientAsync)} was told to shutdown or threw some sort of error; cleaning up the Client");
+                        if (!token.IsCancellationRequested)
+                        {
+                            tokenSource.Cancel();
+                        }
+                    }
+                    catch (ArgumentException argException)
+                    {
+                        logger.Error(argException, $"The {nameof(GameClientAsync)} has thrown an error that more than likely involves communicating back to the Client");
+                        tokenSource.Cancel();
+                    }
+                    catch (InvalidOperationException ioe)
+                    {
+                        // Either tcpListener.Start wasn't called (a bug!)
+                        // or the CancellationToken was cancelled before
+                        // we started accepting (giving an InvalidOperationException),
+                        // or the CancellationToken was cancelled after
+                        // we started accepting (giving an ObjectDisposedException).
+                        //
+                        // In the latter two cases we should surface the cancellation
+                        // exception, or otherwise rethrow the original exception.
+                        logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
+                        if (token.IsCancellationRequested)
+                        {
+                            logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown via the cancellation token. This error can more than likely be discarded.");
+                        }
+                        else
+                        {
+                            logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                        }
+                    }
+                    catch (Exception hipException)
+                    {
+                        logger.Error(hipException, $"Client #{clientIndex} has thrown an error parsing a particular packet. Dumping out the contents for later inspection");
+                        logger.LogData(packet.Data, packet.Code, (int)clientIndex, "", packet.ChecksumInPacket, packet.ChecksumOfPacket);
+                    }
                 }
-            }
-            catch (ObjectDisposedException ode)
-            {
-                logger.Error(ode, $"The {nameof(GameClientAsync)} was told to shutdown or threw some sort of error; cleaning up the Client");
-            }
-            catch (InvalidOperationException ioe)
-            {
-                // Either tcpListener.Start wasn't called (a bug!)
-                // or the CancellationToken was cancelled before
-                // we started accepting (giving an InvalidOperationException),
-                // or the CancellationToken was cancelled after
-                // we started accepting (giving an ObjectDisposedException).
-                //
-                // In the latter two cases we should surface the cancellation
-                // exception, or otherwise rethrow the original exception.
-                logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
-                if (token.IsCancellationRequested)
-                {
-                    logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown via the cancellation token. This error can more than likely be discarded.");
-                }
-                else
-                {
-                    logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
-                }
-            }
-            catch (OperationCanceledException oce)
-            {
-                logger.Error(oce, $"The {nameof(GameClientAsync)} was told to explicitly shutdown and no further action is necessary");
-            }
-            finally
-            {
-                OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -302,8 +301,7 @@ namespace FragmentServerWV.Entities
                     {
                         rng.GetBytes(to_key);
                     }
-                    await responseStream.DisposeAsync();
-                    responseStream = new MemoryStream();
+                    responseStream.SetLength(0);
                     responseStream.WriteByte(0);
                     responseStream.WriteByte(0x10);
                     responseStream.Write(from_key, 0, 16);
@@ -331,12 +329,18 @@ namespace FragmentServerWV.Entities
         private async Task HandleIncomingDataPacket(PacketAsync packet)
         {
             var data = packet.Data;
+
             client_seq_nr = swap16(BitConverter.ToUInt16(data, 2));
+
             var arglen = (ushort)(swap16(BitConverter.ToUInt16(data, 6)) - 2);
             var code = swap16(BitConverter.ToUInt16(data, 8));
-            var m = new MemoryStream();
-            await m.WriteAsync(data, 10, arglen);
-            var argument = m.ToArray();
+            var argument = new byte[data.Length - 10];
+            if (arglen > data.Length - 10)
+            {
+                logger.Debug($"Adjusted arglen from {arglen} to {data.Length - 10}");
+                arglen = (ushort)(data.Length - 10);
+            }
+            Buffer.BlockCopy(data, 10, argument, 0, arglen);
             logger.LogData(data, code, (int)clientIndex, nameof(HandleIncomingDataPacket), packet.ChecksumInPacket, packet.ChecksumOfPacket);
 
             // Reset the ping timer
@@ -364,7 +368,7 @@ namespace FragmentServerWV.Entities
                     await HandleLobbyRoomUpdate(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_PUBLISH_DETAILS1:
-                    m = await HandlePublishDetails1(argument);
+                    await HandlePublishDetails1(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_IPPORT:
                     await HandleIncomingIpData(argument);
@@ -617,7 +621,7 @@ namespace FragmentServerWV.Entities
                 logger.LogData(buff, code, (int)clientIndex, nameof(SendRegularPacket), (ushort)checksum, (ushort)checksum);
                 buff = to_crypto.Encrypt(buff);
                 var len = (ushort)(buff.Length + 2);
-                responseStream = new MemoryStream();
+                responseStream.SetLength(0);
                 responseStream.WriteByte((byte)(len >> 8));
                 responseStream.WriteByte((byte)(len & 0xFF));
                 responseStream.WriteByte((byte)(code >> 8));

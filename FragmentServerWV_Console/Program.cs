@@ -12,6 +12,7 @@ using Serilog.Formatting.Json;
 using System.Linq;
 using FragmentServerWV.Entities;
 using Serilog.Events;
+using Serilog.Exceptions;
 
 namespace FragmentServerWV_Console
 {
@@ -26,9 +27,6 @@ namespace FragmentServerWV_Console
             var serviceCollection = InitializeContainer();
             var provider = serviceCollection.BuildServiceProvider();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            //hack hack
-            provider.GetRequiredService<ILobbyChatService>().Initialize();
 
             var config = provider.GetRequiredService<SimpleConfiguration>();
             var server = provider.GetRequiredService<Server>();
@@ -77,7 +75,8 @@ namespace FragmentServerWV_Console
                     // set the minimum level
                     logConfig.MinimumLevel.Warning();
                     logConfig.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-                        .Enrich.FromLogContext();
+                        .Enrich.FromLogContext()
+                        .Enrich.WithExceptionDetails();
 
                     return logConfig.CreateLogger();
                 })
