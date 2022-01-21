@@ -155,9 +155,9 @@ create table CharacterRepository
 (
     playerID int auto_increment
         primary key,
-    charachterName blob null,
+    characterName blob null,
     classID int null,
-    charachterLevel int null,
+    characterLevel int null,
     greeting blob null,
     guildID int null,
     guildMaster int null,

@@ -97,7 +97,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                List<CharacterRepositoryModel> characterList = DBAcess.getInstance().GetRanking(categoryID, classID);
+                List<CharacterRepositoryModel> characterList = DBAccess.getInstance().GetRanking(categoryID, classID);
 
                 List<byte[]> rankingList = new List<byte[]>();
 
@@ -106,7 +106,7 @@ namespace FragmentServerWV.Services
                 foreach (var player in characterList)
                 {
                     m = new MemoryStream();
-                    m.Write(player.CharachterName);
+                    m.Write(player.CharacterName);
                     m.Write(BitConverter.GetBytes(swap32((uint)player.PlayerID)));
                     rankingList.Add(m.ToArray());
                 }
@@ -120,18 +120,18 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerID);
+                CharacterRepositoryModel characterRepositoryModel = DBAccess.getInstance().GetCharacterInfo(playerID);
                 GuildRepositoryModel guildRepositoryModel = null;
                 bool inGuild = false;
                 if (characterRepositoryModel.GuildID != 0)
                 {
-                    guildRepositoryModel = DBAcess.getInstance().GetGuildInfo((ushort)characterRepositoryModel.GuildID);
+                    guildRepositoryModel = DBAccess.getInstance().GetGuildInfo((ushort)characterRepositoryModel.GuildID);
                     inGuild = true;
                 }
 
                 MemoryStream m = new MemoryStream();
 
-                m.Write(characterRepositoryModel.CharachterName);
+                m.Write(characterRepositoryModel.CharacterName);
 
                 if (characterRepositoryModel.ClassID == 0)
                 {
@@ -158,7 +158,7 @@ namespace FragmentServerWV.Services
                     m.Write(new byte[] { 0x05 });
                 }
 
-                m.Write(BitConverter.GetBytes(swap16((ushort)characterRepositoryModel.CharachterLevel)));
+                m.Write(BitConverter.GetBytes(swap16((ushort)characterRepositoryModel.CharacterLevel)));
                 m.Write(characterRepositoryModel.Greeting);
 
                 if (inGuild && guildRepositoryModel != null)

@@ -39,13 +39,13 @@ namespace FragmentServerWV.Services
         public async Task<IList<MailMetaModel>> GetMailAsync(int accountId)
         {
             logger.Information($"Account {accountId} has requested their mail", accountId);
-            return await Task.Run(() => DBAcess.getInstance().GetAccountMail(accountId));
+            return await Task.Run(() => DBAccess.getInstance().GetAccountMail(accountId));
         }
 
         public async Task<MailBodyModel> GetMailContent(int mailId)
         {
             logger.Debug($"Fetching Mail Content for {mailId}", mailId);
-            return await Task.Run(() => DBAcess.getInstance().GetMailBodyByMailId(mailId));
+            return await Task.Run(() => DBAccess.getInstance().GetMailBodyByMailId(mailId));
         }
 
         public async Task SaveMailAsync(byte[] data)
@@ -94,7 +94,7 @@ namespace FragmentServerWV.Services
             };
 
             logger.Information($"An email has been sent by {sender} to {receiver}. Saving...", sender, receiver);
-            await Task.Run(() => DBAcess.getInstance().CreateNewMail(metaModel, bodyModel));
+            await Task.Run(() => DBAccess.getInstance().CreateNewMail(metaModel, bodyModel));
             logger.Information("The email has been saved to the database");
         }
 

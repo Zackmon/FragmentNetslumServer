@@ -18,7 +18,7 @@ namespace FragmentServerWV_WebApi.Controllers
         [HttpGet]
         public string Get()
         {
-           DBAcess.getInstance().RefreshMessageOfTheDay();
+           DBAccess.getInstance().RefreshMessageOfTheDay();
 
            
             return "Message Of the Day Refreshed";
@@ -27,7 +27,7 @@ namespace FragmentServerWV_WebApi.Controllers
         [HttpPut]
         public IActionResult Put(string motd)
         {
-            DBAcess.getInstance().SetMessageOfDay(motd);
+            DBAccess.getInstance().SetMessageOfDay(motd);
             return Ok();
         }
 
