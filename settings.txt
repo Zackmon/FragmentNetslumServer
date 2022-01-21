@@ -1,9 +1,29 @@
-#edit to your local ip
-ip = 192.168.86.167
+# Server Connection
+# 0.0.0.0 binds to any available interface
+ip = 0.0.0.0
 port = 49000
 
-#"is alive"-ping delay in ms
+# "is alive"-ping delay in ms
+# The lower this is, the more active the server is.
+# However, the lower this is, the faster a client
+# that has disconnected will be removed from the
+# server
 ping = 5000
 
-#maximum log text length
+# Log settings
+# Setup the sinks in a CSV related variable
+# Valid entries are: console,file
+sinks = console,file
+folder = logs/
 logsize = 100000
+# Possible options: Verbose, Debug, Information,
+# Warning, Error, Fatal
+# This value is case sensitive
+lobbyloglevel = Information
+apiloglevel = Warning
+
+# Tick rate, in milliseconds. This is
+# how often the server checks for client data
+# Recommended Value: 30; any higher will cause
+# delays in responding to the client
+tick = 30

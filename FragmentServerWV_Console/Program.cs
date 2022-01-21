@@ -73,11 +73,12 @@ namespace FragmentServerWV_Console
                     }
 
                     // set the minimum level
-                    logConfig.MinimumLevel.Warning();
-                    logConfig.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                    var lobbyLogLevel = cfg.Get("lobbyloglevel");
+                    var apiLogLevel = cfg.Get("apiloglevel");
+                    logConfig.MinimumLevel.Is(Enum.Parse<LogEventLevel>(lobbyLogLevel));
+                    logConfig.MinimumLevel.Override("Microsoft.AspNetCore", Enum.Parse<LogEventLevel>(apiLogLevel))
                         .Enrich.FromLogContext()
                         .Enrich.WithExceptionDetails();
-
                     return logConfig.CreateLogger();
                 })
                 .AddSingleton<IClientProviderService, GameClientService>()
