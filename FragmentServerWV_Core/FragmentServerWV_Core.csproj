@@ -18,15 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Models\BbsCategoryModel.hbm.xml" />
-    <None Remove="hibernate.cfg.xml" />
-    <Content Include="hibernate.cfg.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <None Update="settings.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Models\Mapping\BbsCategoryModel.hbm.xml" />
     <None Remove="Models\Mapping\BbsThreadModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\BbsThreadModel.hbm.xml" />
