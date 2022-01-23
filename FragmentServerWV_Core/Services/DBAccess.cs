@@ -9,6 +9,8 @@ using FragmentServerWV.Models;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Criterion;
+using NHibernate.Dialect;
+using NHibernate.Driver;
 
 namespace FragmentServerWV.Services
 {
@@ -32,12 +34,27 @@ namespace FragmentServerWV.Services
         public DBAccess()
         {
 
-            var config = new Configuration().Configure();
+            var config = new Configuration();
+            var settings = new SimpleConfiguration();
+
             config.AddAssembly("FragmentServerWV_Core");
-            _sessionFactory = config.BuildSessionFactory();
+
+            config.DataBaseIntegration(db => {
+                db.ConnectionString = "Server=" + settings.Get("dbhost") + 
+                    ";Port=" + settings.Get("dbport") + 
+                    ";Database=" + settings.Get("dbname") + 
+                    ";User ID=" + settings.Get("dbuser") + 
+                    ";Password=" + settings.Get("dbpass") + 
+                    ";SslMode=none";
+                db.Driver<MySqlDataDriver>();
+                db.Dialect<MySQL5Dialect>();
+            });
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _encoding = Encoding.GetEncoding("Shift-JIS");
+
+            _sessionFactory = config.BuildSessionFactory();
+
 
             _messageOfTheDay = LoadMessageOfDay();
         }
