@@ -39,7 +39,7 @@ namespace FragmentServerWV.Services
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _encoding = Encoding.GetEncoding("Shift-JIS");
 
-            _messageOfTheDay = LoadMessageOfDay();
+            //_messageOfTheDay = LoadMessageOfDay();
         }
 
         public List<BbsCategoryModel> GetListOfBbsCategory()
@@ -777,6 +777,19 @@ namespace FragmentServerWV.Services
                 transaction.Commit();
                 session.Close();
             }
+        }
+
+        public List<NewsSectionModel>  GetNewsArticles()
+        {
+            using ISession session = _sessionFactory.OpenSession();
+            using ITransaction transaction = session.BeginTransaction();
+            
+            List<NewsSectionModel> listOfArticles = session.Query<NewsSectionModel>().ToList();
+            
+            transaction.Commit();
+            session.Close();
+
+            return listOfArticles;
         }
 
 

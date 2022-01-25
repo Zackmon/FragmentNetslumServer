@@ -4,12 +4,14 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 
 namespace FragmentServerWV.Entities
 {
@@ -32,6 +34,7 @@ namespace FragmentServerWV.Entities
         private readonly IClientProviderService clientProviderService;
         private readonly IMailService mailService;
         private readonly IBulletinBoardService bulletinBoardService;
+        private readonly INewsService newsService;
         private NetworkStream ns;
         private TcpClient client;
         private uint clientIndex;
@@ -148,6 +151,7 @@ namespace FragmentServerWV.Entities
             IClientProviderService clientProviderService,
             IMailService mailService,
             IBulletinBoardService bulletinBoardService,
+            INewsService newsService,
             SimpleConfiguration simpleConfiguration)
         {
             // Why are we doing this?
@@ -163,6 +167,7 @@ namespace FragmentServerWV.Entities
             this.clientProviderService = clientProviderService;
             this.mailService = mailService;
             this.bulletinBoardService = bulletinBoardService;
+            this.newsService = newsService;
 
             double pingTime = 5000;
             var rawPing = simpleConfiguration.Get("ping", "5000");
@@ -543,7 +548,10 @@ namespace FragmentServerWV.Entities
                     await HandleSendBbsThreadContent(argument);
                     break;
                 case OpCodes.OPCODE_DATA_NEWS_GETMENU:
-                    await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
+                    await HandleNewsCategory(argument);
+                    break;
+                case OpCodes.OPCODE_DATA_NEWS_GETPOST:
+                    await HandleArticleImage(argument);
                     break;
                 case OpCodes.OPCODE_DATA_AS_DISKID:
                     await SendDataPacket(OpCodes.OPCODE_DATA_AS_DISKID_OK, new byte[] { 0x00, 0x00 });
@@ -1253,6 +1261,58 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        private async Task HandleNewsCategory(byte[] argument)
+        {
+            //await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
+            var u = swap16(BitConverter.ToUInt16(argument, 0));
+
+            // Ignore categories only send the article list
+            /*if (u == 0)
+            {
+                ushort count = 1;
+                await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, BitConverter.GetBytes(swap16(count)));
+
+                ushort catID = 1;
+                string catName = "Testing Category";
+                using MemoryStream memoryStream = new MemoryStream();
+                await memoryStream.WriteAsync(BitConverter.GetBytes(swap16(catID)));
+                await memoryStream.WriteAsync(encoding.GetBytes(catName + char.MinValue));
+                await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_ENTRY_CATEGORY, memoryStream.ToArray());
+            } else*/
+
+
+            // send articles
+            ushort count = (ushort)(await newsService.GetNewsArticles()).Count;
+            await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_ARTICLELIST, BitConverter.GetBytes(swap16(count)));
+
+            foreach (var article in (await newsService.GetNewsArticles()))
+            {
+                await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_ENTRY_ARTICLE, article.ArticleByteArray);
+            }
+        }
+
+        private async Task HandleArticleImage(byte[] argument)
+        {
+            
+            var articleId = swap16(BitConverter.ToUInt16(argument, 0));
+
+            var article =  (await newsService.GetNewsArticles()).First(a => a.ArticleID == articleId);
+
+            if (article.ImageSizeInfo == null || article.ImageDetails == null)
+            {
+                await SendDataPacket(0x7857, new byte[] {0x00,0x00 }); // Error while getting the image data
+            }
+            else
+            {
+                await SendDataPacket(0x7855, article.ImageSizeInfo); // send the image size and chunk count
+                await SendDataPacket(0x7856, article.ImageDetails); // send the color pallets and the image indices 
+            }
+
+            
+                
+
+        }
+
         #endregion
 
 
@@ -1261,6 +1321,8 @@ namespace FragmentServerWV.Entities
         static ushort swap16(ushort data) => data.Swap();
 
         static uint swap32(uint data) => data.Swap();
+        
+        static ulong swap64(ulong data) => data.Swap();
 
         static byte[] ReadByteString(byte[] data, int pos)
         {
