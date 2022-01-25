@@ -73,6 +73,64 @@ namespace FragmentServerWV.Services
             return _articleList;
         }
 
+
+        public async Task<List<NewsSectionModel>> GetNewsArticles(string saveId)
+        {
+            if (_articleList == null)
+            {
+                _logger.Warning("Article List is Empty although it shouldn't be , Retrieving again from DB");
+                await RefreshNewsList();
+            }
+
+            List<NewsSectionModel> listOfArticles = new List<NewsSectionModel>();
+            
+            List<ushort> listOfReadArticles =  await Task.Run(() =>DBAcess.getInstance().GetNewsLog(saveId));
+
+            foreach (var article in _articleList)
+            {
+                var clone = article.Clone();
+                using MemoryStream memoryStream = new MemoryStream(); 
+                
+                await memoryStream.WriteAsync(clone.ArticleByteArray);
+                if (listOfReadArticles.Contains(clone.ArticleID))
+                {
+                    // Article Already Read
+                    await memoryStream.WriteAsync(BitConverter.GetBytes(UInt32.MinValue.Swap()), 0, 4);
+                }
+                else
+                {
+                    // The article is new and was never read
+                    UInt32 isNew = 1;
+                    await memoryStream.WriteAsync(BitConverter.GetBytes(isNew.Swap()), 0, 4);
+                }
+
+                clone.ArticleByteArray = memoryStream.ToArray();
+                listOfArticles.Add(clone);
+            }
+
+            return listOfArticles;
+        }
+
+        public async Task<bool> CheckIfNewNewsForSaveId(string saveId)
+        {
+            List<ushort> listOfReadArticles =  await Task.Run(() =>DBAcess.getInstance().GetNewsLog(saveId));
+
+            foreach (var article in _articleList)
+            {
+                if (!listOfReadArticles.Contains(article.ArticleID))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task UpdateNewsLog(string saveId, ushort articleId)
+        {
+            await Task.Run(() =>DBAcess.getInstance().UpdateNewsLog(saveId,articleId));
+        }
+
         /// <summary>
         /// Convert Article model to byte array for PS2 Client
         /// </summary>
@@ -83,14 +141,14 @@ namespace FragmentServerWV.Services
         {
             TimeSpan t = article.ArticleDate - UnixEpoch;
             ulong secondsSinceEpoch = Convert.ToUInt64(t.TotalSeconds);
-            uint isNew = article.IsNew ? 1 : uint.MinValue;
+            
             
             using MemoryStream memoryStream = new MemoryStream();
             await memoryStream.WriteAsync(BitConverter.GetBytes(article.ArticleID.Swap()));
             await memoryStream.WriteAsync(_encoding.GetBytes(article.ArticleTitle.PadRight(34, '\0')));
             await memoryStream.WriteAsync(_encoding.GetBytes(article.ArticleBody.PadRight(0x25a, '\0')));
             await memoryStream.WriteAsync(BitConverter.GetBytes(secondsSinceEpoch.Swap()),0,8);
-            await memoryStream.WriteAsync(BitConverter.GetBytes(isNew.Swap()),0,4);
+            //await memoryStream.WriteAsync(BitConverter.GetBytes(isNew.Swap()),0,4); // this will be set based on the save ID
             
 
             return memoryStream.ToArray();

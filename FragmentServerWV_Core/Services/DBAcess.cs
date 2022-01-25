@@ -792,6 +792,40 @@ namespace FragmentServerWV.Services
             return listOfArticles;
         }
 
+        public List<ushort> GetNewsLog(string saveId)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+            using ITransaction transaction = session.BeginTransaction();
+
+            var listOfReadArticles = session.Query<NewsSectionLogModel>().Where(n => n.SaveId == saveId).Select(c => c.ArticleId).ToList();
+            transaction.Commit();
+            session.Close();
+
+            return listOfReadArticles;
+        }
+
+        public void UpdateNewsLog(string saveId, ushort articleId)
+        {
+            using ISession session = _sessionFactory.OpenSession();
+            using ITransaction transaction = session.BeginTransaction();
+
+            if (!session.Query<NewsSectionLogModel>().Any(n => n.SaveId == saveId && n.ArticleId == articleId))
+            {
+                NewsSectionLogModel newsSectionLogModel = new()
+                {
+                    SaveId = saveId,
+                    ArticleId = articleId
+                };
+
+                session.Save(newsSectionLogModel);    
+            }
+
+            
+            
+            transaction.Commit();
+            session.Close();
+        }
+
 
         private sealed class BbsThreadModelComparer : IEqualityComparer<BbsThreadModel>
         {

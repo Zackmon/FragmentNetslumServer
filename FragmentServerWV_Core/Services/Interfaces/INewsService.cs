@@ -9,6 +9,12 @@ namespace FragmentServerWV.Services.Interfaces
         
         Task RefreshNewsList();
         Task<List<NewsSectionModel>> GetNewsArticles();
-       
+        
+        Task<List<NewsSectionModel>> GetNewsArticles(string saveID);
+
+        Task<bool> CheckIfNewNewsForSaveId(string saveId);
+
+        Task UpdateNewsLog(string saveId, ushort articleId);
+
     }
 }

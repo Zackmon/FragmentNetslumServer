@@ -569,7 +569,7 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(0x786b, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_NEWCHECK:
-                    await SendDataPacket(OpCodes.OPCODE_DATA_NEWCHECK_OK, new byte[] { 0x00, 0x00 });
+                    await CheckIfTheresNewNews(argument);
                     break;
                 case OpCodes.OPCODE_DATA_COM:
                     await SendDataPacket(OpCodes.OPCODE_DATA_COM_OK, new byte[] { 0xDE, 0xAD });
@@ -1261,6 +1261,23 @@ namespace FragmentServerWV.Entities
             }
         }
 
+        private async Task CheckIfTheresNewNews(byte[] argument)
+
+        {
+            bool isNew = await newsService.CheckIfNewNewsForSaveId(encoding.GetString(save_id));
+
+            if (isNew)
+            {
+                await SendDataPacket(OpCodes.OPCODE_DATA_NEWCHECK_OK, new byte[] { 0x00, 0x01 }); // send the new flag    
+            }
+            else
+            {
+                await SendDataPacket(OpCodes.OPCODE_DATA_NEWCHECK_OK, new byte[] { 0x00, 0x00 }); //  there are no new articles to read
+            }
+
+            
+        }
+
         private async Task HandleNewsCategory(byte[] argument)
         {
             //await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_CATEGORYLIST, new byte[] { 0x00, 0x00 });
@@ -1285,7 +1302,7 @@ namespace FragmentServerWV.Entities
             ushort count = (ushort)(await newsService.GetNewsArticles()).Count;
             await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_ARTICLELIST, BitConverter.GetBytes(swap16(count)));
 
-            foreach (var article in (await newsService.GetNewsArticles()))
+            foreach (var article in (await newsService.GetNewsArticles(encoding.GetString(save_id)))) // get the articles data and set the isNew flag based on the saveID
             {
                 await SendDataPacket(OpCodes.OPCODE_DATA_NEWS_ENTRY_ARTICLE, article.ArticleByteArray);
             }
@@ -1308,8 +1325,7 @@ namespace FragmentServerWV.Entities
                 await SendDataPacket(0x7856, article.ImageDetails); // send the color pallets and the image indices 
             }
 
-            
-                
+            await newsService.UpdateNewsLog(encoding.GetString(save_id), articleId);
 
         }
 

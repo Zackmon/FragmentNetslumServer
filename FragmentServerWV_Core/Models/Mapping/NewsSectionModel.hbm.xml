@@ -11,7 +11,6 @@
         <property name = "ArticleTitle" column = "articleTitle" type = "String"/>
         <property name = "ArticleBody" column = "articleBody" type = "String"/>
         <property name = "ArticleDate" column = "articleDate" type = "datetime"/>
-        <property name = "IsNew" column = "isNew" type = "Boolean"/>
         <property name = "ArticleImage" column = "articleImage" type = "BinaryBlob"/>
     </class>
 

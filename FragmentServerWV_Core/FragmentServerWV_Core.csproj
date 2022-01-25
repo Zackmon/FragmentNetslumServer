@@ -53,6 +53,8 @@
     <EmbeddedResource Include="Models\Mapping\GuildRepositoryModel.hbm.xml" />
     <None Remove="Models\Mapping\NewsSectionModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\NewsSectionModel.hbm.xml" />
+    <None Remove="Models\Mapping\NewsSectionLogModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\NewsSectionLogModel.hbm.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FragmentServerWV_PubSub\FragmentServerWV_PubSub.csproj" />
