@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>Library</OutputType>
+  
+
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>FragmentNetslumServer</RootNamespace>
+    <PackageId>FragmentNetslumServer</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="MySql.Data" Version="8.0.26" />
+    <PackageReference Include="NHibernate" Version="5.3.9" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Unity" Version="5.11.10" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Models\BbsCategoryModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsCategoryModel.hbm.xml" />
+    <None Remove="Models\Mapping\BbsThreadModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsThreadModel.hbm.xml" />
+    <None Remove="Models\Mapping\BbsPostMetaModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsPostMetaModel.hbm.xml" />
+    <None Remove="Models\Mapping\BbsPostBody.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\BbsPostBody.hbm.xml" />
+    <None Remove="Models\Mapping\RankingDataModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\RankingDataModel.hbm.xml" />
+    <None Remove="Models\Mapping\MailMetaModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\MailMetaModel.hbm.xml" />
+    <None Remove="Models\Mapping\MailBodyModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\MailBodyModel.hbm.xml" />
+    <None Remove="Models\Mapping\PlayerAccountIDModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\PlayerAccountIDModel.hbm.xml" />
+    <None Remove="Models\Mapping\MessageOfTheDayModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\MessageOfTheDayModel.hbm.xml" />
+    <None Remove="Models\Mapping\CharacterRepositoryModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\CharacterRepositoryModel.hbm.xml" />
+    <None Remove="Models\Mapping\GuildItemShopModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\GuildItemShopModel.hbm.xml" />
+    <None Remove="Models\Mapping\GuildRepositoryModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\GuildRepositoryModel.hbm.xml" />
+    <None Remove="Models\Mapping\NewsSectionModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\NewsSectionModel.hbm.xml" />
+    <None Remove="Models\Mapping\NewsSectionLogModel.hbm.xml" />
+    <EmbeddedResource Include="Models\Mapping\NewsSectionLogModel.hbm.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FragmentNetslumServerPubSub\FragmentNetslumServerPubSub.csproj" />
+  </ItemGroup>
+
+<!--
+<ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+<ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="3.1.6" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.1" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
+-->
+  
+</Project>
