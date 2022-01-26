@@ -1,6 +1,14 @@
-# edit to your local ip
+# Server Connection
+# 0.0.0.0 binds to any available interface
 ip = 0.0.0.0
 port = 49000
+
+# Database Connection
+dbhost = 127.0.0.1
+dbport = 3306
+dbname = fragment_schema
+dbuser = root
+dbpass = root
 
 # "is alive"-ping delay in ms
 # The lower this is, the more active the server is.
@@ -9,10 +17,17 @@ port = 49000
 # server
 ping = 5000
 
+# Log settings
 # Setup the sinks in a CSV related variable
 # Valid entries are: console,file
 sinks = console,file
-folder = C:\logs\
+folder = logs/
+logsize = 100000
+# Possible options: Verbose, Debug, Information,
+# Warning, Error, Fatal
+# This value is case sensitive
+lobbyloglevel = Information
+apiloglevel = Warning
 
 # Tick rate, in milliseconds. This is
 # how often the server checks for client data

@@ -10,10 +10,10 @@ Big thanks to Warranty Voider for the original port of the C/C++ [Lobby Server](
 Lobby Server in action: https://www.youtube.com/watch?v=VErjuUM4AQM (Credit to Warranty Voider for the video)
 
 # Setup
-The Lobby Server requires some form of a DB backend. We use NHibernate to handle object mappings and query generation and as such any backend must be compatible with NHibernate. Currently, the project `FragmentServerWV_Core` handles the database connections. The NHibernate configuration file (`hibernate.cfg.xml`) is located in this solution and can be modified accordingly to suit your needs.
+The Lobby Server requires a MySQL/MariaDB backend. The file `settings.txt.example` located in the root of this repository should be copied and renamed to `settings.txt`, then modified with the connection details for the database.
 
 ## Database Setup
-Once your configuration file has been adjusted, you will need to run the SQL file included in the repository to lay out the correct schema objects.
+Once your configuration file has been adjusted, you will need to run `/FragmentServerWV_Core/SQL/DB.SQL` to lay out the correct schema objects.
 
 # Web Interface
 `FragmentServerWV_Console` includes a reference to `FragmentServerWV_WebAPI` and fires it up, attempting to expose all internal services to the WebAPI. For the time being, there is no proper UI but rather API calls. In the future, I hope to include a barebones Web UI that would allow for an Administrator to remotely control the system.

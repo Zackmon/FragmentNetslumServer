@@ -5,14 +5,14 @@
             <column name="playerID" not-null="true" sql-type="INT" />
             <generator class="identity" />
         </id>
-        <property name="CharachterName" type="BinaryBlob">
-            <column name="charachterName" not-null="false" sql-type="BLOB" />
+        <property name="CharacterName" type="BinaryBlob">
+            <column name="characterName" not-null="false" sql-type="BLOB" />
         </property>
         <property name="ClassID" type="Int32">
             <column name="classID" not-null="false" sql-type="INT" />
         </property>
-        <property name="CharachterLevel" type="Int32">
-            <column name="charachterLevel" not-null="false" sql-type="INT" />
+        <property name="CharacterLevel" type="Int32">
+            <column name="characterLevel" not-null="false" sql-type="INT" />
         </property>
         <property name="Greeting" type="BinaryBlob">
             <column name="greeting" not-null="false" sql-type="BLOB" />
@@ -34,7 +34,7 @@
             <column name="accountID" not-null="false" sql-type="INT" />
         </property>
 
-        <property name="charachterSaveID" type="String">
+        <property name="characterSaveID" type="String">
             <column name="characterSaveID" not-null="false" length="255" sql-type="VARCHAR(255)" />
         </property>
 

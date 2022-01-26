@@ -31,7 +31,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(characterID);
+                CharacterRepositoryModel characterRepositoryModel = DBAccess.getInstance().GetCharacterInfo(characterID);
 
                 MemoryStream m = new MemoryStream();
 
@@ -81,9 +81,9 @@ namespace FragmentServerWV.Services
                 model.MasterPlayerID = (int)masterPlayerID;
                 model.EstablishmentDate = DateTime.Now.ToString("yyyy/MM/dd");
 
-                ushort guildID = DBAcess.getInstance().CreateGuild(model);
+                ushort guildID = DBAccess.getInstance().CreateGuild(model);
 
-                DBAcess.getInstance().EnrollPlayerInGuild(guildID, masterPlayerID, true);
+                DBAccess.getInstance().EnrollPlayerInGuild(guildID, masterPlayerID, true);
 
                 return guildID;
             }
@@ -104,12 +104,12 @@ namespace FragmentServerWV.Services
 
                 byte[] guildEmblem = ReadByteGuildEmblem(argument, pos);
 
-                GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildID);
+                GuildRepositoryModel guildRepositoryModel = DBAccess.getInstance().GetGuildInfo(guildID);
 
                 guildRepositoryModel.GuildComment = guildCommentBytes;
                 guildRepositoryModel.GuildEmblem = guildEmblem;
 
-                DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
+                DBAccess.getInstance().UpdateGuildInfo(guildRepositoryModel);
 
                 return new byte[] { 0x00, 0x00 };
             }
@@ -129,12 +129,12 @@ namespace FragmentServerWV.Services
                 Console.WriteLine("Silver Coin Donation " + silverCoinDonate);
                 Console.WriteLine("Bronze Coin Donation " + bronzeCoinDonate);
 
-                GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildIDCointToDonate);
+                GuildRepositoryModel guildRepositoryModel = DBAccess.getInstance().GetGuildInfo(guildIDCointToDonate);
                 guildRepositoryModel.GoldCoin += goldCoinDonate;
                 guildRepositoryModel.SilverCoin += silverCoinDonate;
                 guildRepositoryModel.BronzeCoin += bronzeCoinDonate;
 
-                DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
+                DBAccess.getInstance().UpdateGuildInfo(guildRepositoryModel);
 
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap16(goldCoinDonate)));
@@ -149,7 +149,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                List<GuildItemShopModel> guildItemList = DBAcess.getInstance().GetGuildsItems(guildId);
+                List<GuildItemShopModel> guildItemList = DBAccess.getInstance().GetGuildsItems(guildId);
 
                 if (guildItemList == null)
                 {
@@ -197,7 +197,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                List<GuildItemShopModel> guildItemList = DBAcess.getInstance().GetGuildsItems(guildID);
+                List<GuildItemShopModel> guildItemList = DBAccess.getInstance().GetGuildsItems(guildID);
 
                 List<byte[]> itemList = new List<byte[]>();
 
@@ -262,7 +262,7 @@ namespace FragmentServerWV.Services
             lock (this)
             {
                 bool isNewItem = false;
-                GuildItemShopModel guildItemShopModel = DBAcess.getInstance().GetSingleGuildItem(guildID, itemID);
+                GuildItemShopModel guildItemShopModel = DBAccess.getInstance().GetSingleGuildItem(guildID, itemID);
 
                 if (guildItemShopModel == null || guildItemShopModel.ItemShopID == -1 || guildItemShopModel.ItemShopID == 0)
                 {
@@ -291,7 +291,7 @@ namespace FragmentServerWV.Services
                     guildItemShopModel.AvailableForMember = isMember;
                 }
 
-                DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel, isNewItem);
+                DBAccess.getInstance().UpdateSingleGuildItem(guildItemShopModel, isNewItem);
 
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap16(itemQuantity)));
@@ -304,7 +304,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                GuildItemShopModel guildItemShopModel = DBAcess.getInstance().GetSingleGuildItem(guildID, itemID);
+                GuildItemShopModel guildItemShopModel = DBAccess.getInstance().GetSingleGuildItem(guildID, itemID);
 
                 if (guildItemShopModel == null || guildItemShopModel.ItemShopID == -1 || guildItemShopModel.ItemShopID == 0)
                 {
@@ -344,17 +344,17 @@ namespace FragmentServerWV.Services
                                   quantityOfBuying + "\nprice of each piece " + priceOfEachPiece);
 
                 GuildItemShopModel guildItemShopModel =
-                    DBAcess.getInstance().GetSingleGuildItem(guildIDBuying, itemIDBuying);
+                    DBAccess.getInstance().GetSingleGuildItem(guildIDBuying, itemIDBuying);
 
-                GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildIDBuying);
+                GuildRepositoryModel guildRepositoryModel = DBAccess.getInstance().GetGuildInfo(guildIDBuying);
                 guildItemShopModel.Quantity -= quantityOfBuying;
 
                 uint totalGPToAdd = priceOfEachPiece * quantityOfBuying;
 
                 guildRepositoryModel.Gp += (int)totalGPToAdd;
 
-                DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel, false);
-                DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
+                DBAccess.getInstance().UpdateSingleGuildItem(guildItemShopModel, false);
+                DBAccess.getInstance().UpdateGuildInfo(guildRepositoryModel);
 
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap16(quantityOfBuying)));
@@ -374,14 +374,14 @@ namespace FragmentServerWV.Services
                 Boolean isMemberMaster = argument[15] == 0x01;
 
                 GuildItemShopModel guildItemShopModel =
-                    DBAcess.getInstance().GetSingleGuildItem(GuildIDMaster, itemIDmaster);
+                    DBAccess.getInstance().GetSingleGuildItem(GuildIDMaster, itemIDmaster);
 
                 guildItemShopModel.GeneralPrice = (int)GeneralPriceMaster;
                 guildItemShopModel.MemberPrice = (int)MemberPriceMaster;
                 guildItemShopModel.AvailableForGeneral = isGeneralMaster;
                 guildItemShopModel.AvailableForMember = isMemberMaster;
 
-                DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel, false);
+                DBAccess.getInstance().UpdateSingleGuildItem(guildItemShopModel, false);
 
                 Console.Write("GenePrice " + GeneralPriceMaster + "\nMemberPrice " + MemberPriceMaster + "\nisGeneral " +
                               isGeneralMaster + "\nisMember " + isMemberMaster);
@@ -395,10 +395,10 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildID);
+                GuildRepositoryModel guildRepositoryModel = DBAccess.getInstance().GetGuildInfo(guildID);
                 guildRepositoryModel.Gp -= (int)amountOfMoney;
 
-                DBAcess.getInstance().UpdateGuildInfo(guildRepositoryModel);
+                DBAccess.getInstance().UpdateGuildInfo(guildRepositoryModel);
 
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap32(amountOfMoney)));
@@ -410,9 +410,9 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                GuildItemShopModel guildItemShopModel = DBAcess.getInstance().GetSingleGuildItem(guildID, itemID);
+                GuildItemShopModel guildItemShopModel = DBAccess.getInstance().GetSingleGuildItem(guildID, itemID);
                 guildItemShopModel.Quantity -= quantity;
-                DBAcess.getInstance().UpdateSingleGuildItem(guildItemShopModel, false);
+                DBAccess.getInstance().UpdateSingleGuildItem(guildItemShopModel, false);
 
                 MemoryStream m = new MemoryStream();
                 m.Write(BitConverter.GetBytes(swap16(quantity)));
@@ -426,7 +426,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                List<CharacterRepositoryModel> allMembers = DBAcess.getInstance().GetAllGuildMembers(guildID);
+                List<CharacterRepositoryModel> allMembers = DBAccess.getInstance().GetAllGuildMembers(guildID);
 
                 if (allMembers == null)
                 {
@@ -446,7 +446,7 @@ namespace FragmentServerWV.Services
 
                         m = new MemoryStream();
 
-                        m.Write(member.CharachterName);
+                        m.Write(member.CharacterName);
 
                         if (member.ClassID == 0)
                         {
@@ -473,7 +473,7 @@ namespace FragmentServerWV.Services
                             m.Write(new byte[] { 0x05 });
                         }
 
-                        m.Write(BitConverter.GetBytes(swap16((ushort)member.CharachterLevel)));
+                        m.Write(BitConverter.GetBytes(swap16((ushort)member.CharacterLevel)));
                         m.Write(member.Greeting);
 
                         if (member.OnlineStatus)
@@ -513,7 +513,7 @@ namespace FragmentServerWV.Services
 
                     m = new MemoryStream();
 
-                    m.Write(member.CharachterName);
+                    m.Write(member.CharacterName);
 
 
 
@@ -542,7 +542,7 @@ namespace FragmentServerWV.Services
                         m.Write(new byte[] { 0x05 });
                     }
 
-                    m.Write(BitConverter.GetBytes(swap16((ushort)member.CharachterLevel)));
+                    m.Write(BitConverter.GetBytes(swap16((ushort)member.CharacterLevel)));
                     m.Write(member.Greeting);
 
 
@@ -571,10 +571,10 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerToKick);
+                CharacterRepositoryModel characterRepositoryModel = DBAccess.getInstance().GetCharacterInfo(playerToKick);
                 characterRepositoryModel.GuildID = 0;
                 characterRepositoryModel.GuildMaster = 0;
-                DBAcess.getInstance().updatePlayerInfo(characterRepositoryModel);
+                DBAccess.getInstance().updatePlayerInfo(characterRepositoryModel);
 
                 return new byte[] { 0x00, 0x00 };
             }
@@ -584,10 +584,10 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(characterID);
+                CharacterRepositoryModel characterRepositoryModel = DBAccess.getInstance().GetCharacterInfo(characterID);
                 characterRepositoryModel.GuildID = 0;
                 characterRepositoryModel.GuildMaster = 0;
-                DBAcess.getInstance().updatePlayerInfo(characterRepositoryModel);
+                DBAccess.getInstance().updatePlayerInfo(characterRepositoryModel);
                 return new byte[] { 0x00, 0x00 };
             }
         }
@@ -596,9 +596,9 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                CharacterRepositoryModel characterRepositoryModel = DBAcess.getInstance().GetCharacterInfo(playerToAssign);
+                CharacterRepositoryModel characterRepositoryModel = DBAccess.getInstance().GetCharacterInfo(playerToAssign);
                 characterRepositoryModel.GuildMaster = 1;
-                DBAcess.getInstance().updatePlayerInfo(characterRepositoryModel);
+                DBAccess.getInstance().updatePlayerInfo(characterRepositoryModel);
                 return new byte[] { 0x00, 0x00 };
             }
         }
@@ -608,7 +608,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                DBAcess.getInstance().DeleteGuild(guildID);
+                DBAccess.getInstance().DeleteGuild(guildID);
                 return new byte[] { 0x00, 0x00 };
             }
         }
@@ -618,7 +618,7 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                List<GuildRepositoryModel> guildRepositoryModels = DBAcess.getInstance().GetAllGuilds();
+                List<GuildRepositoryModel> guildRepositoryModels = DBAccess.getInstance().GetAllGuilds();
 
                 if (guildRepositoryModels == null)
                 {
@@ -647,10 +647,10 @@ namespace FragmentServerWV.Services
         {
             lock (this)
             {
-                GuildRepositoryModel guildRepositoryModel = DBAcess.getInstance().GetGuildInfo(guildID);
+                GuildRepositoryModel guildRepositoryModel = DBAccess.getInstance().GetGuildInfo(guildID);
                 CharacterRepositoryModel guildMaster =
-                    DBAcess.getInstance().GetCharacterInfo((uint)guildRepositoryModel.MasterPlayerID);
-                List<CharacterRepositoryModel> listOfmembers = DBAcess.getInstance().GetAllGuildMembers(guildID);
+                    DBAccess.getInstance().GetCharacterInfo((uint)guildRepositoryModel.MasterPlayerID);
+                List<CharacterRepositoryModel> listOfmembers = DBAccess.getInstance().GetAllGuildMembers(guildID);
 
 
                 MemoryStream m = new MemoryStream();
@@ -658,7 +658,7 @@ namespace FragmentServerWV.Services
                 m.Write(guildRepositoryModel.GuildName);
                 m.Write(_encoding.GetBytes(guildRepositoryModel.EstablishmentDate)); //date
                 m.Write(new byte[] { 0x00 });
-                m.Write(guildMaster.CharachterName);
+                m.Write(guildMaster.CharacterName);
 
 
                 int memTotal = listOfmembers.Count;
@@ -699,7 +699,7 @@ namespace FragmentServerWV.Services
                         waveMaster++;
                     }
 
-                    totalLevel += member.CharachterLevel;
+                    totalLevel += member.CharacterLevel;
 
                 }
 

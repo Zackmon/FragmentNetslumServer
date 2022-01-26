@@ -9,35 +9,52 @@ using FragmentServerWV.Models;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Criterion;
+using NHibernate.Dialect;
+using NHibernate.Driver;
 
 namespace FragmentServerWV.Services
 {
-    public class DBAcess
+    public class DBAccess
     {
-        private static DBAcess _instance = null;
+        private static DBAccess _instance = null;
         private ISessionFactory _sessionFactory;
         private Encoding _encoding;
         private string _messageOfTheDay;
 
-        public static DBAcess getInstance()
+        public static DBAccess getInstance()
         {
             if (_instance == null)
             {
-                _instance = new DBAcess();
+                _instance = new DBAccess();
             }
 
             return _instance;
         }
 
-        public DBAcess()
+        public DBAccess()
         {
 
-            var config = new Configuration().Configure();
+            var config = new Configuration();
+            var settings = new SimpleConfiguration();
+
             config.AddAssembly("FragmentServerWV_Core");
-            _sessionFactory = config.BuildSessionFactory();
+
+            config.DataBaseIntegration(db => {
+                db.ConnectionString = "Server=" + settings.Get("dbhost") + 
+                    ";Port=" + settings.Get("dbport") + 
+                    ";Database=" + settings.Get("dbname") + 
+                    ";User ID=" + settings.Get("dbuser") + 
+                    ";Password=" + settings.Get("dbpass") + 
+                    ";SslMode=none";
+                db.Driver<MySqlDataDriver>();
+                db.Dialect<MySQL5Dialect>();
+            });
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _encoding = Encoding.GetEncoding("Shift-JIS");
+
+            _sessionFactory = config.BuildSessionFactory();
+
 
             _messageOfTheDay = LoadMessageOfDay();
         }
@@ -262,7 +279,7 @@ namespace FragmentServerWV.Services
             CharacterRepositoryModel characterRepositoryModel;
 
             characterRepositoryModel = session.Query<CharacterRepositoryModel>().SingleOrDefault(
-                x => x.accountID == client.AccountId && x.charachterSaveID.Equals(model.characterSaveID));
+                x => x.accountID == client.AccountId && x.characterSaveID.Equals(model.characterSaveID));
             if (characterRepositoryModel == null || characterRepositoryModel.PlayerID == -1 ||
                 characterRepositoryModel.PlayerID == 0)
             {
@@ -272,13 +289,13 @@ namespace FragmentServerWV.Services
                 characterRepositoryModel.GuildMaster = 0;
 
                 characterRepositoryModel.accountID = client.AccountId;
-                characterRepositoryModel.charachterSaveID = model.characterSaveID;
+                characterRepositoryModel.characterSaveID = model.characterSaveID;
 
             }
-            characterRepositoryModel.CharachterName = client.char_name;
+            characterRepositoryModel.CharacterName = client.char_name;
             characterRepositoryModel.Greeting = client.greeting;
             characterRepositoryModel.ClassID = client.char_class;
-            characterRepositoryModel.CharachterLevel = client.char_level;
+            characterRepositoryModel.CharacterLevel = client.char_level;
             characterRepositoryModel.OnlineStatus = true;
             characterRepositoryModel.ModelNumber = (int)client.char_model;
             characterRepositoryModel.charHP = client.char_HP;
@@ -596,8 +613,8 @@ namespace FragmentServerWV.Services
             switch (categoryID)
             {
                 case 8: //Level
-                    //query.SetString("category", "charachterLevel");
-                    criteria.AddOrder(Order.Desc("CharachterLevel"));
+                    //query.SetString("category", "characterLevel");
+                    criteria.AddOrder(Order.Desc("CharacterLevel"));
                     break;
                 case 9: //HP
                     //query.SetString("category", "charHP");

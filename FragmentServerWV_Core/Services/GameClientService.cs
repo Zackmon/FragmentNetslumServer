@@ -84,7 +84,7 @@ namespace FragmentServerWV.Services
             RemoveClient(client);
             if (client.PlayerID != 0)
             {
-                DBAcess.getInstance().setPlayerAsOffline(client.PlayerID);
+                DBAccess.getInstance().setPlayerAsOffline(client.PlayerID);
             }
             if (!client.IsAreaServer && lobbyChatService.TryFindLobby(client, out var lobby))
             {

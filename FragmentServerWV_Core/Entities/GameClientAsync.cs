@@ -407,7 +407,7 @@ namespace FragmentServerWV.Entities
                     await SendDataPacket(OpCodes.OPCODE_DATA_LOBBY_EXITROOM_OK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_RETURN_DESKTOP:
-                    DBAcess.getInstance().setPlayerAsOffline(_characterPlayerID);
+                    DBAccess.getInstance().setPlayerAsOffline(_characterPlayerID);
                     await SendDataPacket(OpCodes.OPCODE_DATA_RETURN_DESKTOP_OK, new byte[] { 0x00, 0x00 });
                     break;
                 case OpCodes.OPCODE_DATA_LOBBY_GETMENU:
@@ -735,10 +735,10 @@ namespace FragmentServerWV.Entities
             byte[] saveID = ReadByteString(argument, 0);
             save_id = saveID;
             m = new MemoryStream();
-            AccountId = DBAcess.getInstance().GetPlayerAccountId(encoding.GetString(saveID));
+            AccountId = DBAccess.getInstance().GetPlayerAccountId(encoding.GetString(saveID));
             uint swapped = swap32((uint)AccountId);
             await m.WriteAsync(BitConverter.GetBytes(swapped), 0, 4);
-            byte[] buff = encoding.GetBytes(DBAcess.getInstance().MessageOfTheDay);
+            byte[] buff = encoding.GetBytes(DBAccess.getInstance().MessageOfTheDay);
             m.WriteByte((byte)(buff.Length - 1));
             await m.WriteAsync(buff, 0, buff.Length);
             while (m.Length < 0x200) m.WriteByte(0);
@@ -950,7 +950,7 @@ namespace FragmentServerWV.Entities
 
         private async Task HandleCheckForNewMail(byte[] argument)
         {
-            if (DBAcess.getInstance().checkForNewMailByAccountID(ReadAccountID(argument, 0)))
+            if (DBAccess.getInstance().checkForNewMailByAccountID(ReadAccountID(argument, 0)))
             {
                 await SendDataPacket(OpCodes.OPCODE_DATA_MAILCHECK_OK, new byte[] { 0x00, 0x00, 0x01, 0x00 });
             }
@@ -964,7 +964,7 @@ namespace FragmentServerWV.Entities
         {
             var q = swap32(BitConverter.ToUInt32(argument, 4));
             var postID = Convert.ToInt32(q);
-            var bbsPostBody = await bulletinBoardService.GetThreadPostContentAsync(postID); // DBAcess.getInstance().GetPostBodyByPostId(postID);
+            var bbsPostBody = await bulletinBoardService.GetThreadPostContentAsync(postID); // DBAccess.getInstance().GetPostBodyByPostId(postID);
             var bbsPostData = await bulletinBoardService.ConvertThreadPostToBytesAsync(bbsPostBody);
             await SendDataPacket(0x781d, bbsPostData);
         }
@@ -1052,7 +1052,7 @@ namespace FragmentServerWV.Entities
         private async Task HandleCreateBbsPost(byte[] argument)
         {
             uint id = swap32(BitConverter.ToUInt32(argument, 0));
-            DBAcess.getInstance().CreateNewPost(argument, id);
+            DBAccess.getInstance().CreateNewPost(argument, id);
             await SendDataPacket(0x7813, new byte[] { 0x00, 0x00 });
         }
 
@@ -1075,7 +1075,7 @@ namespace FragmentServerWV.Entities
             await ms.WriteAsync(new byte[] { 0x76, 0xB0, 0x54, 0x45, 0x53, 0x54, 0x00 });
             if (argument[1] == 0x08) //accepted the invitation
             {
-                DBAcess.getInstance().EnrollPlayerInGuild(currentGuildInvitaionSelection, _characterPlayerID, false);
+                DBAccess.getInstance().EnrollPlayerInGuild(currentGuildInvitaionSelection, _characterPlayerID, false);
                 await SendDataPacket(0x760A, ms.ToArray()); // send guild ID
             }
             else
@@ -1321,7 +1321,7 @@ namespace FragmentServerWV.Entities
             //                  "\n char_class " + char_class + "\n char_level " + char_level + "\n greeting " + encoding.GetString(greeting) + "\n charmodel " + char_model + "\n char_hp " + char_HP +
             //                  "\n char_sp " + char_SP + "\n char_gp " + char_GP + "\n onlien god counter " + online_god_counter + "\n offline god counter " + offline_godcounter + "\n\n\n\n full byte araray " + BitConverter.ToString(data));
 
-            return DBAcess.getInstance().PlayerLogin(this);
+            return DBAccess.getInstance().PlayerLogin(this);
         }
 
         static char GetCharacterModelClass(uint modelNumber)

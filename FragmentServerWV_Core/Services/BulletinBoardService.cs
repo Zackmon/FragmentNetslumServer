@@ -118,22 +118,22 @@ namespace FragmentServerWV.Services
 
         public async Task<IList<BbsCategoryModel>> GetCategoriesAsync()
         {
-            return await Task.Run(() => DBAcess.getInstance().GetListOfBbsCategory());
+            return await Task.Run(() => DBAccess.getInstance().GetListOfBbsCategory());
         }
 
         public async Task<IList<BbsPostMetaModel>> GetThreadDetailsAsync(int threadId)
         {
-            return await Task.Run(() => DBAcess.getInstance().GetPostsMetaByThreadId(threadId));
+            return await Task.Run(() => DBAccess.getInstance().GetPostsMetaByThreadId(threadId));
         }
 
         public async Task<BbsPostBody> GetThreadPostContentAsync(int postId)
         {
-            return await Task.Run(() => DBAcess.getInstance().GetPostBodyByPostId(postId));
+            return await Task.Run(() => DBAccess.getInstance().GetPostBodyByPostId(postId));
         }
 
         public async Task<IList<BbsThreadModel>> GetThreadsAsync(int categoryId)
         {
-            return await Task.Run(() => DBAcess.getInstance().getThreadsByCategoryID(categoryId));
+            return await Task.Run(() => DBAccess.getInstance().getThreadsByCategoryID(categoryId));
         }
 
         static ushort swap16(ushort data) => data.Swap();
