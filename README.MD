@@ -10,13 +10,13 @@ Big thanks to Warranty Voider for the original port of the C/C++ [Lobby Server](
 Lobby Server in action: https://www.youtube.com/watch?v=VErjuUM4AQM (Credit to Warranty Voider for the video)
 
 # Setup
-The Lobby Server requires a MySQL/MariaDB backend. The file `settings.txt.example` located in the root of this repository should be copied and renamed to `settings.txt`, then modified with the connection details for the database.
+The Lobby Server requires a MySQL/MariaDB backend. The file `settings.ini.example` located in the root of this repository should be copied and renamed to `settings.ini`, then modified with the connection details for the database.
 
 ## Database Setup
-Once your configuration file has been adjusted, you will need to run `/FragmentServerWV_Core/SQL/DB.SQL` to lay out the correct schema objects.
+Once your configuration file has been adjusted, you will need to run `FragmentNetslumServer/SQL/DB.SQL` to lay out the correct schema objects.
 
 # Web Interface
-`FragmentServerWV_Console` includes a reference to `FragmentServerWV_WebAPI` and fires it up, attempting to expose all internal services to the WebAPI. For the time being, there is no proper UI but rather API calls. In the future, I hope to include a barebones Web UI that would allow for an Administrator to remotely control the system.
+`FragmentNetslumServerLauncher` includes a reference to `FragmentNetslumServerWebAPI` and fires it up, attempting to expose all internal services to the WebAPI. For the time being, there is no proper UI but rather API calls. In the future, I hope to include a barebones Web UI that would allow for an Administrator to remotely control the system.
 
 # Notes
 There are plenty of things I'm considering doing with the code base. These are listed in no particular order:
