@@ -38,4 +38,4 @@ msbuild.wrn
 
 /FragmentServerWV/bin/
 logs/
-settings.txt
+settings.ini

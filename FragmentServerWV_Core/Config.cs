@@ -30,9 +30,9 @@ namespace FragmentServerWV
         public SimpleConfiguration()
         {
             configurationValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            if (File.Exists("settings.txt"))
+            if (File.Exists("settings.ini"))
             {
-                var lines = File.ReadAllLines("settings.txt");
+                var lines = File.ReadAllLines("settings.ini");
                 foreach (var line in lines)
                 {
                     var clean = line.Trim();

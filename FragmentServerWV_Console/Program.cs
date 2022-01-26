@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.IO;
 using System.Text;
 using Serilog;
 using Serilog.Formatting.Json;
@@ -24,6 +25,15 @@ namespace FragmentServerWV_Console
 
         static void Main(string[] args)
         {
+
+            // check if settings.txt exists , if not then quit application 
+            if (!File.Exists("settings.ini"))
+            {
+                Console.Error.WriteLine("settings.ini doesn't exist");
+                return;
+            }
+
+
             var serviceCollection = InitializeContainer();
             var provider = serviceCollection.BuildServiceProvider();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
