@@ -207,3 +207,37 @@ create table GuildItemShop
 
 
 ################################################ Guild and Ranking Update################################################
+
+
+################################################ News Section ###########################################################
+
+
+create table news_section
+(
+    articleID    smallint unsigned auto_increment
+        primary key,
+    articleTitle varchar(33)  not null,
+    articleBody  varchar(412) not null,
+    articleDate  datetime     not null,
+    articleImage blob         null,
+    constraint news_section_articleID_uindex
+        unique (articleID)
+);
+
+
+create table news_section_log
+(
+    id        int auto_increment
+        primary key,
+    saveId    varchar(100)      not null,
+    articleId smallint unsigned not null,
+    constraint news_section_log_id_uindex
+        unique (id)
+);
+
+create index news_section_log_savedId_index
+    on news_section_log (saveId);
+
+
+
+################################################ News Section ###########################################################
