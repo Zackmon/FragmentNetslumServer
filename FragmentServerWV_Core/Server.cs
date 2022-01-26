@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using FragmentServerWV.Services;
 
 namespace FragmentServerWV
 {
@@ -25,6 +26,7 @@ namespace FragmentServerWV
         private readonly IClientProviderService gameClientService;
         private readonly ILobbyChatService lobbyChatService;
         private readonly IClientConnectionService clientConnectionService;
+        private readonly INewsService newsService;
         
 
 
@@ -55,6 +57,7 @@ namespace FragmentServerWV
             IClientProviderService gameClientService,
             ILobbyChatService lobbyChatService,
             IClientConnectionService clientConnectionService,
+            INewsService newsService,
             SimpleConfiguration configuration)
         {
             IPAddress.TryParse(configuration.Get("ip"), out this.ipAddress);
@@ -63,6 +66,7 @@ namespace FragmentServerWV
             this.gameClientService = gameClientService;
             this.lobbyChatService = lobbyChatService;
             this.clientConnectionService = clientConnectionService;
+            this.newsService = newsService;
             this.tokenSource = new CancellationTokenSource();
         }
 
@@ -72,6 +76,14 @@ namespace FragmentServerWV
         /// </summary>
         public void Start()
         {
+            logger.Information("Creating DBAccess Instance");
+            DBAcess dbAcess = DBAcess.getInstance();
+            logger.Information("Caching Message of the day from DB");
+            dbAcess.RefreshMessageOfTheDay();
+            logger.Information("Caching News Articles from DB");
+            Task task = newsService.RefreshNewsList();
+            task.Wait(CancellationToken);
+            
             this.clientConnectionService.BeginListening(this.ipAddress, this.port);
         }
 

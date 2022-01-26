@@ -96,6 +96,7 @@ namespace FragmentServerWV_Console
                 .AddSingleton<ILobbyChatService, LobbyChatService>()
                 .AddSingleton<IMailService, MailService>()
                 .AddSingleton<IBulletinBoardService, BulletinBoardService>()
+                .AddSingleton<INewsService,NewsService>()
                 .AddTransient<GameClientAsync>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();
@@ -119,6 +120,7 @@ namespace FragmentServerWV_Console
                         services.AddSingleton(p.GetRequiredService<ILobbyChatService>());
                         services.AddSingleton(p.GetRequiredService<IMailService>());
                         services.AddSingleton(p.GetRequiredService<IBulletinBoardService>());
+                        services.AddSingleton(p.GetRequiredService<INewsService>());
                         services.AddSingleton(p.GetRequiredService<SimpleConfiguration>());
                         services.AddSingleton(p.GetRequiredService<Server>());
                     });

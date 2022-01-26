@@ -177,6 +177,20 @@ namespace FragmentServerWV.Services
             result |= (data >> 24) & 0xFF;
             return result;
         }
+        
+        public static ulong Swap(this ulong data)
+        {
+            ulong result = 0;
+            result |= (data & 0xFF) << 56;
+            result |= ((data >> 8) & 0xFF) << 48;
+            result |= ((data >> 16) & 0xFF) << 40;
+            result |= ((data >> 24) & 0xFF) << 32;
+            result |= ((data >> 32) & 0xFF) << 24;
+            result |= ((data >> 40) & 0xFF) << 16;
+            result |= ((data >> 48) & 0xFF) << 8;
+            result |= (data >> 56) & 0xFF;
+            return result;
+        }
 
         public static IEnumerable<string> ChunksUpto(this string str, int maxChunkSize)
         {
