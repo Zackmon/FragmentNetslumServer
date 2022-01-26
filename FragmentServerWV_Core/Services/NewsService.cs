@@ -73,7 +73,13 @@ namespace FragmentServerWV.Services
             return _articleList;
         }
 
-
+        
+        
+        /// <summary>
+        /// Get the List of News Articles and set the isNew flag based on the saveId reading logs
+        /// </summary>
+        /// <param name="saveId"></param>
+        /// <returns>List of News Section with isNew flag modified properly</returns>
         public async Task<List<NewsSectionModel>> GetNewsArticles(string saveId)
         {
             if (_articleList == null)
@@ -111,6 +117,12 @@ namespace FragmentServerWV.Services
             return listOfArticles;
         }
 
+        
+        /// <summary>
+        /// Check if the saveId has new Articles to read 
+        /// </summary>
+        /// <param name="saveId"></param>
+        /// <returns>bool stating if there are new articles</returns>
         public async Task<bool> CheckIfNewNewsForSaveId(string saveId)
         {
             List<ushort> listOfReadArticles =  await Task.Run(() =>DBAcess.getInstance().GetNewsLog(saveId));
@@ -126,6 +138,11 @@ namespace FragmentServerWV.Services
             return false;
         }
 
+        /// <summary>
+        /// Update the News log with the saveId read article 
+        /// </summary>
+        /// <param name="saveId"></param>
+        /// <param name="articleId"></param>
         public async Task UpdateNewsLog(string saveId, ushort articleId)
         {
             await Task.Run(() =>DBAcess.getInstance().UpdateNewsLog(saveId,articleId));
