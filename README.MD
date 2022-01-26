@@ -1,6 +1,6 @@
 # .hack//frägment Server Emulator
 
-[![Build Status](https://travis-ci.com/Zackmon/FragmentServer_netCore.svg?branch=master)](https://travis-ci.com/Zackmon/FragmentServer_netCore)
+[![Build Status](https://app.travis-ci.com/Zackmon/FragmentServer_netCore.svg?branch=master)](https://app.travis-ci.com/Zackmon/FragmentServer_netCore)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Zackmon_FragmentServer_netCore&metric=alert_status)](https://sonarcloud.io/dashboard?id=Zackmon_FragmentServer_netCore)
 
 A private Lobby Server Emulator for the PS2 game .hack//frägment
