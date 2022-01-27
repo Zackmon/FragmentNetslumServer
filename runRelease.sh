@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./FragmentServerWV_Console/bin/Release/netcoreapp3.1/FragmentServerWV_Console
+./FragmentNetslumServerLauncher/bin/Release/net6.0/FragmentNetslumServerLauncher

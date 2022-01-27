@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<hibernate-mapping assembly="FragmentNetslumServer" namespace="FragmentNetslumServer.Models" xmlns="urn:nhibernate-mapping-2.2">
+    <class name="GuildRepositoryModel" table="GuildRepository">
+        <id name="GuildID" type="Int32">
+            <column name="guildID" not-null="true" sql-type="INT" />
+            <generator class="identity" />
+        </id>
+        <property name="GuildName" type="BinaryBlob">
+            <column name="guildName" not-null="false" sql-type="BLOB" />
+        </property>
+        <property name="GuildEmblem" type="BinaryBlob">
+            <column name="guildEmblem" not-null="false" sql-type="BLOB" />
+        </property>
+        <property name="GuildComment" type="BinaryBlob">
+            <column name="guildComment" not-null="false" sql-type="BLOB" />
+        </property>
+        <property name="EstablishmentDate" type="String">
+            <column name="establishmentDate" not-null="false" length="255" sql-type="VARCHAR(255)" />
+        </property>
+        <property name="MasterPlayerID" type="Int32">
+            <column name="masterPlayerID" not-null="false" sql-type="INT" />
+        </property>
+        <property name="GoldCoin" type="Int32">
+            <column name="goldCoin" not-null="false" sql-type="INT" />
+        </property>
+        <property name="SilverCoin" type="Int32">
+            <column name="silverCoin" not-null="false" sql-type="INT" />
+        </property>
+        <property name="BronzeCoin" type="Int32">
+            <column name="bronzeCoin" not-null="false" sql-type="INT" />
+        </property>
+        <property name="Gp" type="Int32">
+            <column name="gp" not-null="false" sql-type="INT" />
+        </property>
+    </class>
+</hibernate-mapping>

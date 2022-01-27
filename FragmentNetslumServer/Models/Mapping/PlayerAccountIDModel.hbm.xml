@@ -1,0 +1,16 @@
+﻿<?xml version = "1.0" encoding = "utf-8" ?>
+
+<hibernate-mapping xmlns = "urn:nhibernate-mapping-2.2">
+
+    <class name = "FragmentNetslumServer.Models.PlayerAccountIDModel, FragmentNetslumServer"
+           table = "PLAYER_ACCOUNT_ID">
+
+        <id name = "ID" column = "ID" type = "int">
+            <generator class="native"/>
+        </id>
+
+        <property name = "saveID" column = "SAVEID" type = "String"/>
+
+    </class>
+
+</hibernate-mapping>
