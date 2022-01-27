@@ -328,6 +328,7 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
 
 
         public const ushort OPCODE_DATA_MAIL_SEND = 0x7800;
+        public const ushort OPCODE_DATA_GUILD_MAIL_SEND = 0x7809;
 
 /*
 	DATA_MAIL_SEND PACKET DESC
@@ -367,6 +368,7 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
 
 
         public const ushort OPCODE_DATA_MAIL_SEND_OK = 0x7801;
+        public const ushort OPCODE_DATA_GUILD_MAIL_SEND_OK = 0x780A;
 
 
         public const ushort OPCODE_DATA_LOBBY_FAVORITES_AS_INQUIRY = 0x7858;

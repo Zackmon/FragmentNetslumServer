@@ -18,6 +18,8 @@ namespace FragmentNetslumServer.Services.Interfaces
         /// <returns>A promise to save the mail</returns>
         Task SaveMailAsync(byte[] content);
 
+        Task SaveGuildMailAsync(byte[] content);
+
         /// <summary>
         /// Retrieves mail for the given account ID
         /// </summary>
