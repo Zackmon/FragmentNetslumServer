@@ -425,6 +425,10 @@ namespace FragmentNetslumServer.Entities
                     await mailService.SaveMailAsync(argument);
                     await SendDataPacket(OpCodes.OPCODE_DATA_MAIL_SEND_OK, new byte[] { 0x00, 0x00 });
                     break;
+                case OpCodes.OPCODE_DATA_GUILD_MAIL_SEND:
+                    await mailService.SaveGuildMailAsync(argument);
+                    await SendDataPacket(OpCodes.OPCODE_DATA_GUILD_MAIL_SEND_OK, new byte[] { 0x00, 0x00 });
+                    break;
                 case OpCodes.OPCODE_DATA_MAIL_GET:
                     await HandleMailInbox(argument);
                     break;
