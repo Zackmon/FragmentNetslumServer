@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using FragmentNetslumServer.Enumerations;
 using FragmentNetslumServer.Models;
 using FragmentNetslumServer.Services.Interfaces;
+using static FragmentNetslumServer.Services.Extensions;
 
 namespace FragmentNetslumServer.Services
 {
-    public sealed class RankingManagementService : BaseManagementService, IRankingManagementService
+    public sealed class RankingManagementService : IRankingManagementService
     {
+
+        private Encoding _encoding;
 
         public string ServiceName => "Ranking Management Service";
 
@@ -16,8 +20,9 @@ namespace FragmentNetslumServer.Services
 
 
 
-        public RankingManagementService() : base()
+        public RankingManagementService()
         {
+            _encoding = Encoding.GetEncoding("Shift-JIS");
         }
 
 
