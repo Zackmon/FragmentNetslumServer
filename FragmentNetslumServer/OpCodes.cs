@@ -467,17 +467,23 @@ OPCODE_DATA_SELECT_CHAR2 seems to be a 1:1 clone of the normal OPCODE_DATA_SELEC
         public const ushort LOBBY_TYPE_MAIN = 0x7403;
         public const ushort OPCODE_CLIENT_LEAVING_LOBBY = 0x700a;
         public const ushort ARGUMENT_INVITE_TO_GUILD = 0x7606;
-        public const ushort OPCODE_INVITE_TO_GUILD = 0x7603;
-        public const ushort OPCODE_ACCEPT_GUILD_INVITE = 0x7607;
+        public const ushort OPCODE_DATA_INVITE_TO_GUILD = 0x7603;
+        public const ushort OPCODE_DATA_ACCEPT_GUILD_INVITE = 0x7607;
         public const ushort OPCODE_PRIVATE_BROADCAST = 0x788c;
-        public const ushort OPCODE_GUILD_VIEW = 0x772c;
+        public const ushort OPCODE_DATA_GUILD_VIEW = 0x772c;
         public const ushort OPCODE_DATA_GET_GUILD_INFO_RESPONSE = 0x7740;
         public const ushort OPCODE_DATA_AREASERVER_OK = 0x78AC;
 
 
         public const ushort OPCODE_DATA_GUILD_CREATE = 0x7600;
         public const ushort OPCODE_DATA_GUILD_GET_ALL_GUILDS = 0x7722;
+        public const ushort OPCODE_DATA_GUILD_GROUP_COUNT = 0x7723;
+        public const ushort OPCODE_DATA_GUILD_GROUP_CATEGORY = 0x7725;
+        public const ushort OPCODE_DATA_GUILD_COUNT = 0x7726;
+        public const ushort OPCODE_DATA_GUILD_ENTRY = 0x7727;
         public const ushort OPCODE_DATA_GUILD_GET_LIST_OF_ITEMS = 0x772F;
+        public const ushort OPCODE_DATA_GUILD_ITEMS_COUNT = 0x7730;
+        public const ushort OPCODE_DATA_GUILD_ITEM_DETAILS = 0x7731;
         public const ushort OPCODE_DATA_GUILD_GETMENU = 0x7733;
         public const ushort OPCODE_DATA_GUILD_GET_INFO = 0x7739;
 

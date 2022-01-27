@@ -38,6 +38,18 @@ namespace FragmentNetslumServerLauncher
             var provider = serviceCollection.BuildServiceProvider();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            //hack hack
+            //provider.GetRequiredService<ILobbyChatService>().Initialize();
+            var iocps = provider.GetRequiredService<IOpCodeProviderService>();
+            var logger = provider.GetRequiredService<ILogger>();
+
+            logger.Information("BEGIN - OPCODES");
+            foreach (var t in iocps.Handlers)
+            {
+                logger.Information(Extensions.ConvertHandlerToString(t));
+            }
+            logger.Information("END - OPCODES");
+
             var config = provider.GetRequiredService<SimpleConfiguration>();
             var server = provider.GetRequiredService<Server>();
             server.Start();
@@ -97,6 +109,9 @@ namespace FragmentNetslumServerLauncher
                 .AddSingleton<IMailService, MailService>()
                 .AddSingleton<IBulletinBoardService, BulletinBoardService>()
                 .AddSingleton<INewsService,NewsService>()
+                .AddSingleton<IOpCodeProviderService, OpCodeProviderService>()
+                .AddSingleton<IRankingManagementService, RankingManagementService>()
+                .AddSingleton<IGuildManagementService, GuildManagementService>()
                 .AddTransient<GameClientAsync>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();

@@ -77,9 +77,9 @@ namespace FragmentNetslumServer
         public void Start()
         {
             logger.Information("Creating DBAccess Instance");
-            DBAccess dbAcess = DBAccess.getInstance();
+            DBAccess DBAccess = DBAccess.getInstance();
             logger.Information("Caching Message of the day from DB");
-            dbAcess.RefreshMessageOfTheDay();
+            DBAccess.RefreshMessageOfTheDay();
             logger.Information("Caching News Articles from DB");
             Task task = newsService.RefreshNewsList();
             task.Wait(CancellationToken);
@@ -102,9 +102,9 @@ namespace FragmentNetslumServer
 
         private async Task SafeShutdownInternal()
         {
-            logger.Information("The server has been told to shutdown...");
+            logger.Warning("The server has been told to shutdown...");
             this.clientConnectionService.EndListening();
-            logger.Information("New connections are no longer being accepted");
+            logger.Warning("New connections are no longer being accepted");
 
             if (gameClientService.Clients.Any())
             {
@@ -131,10 +131,10 @@ namespace FragmentNetslumServer
                 await Task.Delay(TimeSpan.FromSeconds(30));
             }
 
-            logger.Information("The server is now closing");
+            logger.Warning("The server is now closing");
             foreach (var client in GameClientService.Clients)
             {
-                logger.Verbose($"Shutting down {client.Name}");
+                logger.Verbose($"Disconnecting {client.Name}");
                 client.Exit();
             }
 

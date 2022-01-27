@@ -8,6 +8,9 @@
     <RootNamespace>FragmentNetslumServer</RootNamespace>
     <PackageId>FragmentNetslumServer</PackageId>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;USE_HYBRID_APPROACH</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />

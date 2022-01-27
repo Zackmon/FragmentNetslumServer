@@ -1,12 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using FragmentNetslumServer.Entities.Attributes;
 using Serilog;
 
 namespace FragmentNetslumServer.Services
 {
     public static class Extensions
     {
+
+        private static Encoding _encoding;
+
+        static Extensions()
+        {
+            _encoding = Encoding.GetEncoding("Shift-JIS");
+        }
+
 
         /// <summary>
         /// Helper function for safely logging out binary data to a supplied <see cref="ILogger"/>
@@ -192,10 +205,104 @@ namespace FragmentNetslumServer.Services
             return result;
         }
 
+
+        public static ushort swap16(ushort data) => data.Swap();
+        public static ushort swap16(ushort? data) => data?.Swap() ?? 0;
+        public static uint swap32(uint data) => data.Swap();
+        public static uint swap32(uint? data) => data?.Swap() ?? 0;
+
+
         public static IEnumerable<string> ChunksUpto(this string str, int maxChunkSize)
         {
             for (int i = 0; i < str.Length; i += maxChunkSize)
                 yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+        }
+
+        public static string ConvertHandlerToString(Type handlerType)
+        {
+            var builder = new StringBuilder();
+            var opCode = handlerType.GetCustomAttributes<OpCodeAttribute>()?.FirstOrDefault()?.OpCode;
+            var dataOpCodes = handlerType.GetCustomAttributes<OpCodeDataAttribute>()?.Select(c => c.DataOpCode) ?? new List<ushort>();
+            var displayName = handlerType.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? handlerType.Name;
+            var description = handlerType.GetCustomAttribute<DescriptionAttribute>()?.Description ?? "No Description Provided";
+
+            // How dare you >:(
+            if (opCode is null) throw new ArgumentException(nameof(handlerType));
+
+
+            builder.Append($"{displayName} (0x{opCode:X2})");
+
+            if (dataOpCodes.Any())
+            {
+                builder.Append($"/{string.Join(',', dataOpCodes.Select(c => $"0x{c:X2}"))}");
+            }
+
+            builder.Append($" - {displayName}: {description}");
+
+            return builder.ToString();
+        }
+
+        public static byte[] ReadByteString(byte[] data, int pos)
+        {
+            var m = new MemoryStream();
+            while (true)
+            {
+                byte b = data[pos++];
+                m.WriteByte(b);
+                if (b == 0) break;
+                if (pos >= data.Length) break;
+            }
+            return m.ToArray();
+        }
+
+        public static List<byte[]> GetClassList()
+        {
+            List<byte[]> classList = new List<byte[]>();
+            MemoryStream m = new MemoryStream();
+
+            m.Write(BitConverter.GetBytes(swap16(1)));
+            m.Write(_encoding.GetBytes("All"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(2)));
+            m.Write(_encoding.GetBytes("Twin Blade"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(3)));
+            m.Write(_encoding.GetBytes("Blademaster"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(4)));
+            m.Write(_encoding.GetBytes("Heavy Blade"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(5)));
+            m.Write(_encoding.GetBytes("Heavy Axe"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(6)));
+            m.Write(_encoding.GetBytes("Long Arm"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(7)));
+            m.Write(_encoding.GetBytes("Wavemaster"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            return classList;
         }
 
     }
