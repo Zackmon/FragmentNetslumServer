@@ -1,11 +1,11 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.BBS
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.BBS
 {
     [OpCodeData(OpCodes.OPCODE_DATA_BBS_POST)]
     public sealed class OPCODE_DATA_BBS_POST : SimpleResponseOpCodeHandler
@@ -15,7 +15,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers.Data.BBS
         public override Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
             var id = swap32(BitConverter.ToUInt32(request.Data, 0));
-            DBAcess.getInstance().CreateNewPost(request.Data, id);
+            DBAccess.getInstance().CreateNewPost(request.Data, id);
             return base.HandleIncomingRequestAsync(request);
         }
     }

@@ -1,11 +1,11 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Lobby
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
 {
     [OpCodeData(OpCodes.OPCODE_DATA_LOBBY_EVENT)]
     public sealed class OPCODE_DATA_LOBBY_EVENT : IOpCodeHandler

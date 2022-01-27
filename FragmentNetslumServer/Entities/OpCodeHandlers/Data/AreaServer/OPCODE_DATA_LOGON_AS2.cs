@@ -1,7 +1,7 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 using System.ComponentModel;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.AreaServer
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.AreaServer
 {
     [OpCodeData(OpCodes.OPCODE_DATA_LOGON_AS2), Description("Handles an Area Server login request (I think)")]
     public sealed class OPCODE_DATA_LOGON_AS2 : SimpleResponseOpCodeHandler

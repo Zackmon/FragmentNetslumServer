@@ -1,10 +1,10 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Lobby
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
 {
     [OpCodeData(OpCodes.OPCODE_DATA_LOBBY_EXITROOM), Description("Announces to the client's current Lobby that it is leaving")]
     public sealed class OPCODE_DATA_LOBBY_EXITROOM : SimpleResponseOpCodeHandler

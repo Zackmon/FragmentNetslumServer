@@ -1,12 +1,12 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
 {
     [OpCodeData(OpCodes.OPCODE_DATA_REGISTER_CHAR)]
     public sealed class OPCODE_DATA_REGISTER_CHAR : IOpCodeHandler
@@ -60,7 +60,7 @@ namespace FragmentServerWV.Entities.OpCodeHandlers.Data
             client.colorCode = GetCharacterModelColorCode(client.char_model);
 
             client.charModelFile = "xf" + client.classLetter + client.modelNumber + client.modelType + "_" + client.colorCode;
-            return DBAcess.getInstance().PlayerLogin(client);
+            return DBAccess.getInstance().PlayerLogin(client);
         }
 
         static char GetCharacterModelClass(uint modelNumber)

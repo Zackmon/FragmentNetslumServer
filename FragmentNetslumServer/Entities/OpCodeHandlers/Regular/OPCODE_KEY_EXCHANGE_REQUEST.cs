@@ -1,12 +1,12 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Regular
 {
     [OpCode(OpCodes.OPCODE_KEY_EXCHANGE_REQUEST),
         Description("Handles initializing encryption & decryption keys on the connected Client")]

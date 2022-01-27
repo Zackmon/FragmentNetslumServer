@@ -1,7 +1,7 @@
-﻿using FragmentServerWV.Entities;
-using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Enumerations;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities;
+using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Enumerations;
+using FragmentNetslumServer.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Services
+namespace FragmentNetslumServer.Services
 {
     public sealed class OpCodeProviderService : IOpCodeProviderService
     {

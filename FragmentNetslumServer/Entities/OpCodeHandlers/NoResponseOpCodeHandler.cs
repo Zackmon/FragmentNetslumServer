@@ -1,8 +1,8 @@
-﻿using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Services.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers
+namespace FragmentNetslumServer.Entities.OpCodeHandlers
 {
     /// <summary>
     /// A base class <see cref="IOpCodeHandler"/> that does not have an actual response to the client

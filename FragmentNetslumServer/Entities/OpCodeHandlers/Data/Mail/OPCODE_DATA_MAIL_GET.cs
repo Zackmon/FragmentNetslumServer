@@ -1,12 +1,12 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Mail
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Mail
 {
 
     [OpCodeData(OpCodes.OPCODE_DATA_MAIL_GET), Description("Retrieves mail for a requesting client")]

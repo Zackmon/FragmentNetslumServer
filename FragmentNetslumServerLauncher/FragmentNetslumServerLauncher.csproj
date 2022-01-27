@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FragmentNetslumServer\FragmentNetslumServer.csproj" />
     <ProjectReference Include="..\FragmentNetslumServerWebApi\FragmentNetslumServerWebApi.csproj" />
+    <ProjectReference Include="..\FragmentNetslumServer\FragmentNetslumServer.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
 {
     [OpCodeData(OpCodes.OPCODE_DATA_LOGON_REPEAT)]
     public sealed class OPCODE_DATA_LOGON_REPEAT : SimpleResponseOpCodeHandler

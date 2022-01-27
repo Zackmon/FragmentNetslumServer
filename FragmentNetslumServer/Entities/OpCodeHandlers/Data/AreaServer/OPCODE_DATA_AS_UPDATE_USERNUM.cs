@@ -1,11 +1,11 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.AreaServer
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.AreaServer
 {
     [OpCodeData(OpCodes.OPCODE_DATA_AS_UPDATE_USERNUM), Description("Updates how many players are currently on an Area Server")]
     public sealed class OPCODE_DATA_AS_UPDATE_USERNUM : NoResponseOpCodeHandler

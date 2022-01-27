@@ -1,12 +1,12 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Mail
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Mail
 {
     [OpCodeData(OpCodes.OPCODE_DATA_MAIL_GET_MAIL_BODY), Description("Returns the full message body for the specified mail")]
     public sealed class OPCODE_DATA_MAIL_GET_MAIL_BODY : IOpCodeHandler

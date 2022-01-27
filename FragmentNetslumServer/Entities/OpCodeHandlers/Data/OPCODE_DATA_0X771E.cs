@@ -1,6 +1,6 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
 {
     [OpCodeData(0x771E)]
     public sealed class OPCODE_DATA_0X771E : SimpleResponseOpCodeHandler

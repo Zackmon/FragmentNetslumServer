@@ -1,6 +1,6 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.BBS
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.BBS
 {
     [OpCodeData(OpCodes.OPCODE_DATA_BBS_GET_UPDATES)]
     public sealed class OPCODE_DATA_BBS_GET_UPDATES : SimpleResponseOpCodeHandler

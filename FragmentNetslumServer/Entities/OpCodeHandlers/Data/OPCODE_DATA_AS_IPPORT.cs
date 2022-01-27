@@ -1,11 +1,11 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
 {
     [OpCodeData(OpCodes.OPCODE_DATA_AS_IPPORT), Description("Determines the external IP address for the Client. This does also attempt to handle rewriting 127.0.0.1 to a 'more correct' IP address")]
     public sealed class OPCODE_DATA_AS_IPPORT : SimpleResponseOpCodeHandler

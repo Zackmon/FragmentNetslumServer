@@ -1,11 +1,11 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Mail
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Mail
 {
 
     [OpCodeData(OpCodes.OPCODE_DATA_MAIL_SEND), Description("Sends mail from one player to another")]

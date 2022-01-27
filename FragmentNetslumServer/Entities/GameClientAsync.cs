@@ -173,7 +173,7 @@ namespace FragmentNetslumServer.Entities
             double pingTime = 5000;
             this.opCodeHandler = opCodeHandler;
             var rawPing = simpleConfiguration.Get("ping", "5000");
-            if (!double.TryParse(rawPing, out double pingTime))
+            if (!double.TryParse(rawPing, out pingTime))
             {
                 logger.Warning($"Unable to process the keep-alive ping value ({rawPing}). Defaulting to 5 seconds.");
             }

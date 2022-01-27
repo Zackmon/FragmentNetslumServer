@@ -1,8 +1,8 @@
-﻿using static FragmentServerWV.Services.Extensions;
+﻿using static FragmentNetslumServer.Services.Extensions;
 using System;
 using System.IO;
 
-namespace FragmentServerWV.Entities
+namespace FragmentNetslumServer.Entities
 {
 
     /// <summary>

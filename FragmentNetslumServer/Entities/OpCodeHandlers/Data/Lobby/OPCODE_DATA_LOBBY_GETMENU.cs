@@ -1,14 +1,14 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Lobby
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
 {
 
     [OpCodeData(OpCodes.OPCODE_DATA_LOBBY_GETMENU), Description("Returns a list of available lobbies and participants")]

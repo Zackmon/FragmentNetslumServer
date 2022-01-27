@@ -1,11 +1,11 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Lobby
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
 {
     [OpCodeData(OpCodes.OPCODE_DATA_LOBBY_STATUS_UPDATE), Description("Propagates updates from a Client to the entire Lobby")]
     public sealed class OPCODE_DATA_LOBBY_STATUS_UPDATE : NoResponseOpCodeHandler

@@ -77,9 +77,9 @@ namespace FragmentNetslumServer
         public void Start()
         {
             logger.Information("Creating DBAccess Instance");
-            DBAccess dbAcess = DBAccess.getInstance();
+            DBAccess DBAccess = DBAccess.getInstance();
             logger.Information("Caching Message of the day from DB");
-            dbAcess.RefreshMessageOfTheDay();
+            DBAccess.RefreshMessageOfTheDay();
             logger.Information("Caching News Articles from DB");
             Task task = newsService.RefreshNewsList();
             task.Wait(CancellationToken);

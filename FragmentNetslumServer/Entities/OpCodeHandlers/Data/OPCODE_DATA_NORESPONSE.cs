@@ -1,7 +1,7 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 using System.ComponentModel;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
 {
     [OpCodeData(OpCodes.OPCODE_DATA_PING),
         OpCodeData(OpCodes.OPCODE_DATA_LOBBY_FAVORITES_AS_INQUIRY),

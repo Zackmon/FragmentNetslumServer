@@ -1,8 +1,8 @@
-﻿using FragmentServerWV.Entities.Attributes;
+﻿using FragmentNetslumServer.Entities.Attributes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Regular
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Regular
 {
     [OpCode(OpCodes.OPCODE_KEY_EXCHANGE_ACKNOWLEDGMENT)]
     public sealed class OPCODE_KEY_EXCHANGE_ACKNOWLEDGMENT : NoResponseOpCodeHandler

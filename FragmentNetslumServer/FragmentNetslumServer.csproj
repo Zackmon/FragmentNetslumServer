@@ -50,8 +50,6 @@
     <None Remove="Models\Mapping\NewsSectionLogModel.hbm.xml" />
     <EmbeddedResource Include="Models\Mapping\NewsSectionLogModel.hbm.xml" />
   </ItemGroup>
-    <Folder Include="Entities\OpCodeHandlers\Data\" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FragmentNetslumServerPubSub\FragmentNetslumServerPubSub.csproj" />
   </ItemGroup>

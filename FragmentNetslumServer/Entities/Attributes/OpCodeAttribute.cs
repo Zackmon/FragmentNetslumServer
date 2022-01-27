@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FragmentServerWV.Entities.Attributes
+namespace FragmentNetslumServer.Entities.Attributes
 {
     /// <summary>
     /// Defines a non-data based OpCode

@@ -1,14 +1,14 @@
-﻿using FragmentServerWV.Entities.Attributes;
-using FragmentServerWV.Services.Interfaces;
+﻿using FragmentNetslumServer.Entities.Attributes;
+using FragmentNetslumServer.Services.Interfaces;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using static FragmentServerWV.Services.Extensions;
+using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentServerWV.Entities.OpCodeHandlers.Data.Lobby
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
 {
 
     [OpCodeData(OpCodes.OPCODE_DATA_LOBBY_GETSERVERS_GETLIST)]

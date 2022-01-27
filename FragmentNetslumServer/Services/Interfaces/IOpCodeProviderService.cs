@@ -1,9 +1,9 @@
-﻿using FragmentServerWV.Entities;
+﻿using FragmentNetslumServer.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace FragmentServerWV.Services.Interfaces
+namespace FragmentNetslumServer.Services.Interfaces
 {
 
     /// <summary>
