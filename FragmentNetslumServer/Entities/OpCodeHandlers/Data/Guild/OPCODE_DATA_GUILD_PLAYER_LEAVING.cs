@@ -10,9 +10,21 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Guild
     [OpCodeData(OpCodes.OPCODE_DATA_GUILD_PLAYER_LEAVING)]
     public sealed class OPCODE_DATA_GUILD_PLAYER_LEAVING : IOpCodeHandler
     {
+        
+        private readonly IGuildManagementService _guildManagementService;
+
+        public OPCODE_DATA_GUILD_PLAYER_LEAVING(IGuildManagementService guildManagementService)
+        {
+            _guildManagementService = guildManagementService;
+        }
+        
         public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IEnumerable<ResponseContent>>(new[]
+            {
+                request.CreateResponse(0x7617,
+                    _guildManagementService.LeaveGuild(request.Client._guildID, request.Client._characterPlayerID))
+            });
         }
     }
 }

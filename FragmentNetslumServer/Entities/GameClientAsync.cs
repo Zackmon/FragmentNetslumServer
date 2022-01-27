@@ -299,6 +299,7 @@ namespace FragmentNetslumServer.Entities
                                     foreach (var response in responses)
                                     {
                                         if (response.Data.Length == 0) continue;
+                                        logger.LogData(response.Data, response.OpCode, (int)clientIndex, nameof(SendDataPacket), (ushort)0, (ushort)0);
                                         await ns.WriteAsync(response.Data);
                                     }
                                 }

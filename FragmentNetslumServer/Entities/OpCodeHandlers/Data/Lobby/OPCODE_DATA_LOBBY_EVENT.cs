@@ -8,11 +8,22 @@ using System.Threading.Tasks;
 namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
 {
     [OpCodeData(OpCodes.OPCODE_DATA_LOBBY_EVENT)]
-    public sealed class OPCODE_DATA_LOBBY_EVENT : IOpCodeHandler
+    public sealed class OPCODE_DATA_LOBBY_EVENT : NoResponseOpCodeHandler
     {
-        public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
+        private readonly ILobbyChatService _lobbyChatService;
+
+        public OPCODE_DATA_LOBBY_EVENT(ILobbyChatService lobbyChatService)
         {
-            throw new NotImplementedException();
+            _lobbyChatService = lobbyChatService;
+        }
+
+        public override async Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
+        {
+            if (_lobbyChatService.TryFindLobby(request.Client, out var lcr))
+            {
+                await lcr.SendPublicMessageAsync(request.Data, request.Client.ClientIndex);
+            }
+            return await base.HandleIncomingRequestAsync(request);
         }
     }
 }

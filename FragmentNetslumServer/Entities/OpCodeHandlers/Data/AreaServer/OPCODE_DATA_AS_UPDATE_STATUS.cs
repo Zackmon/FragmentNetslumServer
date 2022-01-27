@@ -1,10 +1,10 @@
-﻿using FragmentNetslumServer.Entities.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FragmentNetslumServer.Entities.Attributes;
 using static FragmentNetslumServer.Services.Extensions;
 
-namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.AreaServer
 {
     [OpCodeData(OpCodes.OPCODE_DATA_AS_UPDATE_STATUS)]
     public sealed class OPCODE_DATA_AS_UPDATE_STATUS : NoResponseOpCodeHandler
