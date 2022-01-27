@@ -13,6 +13,14 @@ namespace FragmentNetslumServer.Services
     public static class Extensions
     {
 
+        private static Encoding _encoding;
+
+        static Extensions()
+        {
+            _encoding = Encoding.GetEncoding("Shift-JIS");
+        }
+
+
         /// <summary>
         /// Helper function for safely logging out binary data to a supplied <see cref="ILogger"/>
         /// </summary>
@@ -245,6 +253,56 @@ namespace FragmentNetslumServer.Services
                 if (pos >= data.Length) break;
             }
             return m.ToArray();
+        }
+
+        public static List<byte[]> GetClassList()
+        {
+            List<byte[]> classList = new List<byte[]>();
+            MemoryStream m = new MemoryStream();
+
+            m.Write(BitConverter.GetBytes(swap16(1)));
+            m.Write(_encoding.GetBytes("All"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(2)));
+            m.Write(_encoding.GetBytes("Twin Blade"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(3)));
+            m.Write(_encoding.GetBytes("Blademaster"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(4)));
+            m.Write(_encoding.GetBytes("Heavy Blade"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(5)));
+            m.Write(_encoding.GetBytes("Heavy Axe"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(6)));
+            m.Write(_encoding.GetBytes("Long Arm"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+
+            m = new MemoryStream();
+            m.Write(BitConverter.GetBytes(swap16(7)));
+            m.Write(_encoding.GetBytes("Wavemaster"));
+            m.Write(new byte[] { 0x00 });
+            classList.Add(m.ToArray());
+
+            return classList;
         }
 
     }

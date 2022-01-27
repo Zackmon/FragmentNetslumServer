@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using FragmentNetslumServer.Enumerations;
 using FragmentNetslumServer.Models;
+using FragmentNetslumServer.Services.Interfaces;
 
 namespace FragmentNetslumServer.Services
 {
-    public class RankingManagementService : BaseManagementService
+    public sealed class RankingManagementService : BaseManagementService, IRankingManagementService
     {
 
+        public string ServiceName => "Ranking Management Service";
 
-        private static RankingManagementService _instance = null;
+        public ServiceStatusEnum ServiceStatus => ServiceStatusEnum.Active;
 
 
 
@@ -17,15 +20,7 @@ namespace FragmentNetslumServer.Services
         {
         }
 
-        public static RankingManagementService GetInstance()
-        {
-            if (_instance == null)
-            {
-                _instance = new RankingManagementService();
-            }
 
-            return _instance;
-        }
 
         public List<byte[]> GetRankingCategory()
         {
@@ -115,7 +110,7 @@ namespace FragmentNetslumServer.Services
         }
 
 
-        public byte[] getRankingPlayerInfo(uint playerID)
+        public byte[] GetRankingPlayerInfo(uint playerID)
         {
             lock (this)
             {
@@ -196,5 +191,7 @@ namespace FragmentNetslumServer.Services
                 return m.ToArray();
             }
         }
+
     }
+
 }

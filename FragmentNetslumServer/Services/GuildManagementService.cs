@@ -1,30 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using FragmentNetslumServer.Enumerations;
 using FragmentNetslumServer.Models;
+using FragmentNetslumServer.Services.Interfaces;
+
+using static FragmentNetslumServer.Services.Extensions;
 
 namespace FragmentNetslumServer.Services
 {
-    public class GuildManagementService : BaseManagementService
+    public class GuildManagementService : IGuildManagementService
     {
-        private static GuildManagementService _instance = null;
 
-        //private Encoding _encoding;
+        private readonly System.Text.Encoding _encoding;
+
+        public string ServiceName => "Guild Management Service";
+
+        public ServiceStatusEnum ServiceStatus => ServiceStatusEnum.Active;
+
+
 
         public GuildManagementService() : base()
         {
-
+            _encoding = Encoding.GetEncoding("Shift-JIS");
         }
 
-        public static GuildManagementService GetInstance()
-        {
-            if (_instance == null)
-            {
-                _instance = new GuildManagementService();
-            }
-
-            return _instance;
-        }
 
 
         public byte[] GetPlayerGuild(uint characterID)

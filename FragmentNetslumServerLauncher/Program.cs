@@ -110,6 +110,8 @@ namespace FragmentNetslumServerLauncher
                 .AddSingleton<IBulletinBoardService, BulletinBoardService>()
                 .AddSingleton<INewsService,NewsService>()
                 .AddSingleton<IOpCodeProviderService, OpCodeProviderService>()
+                .AddSingleton<IRankingManagementService, RankingManagementService>()
+                .AddSingleton<IGuildManagementService, GuildManagementService>()
                 .AddTransient<GameClientAsync>()
                 .AddSingleton<SimpleConfiguration>()
                 .AddSingleton<Server>();

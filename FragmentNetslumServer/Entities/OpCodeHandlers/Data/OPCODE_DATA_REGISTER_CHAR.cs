@@ -11,10 +11,17 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
     [OpCodeData(OpCodes.OPCODE_DATA_REGISTER_CHAR)]
     public sealed class OPCODE_DATA_REGISTER_CHAR : IOpCodeHandler
     {
+        private readonly IGuildManagementService guildManagementService;
+
+        public OPCODE_DATA_REGISTER_CHAR(IGuildManagementService guildManagementService)
+        {
+            this.guildManagementService = guildManagementService;
+        }
+
         public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
             request.Client._characterPlayerID = ExtractCharacterData(request.Client, request.Data);
-            byte[] guildStatus = GuildManagementService.GetInstance().GetPlayerGuild(request.Client._characterPlayerID);
+            byte[] guildStatus = guildManagementService.GetPlayerGuild(request.Client._characterPlayerID);
             if (guildStatus[0] == 0x01)
             {
                 request.Client.isGuildMaster = true;

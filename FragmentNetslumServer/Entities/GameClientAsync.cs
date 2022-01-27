@@ -35,6 +35,8 @@ namespace FragmentNetslumServer.Entities
         private readonly IBulletinBoardService bulletinBoardService;
         private readonly INewsService newsService;
         private readonly IOpCodeProviderService opCodeHandler;
+        private readonly IGuildManagementService guildManagementService;
+        private readonly IRankingManagementService rankingManagementService;
         private NetworkStream ns;
         private TcpClient client;
         private uint clientIndex;
@@ -153,6 +155,8 @@ namespace FragmentNetslumServer.Entities
             IBulletinBoardService bulletinBoardService,
             INewsService newsService,
             IOpCodeProviderService opCodeHandler,
+            IGuildManagementService guildManagementService,
+            IRankingManagementService rankingManagementService,
             SimpleConfiguration simpleConfiguration)
         {
             // Why are we doing this?
@@ -172,6 +176,8 @@ namespace FragmentNetslumServer.Entities
 
             double pingTime = 5000;
             this.opCodeHandler = opCodeHandler;
+            this.guildManagementService = guildManagementService;
+            this.rankingManagementService = rankingManagementService;
             var rawPing = simpleConfiguration.Get("ping", "5000");
             if (!double.TryParse(rawPing, out pingTime))
             {
@@ -526,13 +532,13 @@ namespace FragmentNetslumServer.Entities
                     await HandlePlayerDonatesItemToGuild(argument);
                     break;
                 case OpCodes.OPCODE_DATA_GUILD_GET_DONATION_SETTINGS:
-                    await SendDataPacket(0x787a, GuildManagementService.GetInstance().GetItemDonationSettings(isGuildMaster));
+                    await SendDataPacket(0x787a, guildManagementService.GetItemDonationSettings(isGuildMaster));
                     break;
                 case OpCodes.OPCODE_DATA_GUILD_UPDATEITEM_PRICING_AVAILABILITY:
                     await HandlePlayerUpdatingItemPricingAndAvailability(argument);
                     break;
                 case OpCodes.OPCODE_DATA_GUILD_UPDATEITEM_PRICING: //update item pricing (from Master window)
-                    await SendDataPacket(0x7713, GuildManagementService.GetInstance().SetItemVisibilityAndPrice(argument));
+                    await SendDataPacket(0x7713, guildManagementService.SetItemVisibilityAndPrice(argument));
                     break;
                 case 0x787B:// no idea what this is but I think it's only ACK
                     await SendDataPacket(0x787C, new byte[] { 0x00, 0x00 });
@@ -798,7 +804,7 @@ namespace FragmentNetslumServer.Entities
         {
             _characterPlayerID = ExtractCharacterData(argument);
 
-            byte[] guildStatus = GuildManagementService.GetInstance().GetPlayerGuild(_characterPlayerID);
+            byte[] guildStatus = guildManagementService.GetPlayerGuild(_characterPlayerID);
             if (guildStatus[0] == 0x01)
             {
                 isGuildMaster = true;
@@ -939,7 +945,7 @@ namespace FragmentNetslumServer.Entities
             }
             else
             {
-                var listOfGuilds = GuildManagementService.GetInstance().GetListOfGuilds();
+                var listOfGuilds = guildManagementService.GetListOfGuilds();
                 await SendDataPacket(0x7726, BitConverter.GetBytes(swap16((ushort)listOfGuilds.Count)));
                 foreach (var guildName in listOfGuilds)
                 {
@@ -951,7 +957,7 @@ namespace FragmentNetslumServer.Entities
         private async Task HandleGetGuildStoreItems(byte[] argument)
         {
             var guildId = swap16(BitConverter.ToUInt16(argument, 0));
-            var listOfItemsForGeneralStore = GuildManagementService.GetInstance().GetGuildItems(guildId, true);
+            var listOfItemsForGeneralStore = guildManagementService.GetGuildItems(guildId, true);
 
             await SendDataPacket(0x7730, BitConverter.GetBytes(swap16((ushort)listOfItemsForGeneralStore.Count)));
 
@@ -971,7 +977,7 @@ namespace FragmentNetslumServer.Entities
             }
             else // Guild Listing of the selected Category
             {
-                var listOfGuild = GuildManagementService.GetInstance().GetListOfGuilds();
+                var listOfGuild = guildManagementService.GetListOfGuilds();
                 await SendDataPacket(0x7737, BitConverter.GetBytes(swap16((ushort)listOfGuild.Count))); //Size of List
 
                 foreach (var guildName in listOfGuild)
@@ -985,12 +991,12 @@ namespace FragmentNetslumServer.Entities
         private async Task HandleRetrieveGuildDetails(byte[] argument)
         {
             var guildId = swap16(BitConverter.ToUInt16(argument, 0));
-            await SendDataPacket(OpCodes.OPCODE_DATA_GET_GUILD_INFO_RESPONSE, GuildManagementService.GetInstance().GetGuildInfo(guildId));
+            await SendDataPacket(OpCodes.OPCODE_DATA_GET_GUILD_INFO_RESPONSE, guildManagementService.GetGuildInfo(guildId));
         }
 
         private async Task HandleGuildCreation(byte[] argument)
         {
-            var u = GuildManagementService.GetInstance().CreateGuild(argument, _characterPlayerID);
+            var u = guildManagementService.CreateGuild(argument, _characterPlayerID);
             _guildID = u;
             isGuildMaster = true;
             await SendDataPacket(0x7601, BitConverter.GetBytes(swap16(u)));
@@ -1060,7 +1066,7 @@ namespace FragmentNetslumServer.Entities
         private async Task HandleGetRankingPlayerInformation(byte[] argument)
         {
             uint rankPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
-            await SendDataPacket(0x7839, RankingManagementService.GetInstance().getRankingPlayerInfo(rankPlayerID));
+            await SendDataPacket(0x7839, rankingManagementService.GetRankingPlayerInfo(rankPlayerID));
         }
 
         private async Task HandleGetRankingPageInformation(byte[] argument)
@@ -1068,7 +1074,7 @@ namespace FragmentNetslumServer.Entities
             var rankingArgs = swap16(BitConverter.ToUInt16(argument, 0));
             if (rankingArgs == 0) // get the first ranking page
             {
-                var rankCategoryList = RankingManagementService.GetInstance().GetRankingCategory();
+                var rankCategoryList = rankingManagementService.GetRankingCategory();
                 await SendDataPacket(0x7833, BitConverter.GetBytes(swap16((ushort)rankCategoryList.Count)));
 
                 foreach (var category in rankCategoryList)
@@ -1079,7 +1085,7 @@ namespace FragmentNetslumServer.Entities
             else if (rankingArgs >= 8) // get class List
             {
                 _rankingCategoryID = rankingArgs;
-                var rankClassList = RankingManagementService.GetInstance().GetClassList();
+                var rankClassList = Extensions.GetClassList();
                 await SendDataPacket(0x7833, BitConverter.GetBytes(swap16((ushort)rankClassList.Count)));
                 foreach (var category in rankClassList)
                 {
@@ -1088,7 +1094,7 @@ namespace FragmentNetslumServer.Entities
             }
             else
             {
-                var playerRankingList = RankingManagementService.GetInstance().GetPlayerRanking(_rankingCategoryID, rankingArgs);
+                var playerRankingList = rankingManagementService.GetPlayerRanking(_rankingCategoryID, rankingArgs);
                 await SendDataPacket(0x7836, BitConverter.GetBytes(swap32((uint)playerRankingList.Count)));
                 foreach (var player in playerRankingList)
                 {
@@ -1114,7 +1120,7 @@ namespace FragmentNetslumServer.Entities
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
             currentGuildInvitaionSelection = u;
-            await SendDataPacket(0x772D, GuildManagementService.GetInstance().GetGuildInfo(u));
+            await SendDataPacket(0x772D, guildManagementService.GetGuildInfo(u));
         }
 
         private async Task HandleGuildAcceptOrReject(byte[] argument)
@@ -1146,7 +1152,7 @@ namespace FragmentNetslumServer.Entities
 
         private async Task HandlePlayerDonatesCoinsToGuild(byte[] argument)
         {
-            await SendDataPacket(0x7701, GuildManagementService.GetInstance().DonateCoinsToGuild(argument));
+            await SendDataPacket(0x7701, guildManagementService.DonateCoinsToGuild(argument));
         }
 
         private async Task HandlePlayerTakingGuildItem(byte[] argument)
@@ -1156,7 +1162,7 @@ namespace FragmentNetslumServer.Entities
             ushort quantityToTake = swap16(BitConverter.ToUInt16(argument, 6));
 
             logger.Debug("Guild ID " + guildIDTakeItem + "\nItem ID to take " + itemIDToTakeOut + "\n quantity to take out " + quantityToTake);
-            await SendDataPacket(0x7711, GuildManagementService.GetInstance().TakeItemFromGuild(guildIDTakeItem, itemIDToTakeOut, quantityToTake)); // quantity  to give to the player
+            await SendDataPacket(0x7711, guildManagementService.TakeItemFromGuild(guildIDTakeItem, itemIDToTakeOut, quantityToTake)); // quantity  to give to the player
         }
 
         private async Task HandlePlayerTakingGuildGP(byte[] argument)
@@ -1165,34 +1171,34 @@ namespace FragmentNetslumServer.Entities
             uint amountOfMoneyToTakeOut = swap32(BitConverter.ToUInt32(argument, 2));
 
             logger.Debug("Guild ID " + guildIDTakeMoney + "\nAmount of money to Take out " + amountOfMoneyToTakeOut);
-            await SendDataPacket(0x770F, GuildManagementService.GetInstance().TakeMoneyFromGuild(guildIDTakeMoney, amountOfMoneyToTakeOut)); // amount of money to give to the player 
+            await SendDataPacket(0x770F, guildManagementService.TakeMoneyFromGuild(guildIDTakeMoney, amountOfMoneyToTakeOut)); // amount of money to give to the player 
         }
 
         private async Task HandleGuildDetailsBeingUpdated(byte[] argument)
         {
-            await SendDataPacket(0x761D, GuildManagementService.GetInstance().UpdateGuildEmblemComment(argument, _guildID));
+            await SendDataPacket(0x761D, guildManagementService.UpdateGuildEmblemComment(argument, _guildID));
         }
 
         private async Task HandleGuildBeingDissolved()
         {
-            await SendDataPacket(0x761A, GuildManagementService.GetInstance().DestroyGuild(_guildID));
+            await SendDataPacket(0x761A, guildManagementService.DestroyGuild(_guildID));
         }
 
         private async Task HandleKickingPlayerFromGuild(byte[] argument)
         {
             uint playerToKick = swap32(BitConverter.ToUInt32(argument, 0));
-            await SendDataPacket(0x7865, GuildManagementService.GetInstance().KickPlayerFromGuild(_guildID, playerToKick));
+            await SendDataPacket(0x7865, guildManagementService.KickPlayerFromGuild(_guildID, playerToKick));
         }
 
         private async Task HandlePlayerLeavingGuild()
         {
-            await SendDataPacket(0x7617, GuildManagementService.GetInstance().LeaveGuild(_guildID, _characterPlayerID));
+            await SendDataPacket(0x7617, guildManagementService.LeaveGuild(_guildID, _characterPlayerID));
         }
 
         private async Task HandleGuildMasterLeaving(byte[] argument)
         {
             uint assigningPlayerID = swap32(BitConverter.ToUInt32(argument, 0));
-            await SendDataPacket(0x788E, GuildManagementService.GetInstance().LeaveGuildAndAssignMaster(_guildID, assigningPlayerID));
+            await SendDataPacket(0x788E, guildManagementService.LeaveGuildAndAssignMaster(_guildID, assigningPlayerID));
         }
 
         private async Task HandlePlayerUpdatingItemPricingAndAvailability(byte[] argument)
@@ -1205,7 +1211,7 @@ namespace FragmentNetslumServer.Entities
             Console.Write("GenePrice " + GeneralPrice + "\nMemberPrice " + MemberPrice + "\nisGeneral " + isGeneral + "\nisMember " + isMember);
 
 
-            await SendDataPacket(0x7705, GuildManagementService.GetInstance().AddItemToGuildInventory(_guildID, _itemDontationID,
+            await SendDataPacket(0x7705, guildManagementService.AddItemToGuildInventory(_guildID, _itemDontationID,
                 _itemDonationQuantity, GeneralPrice, MemberPrice, isGeneral, isMember, isGuildMaster)); // how many to deduct from the player
         }
 
@@ -1213,19 +1219,19 @@ namespace FragmentNetslumServer.Entities
         {
             _itemDontationID = swap32(BitConverter.ToUInt32(argument, 2));
             _itemDonationQuantity = swap16(BitConverter.ToUInt16(argument, 6));
-            await SendDataPacket(0x7704, GuildManagementService.GetInstance().GetPriceOfItemToBeDonated(_guildID, _itemDontationID));
+            await SendDataPacket(0x7704, guildManagementService.GetPriceOfItemToBeDonated(_guildID, _itemDontationID));
         }
 
         private async Task HandlePlayerBuysGuildItem(byte[] argument)
         {
-            await SendDataPacket(0x770D, GuildManagementService.GetInstance().BuyItemFromGuild(argument));
+            await SendDataPacket(0x770D, guildManagementService.BuyItemFromGuild(argument));
         }
 
         private async Task HandleGetGuildItems(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
             List<byte[]> allGuildItems =
-                GuildManagementService.GetInstance().GetAllGuildItemsWithSettings(u);
+                guildManagementService.GetAllGuildItemsWithSettings(u);
             await SendDataPacket(0x7729, BitConverter.GetBytes(swap16((ushort)allGuildItems.Count)));
 
             foreach (var item in allGuildItems)
@@ -1237,7 +1243,7 @@ namespace FragmentNetslumServer.Entities
         private async Task HandleGetGuildItemsForPurchase(byte[] argument)
         {
             var u = swap16(BitConverter.ToUInt16(argument, 0));
-            List<byte[]> membersItemList = GuildManagementService.GetInstance().GetGuildItems(u, false);
+            List<byte[]> membersItemList = guildManagementService.GetGuildItems(u, false);
             await SendDataPacket(0x7709, BitConverter.GetBytes(swap16((ushort)membersItemList.Count))); // number of items
 
             foreach (var item in membersItemList)
@@ -1251,7 +1257,7 @@ namespace FragmentNetslumServer.Entities
             var u = swap16(BitConverter.ToUInt16(argument, 0));
             if (u == 0)// Guild Member Category List
             {
-                List<byte[]> listOfClasses = GuildManagementService.GetInstance().GetClassList();
+                List<byte[]> listOfClasses = Extensions.GetClassList();
                 await SendDataPacket(0x7611, BitConverter.GetBytes(swap16((ushort)listOfClasses.Count))); //Size of List
                 foreach (var className in listOfClasses)
                 {
@@ -1262,7 +1268,7 @@ namespace FragmentNetslumServer.Entities
             else //MemberList in that Category
             {
                 List<byte[]> memberList =
-                    GuildManagementService.GetInstance().GetGuildMembersListByClass(_guildID, u, _characterPlayerID);
+                    guildManagementService.GetGuildMembersListByClass(_guildID, u, _characterPlayerID);
                 await SendDataPacket(0x7614, BitConverter.GetBytes(swap16((ushort)memberList.Count)));//Size of List
 
                 foreach (var member in memberList)
@@ -1276,7 +1282,7 @@ namespace FragmentNetslumServer.Entities
         private async Task HandleGetGuildActiveMembers(byte[] argument)
         {
             var guildId = swap16(BitConverter.ToUInt16(argument, 0));
-            await SendDataPacket(0x789d, GuildManagementService.GetInstance().GetGuildInfo(guildId));
+            await SendDataPacket(0x789d, guildManagementService.GetGuildInfo(guildId));
         }
 
         private async Task<MemoryStream> HandlePublishDetails1(byte[] argument)

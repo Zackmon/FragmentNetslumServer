@@ -1,5 +1,4 @@
 ﻿using FragmentNetslumServer.Entities.Attributes;
-using FragmentNetslumServer.Services;
 using FragmentNetslumServer.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,13 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Guild
     [OpCodeData(OpCodes.OPCODE_DATA_GUILD_GET_ALL_GUILDS)]
     public sealed class OPCODE_DATA_GUILD_GET_ALL_GUILDS : IOpCodeHandler
     {
+        private readonly IGuildManagementService guildManagementService;
+
+        public OPCODE_DATA_GUILD_GET_ALL_GUILDS(IGuildManagementService guildManagementService)
+        {
+            this.guildManagementService = guildManagementService;
+        }
+
         public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
             var responses = new List<ResponseContent>();
@@ -28,7 +34,7 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Guild
             }
             else
             {
-                var listOfGuilds = GuildManagementService.GetInstance().GetListOfGuilds();
+                var listOfGuilds = guildManagementService.GetListOfGuilds();
                 responses.Add(request.CreateResponse(OpCodes.OPCODE_DATA_GUILD_COUNT, BitConverter.GetBytes(swap16((ushort)listOfGuilds.Count))));
                 foreach (var guildName in listOfGuilds)
                 {
