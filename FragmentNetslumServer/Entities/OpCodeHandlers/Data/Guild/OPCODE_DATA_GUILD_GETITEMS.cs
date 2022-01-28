@@ -24,14 +24,14 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Guild
             
             var u = BitConverter.ToUInt16(request.Data, 0).Swap();
             
-            List<byte[]> membersItemList = _guildManagementService.GetGuildItems(u, false);
+            List<byte[]> allGuildItems = _guildManagementService.GetAllGuildItemsWithSettings(u);
             
-            responseContents.Add(request.CreateResponse(0x7709,
-                BitConverter.GetBytes(((ushort)membersItemList.Count).Swap()))); // number of items
+            responseContents.Add(request.CreateResponse(0x7729,
+                BitConverter.GetBytes(((ushort)allGuildItems.Count).Swap()))); // number of items
 
-            foreach (var item in membersItemList)
+            foreach (var item in allGuildItems)
             {
-                 responseContents.Add(request.CreateResponse(0x770a, item));
+                 responseContents.Add(request.CreateResponse(0x772A, item));
             }
 
             return Task.FromResult<IEnumerable<ResponseContent>>(responseContents);

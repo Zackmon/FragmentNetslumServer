@@ -295,7 +295,7 @@ namespace FragmentNetslumServer.Entities
                                         return;
                                     }
                                     if (responses.All(c => c == ResponseContent.Empty)) continue;
-                                    if (responses.Any(c => c.Request.OpCode == OpCodes.OPCODE_DATA)) server_seq_nr++;
+                                    //if (responses.Any(c => c.Request.OpCode == OpCodes.OPCODE_DATA)) server_seq_nr++; // not needed anymore as the server sequence have to be increased while creating the packet not after 
                                     foreach (var response in responses)
                                     {
                                         if (response.Data.Length == 0) continue;
