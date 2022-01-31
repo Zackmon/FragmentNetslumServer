@@ -16,20 +16,20 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
             _logger = logger;
         }
 
-        public async Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
+        public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
             
             if (request.Data[1] == OpCodes.OPCODE_DATA_SERVERKEY_CHANGE)
             {
                 _logger.Information("Client #{@clientIndex} has identified itself as an Area Server", request.Client.ClientIndex);
                 request.Client.isAreaServer = true;
-                return new[] { request.CreateResponse(OpCodes.OPCODE_DATA_AREASERVER_OK, new byte[] { 0xDE, 0xAD }) };
+                return Task.FromResult<IEnumerable<ResponseContent>>(new[] { request.CreateResponse(OpCodes.OPCODE_DATA_AREASERVER_OK, new byte[] { 0xDE, 0xAD }) });
                 
             }
             else
             {
                 _logger.Information("Client #{@clientIndex} has identified itself as a Game Client (PS2 / PCSX2)", request.Client.ClientIndex);
-                return new[] { request.CreateResponse(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] { 0x74, 0x32 }) };
+                return Task.FromResult<IEnumerable<ResponseContent>>(new[] { request.CreateResponse(OpCodes.OPCODE_DATA_LOGON_RESPONSE, new byte[] { 0x74, 0x32 }) });
             }
         }
     }

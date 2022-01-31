@@ -265,17 +265,18 @@ namespace FragmentNetslumServer.Entities
                 OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
             }))
             {
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    var packet = new PacketAsync(logger, ns, from_crypto);
-
-                    try
+                    while (!token.IsCancellationRequested)
                     {
+                        var packet = new PacketAsync(logger, ns, from_crypto);
                         var readResult = await packet.ReadPacketAsync();
 
                         if (!readResult)
                         {
-                            logger.Verbose("Client #{@clientIndex} has no data at this time; suspending for {@tickRate} milliseconds", clientIndex, tickRate);
+                            logger.Verbose(
+                                "Client #{@clientIndex} has no data at this time; suspending for {@tickRate} milliseconds",
+                                clientIndex, tickRate);
                             await Task.Delay(TimeSpan.FromMilliseconds(tickRate), token);
                         }
                         else
@@ -289,17 +290,21 @@ namespace FragmentNetslumServer.Entities
                                 if (opCodeHandler.CanHandleRequest(packet))
                                 {
                                     var responses = await opCodeHandler.HandlePacketAsync(this, packet);
+                                    
                                     if (responses is null)
                                     {
-                                        logger.Fatal("A packet handler just returned NULL on a provided packet. This should not happen!");
+                                        logger.Fatal(
+                                            "A packet handler just returned NULL on a provided packet. This should not happen!");
                                         return;
                                     }
+
                                     if (responses.All(c => c == ResponseContent.Empty)) continue;
                                     //if (responses.Any(c => c.Request.OpCode == OpCodes.OPCODE_DATA)) server_seq_nr++; // not needed anymore as the server sequence have to be increased while creating the packet not after 
                                     foreach (var response in responses)
                                     {
                                         if (response.Data.Length == 0) continue;
-                                        logger.LogData(response.Data, response.OpCode, (int)clientIndex, nameof(SendDataPacket), (ushort)0, (ushort)0);
+                                        logger.LogData(response.Data, response.OpCode, (int)clientIndex,
+                                            nameof(SendDataPacket), (ushort)0, (ushort)0);
                                         await ns.WriteAsync(response.Data);
                                     }
                                 }
@@ -315,40 +320,53 @@ namespace FragmentNetslumServer.Entities
                             }
                             catch (Exception hipException)
                             {
-                                logger.Error(hipException, $"Client #{clientIndex} has thrown an error parsing a particular packet. Dumping out the contents for later inspection");
-                                logger.LogData(packet.Data, packet.Code, (int)clientIndex, "", packet.ChecksumInPacket, packet.ChecksumOfPacket);
+                                logger.Error(hipException,
+                                    $"Client #{clientIndex} has thrown an error parsing a particular packet. Dumping out the contents for later inspection");
+                                logger.LogData(packet.Data, packet.Code, (int)clientIndex, "", packet.ChecksumInPacket,
+                                    packet.ChecksumOfPacket);
                             }
                         }
                     }
-                    catch (ObjectDisposedException ode)
+                }
+                catch (ObjectDisposedException ode)
+                {
+                    logger.Error(ode,
+                        $"The {nameof(GameClientAsync)} was told to shutdown or threw some sort of error; cleaning up the Client");
+                    if (!token.IsCancellationRequested)
                     {
-                        logger.Error(ode, $"The {nameof(GameClientAsync)} was told to shutdown or threw some sort of error; cleaning up the Client");
-                    }
-                    catch (InvalidOperationException ioe)
-                    {
-                        // Either tcpListener.Start wasn't called (a bug!)
-                        // or the CancellationToken was cancelled before
-                        // we started accepting (giving an InvalidOperationException),
-                        // or the CancellationToken was cancelled after
-                        // we started accepting (giving an ObjectDisposedException).
-                        //
-                        // In the latter two cases we should surface the cancellation
-                        // exception, or otherwise rethrow the original exception.
-                        logger.Error(ioe, $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
-                        token.ThrowIfCancellationRequested();
-                        logger.Error(ioe, $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
-                    }
-                    catch (OperationCanceledException oce)
-                    {
-                        logger.Error(oce, $"The {nameof(GameClientAsync)} was told to explicitly shutdown and no further action is necessary");
-                    }
-                    finally
-                    {
-                        OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
+                        tokenSource.Cancel();
                     }
                 }
+                catch (InvalidOperationException ioe)
+                {
+                    // Either tcpListener.Start wasn't called (a bug!)
+                    // or the CancellationToken was cancelled before
+                    // we started accepting (giving an InvalidOperationException),
+                    // or the CancellationToken was cancelled after
+                    // we started accepting (giving an ObjectDisposedException).
+                    //
+                    // In the latter two cases we should surface the cancellation
+                    // exception, or otherwise rethrow the original exception.
+                    logger.Error(ioe,
+                        $"The {nameof(GameClientAsync)} was told to shutdown, or errored, before an incoming packet was read. More context is necessary to see if this Error can be safely ignored");
+                    token.ThrowIfCancellationRequested();
+                    logger.Error(ioe,
+                        $"The {nameof(GameClientAsync)} was not told to shutdown. Please present this log to someone to investigate what went wrong while executing the code");
+                }
+                catch (OperationCanceledException oce)
+                {
+                    logger.Error(oce,
+                        $"The {nameof(GameClientAsync)} was told to explicitly shutdown and no further action is necessary");
+                    if (!token.IsCancellationRequested)
+                    {
+                        tokenSource.Cancel();
+                    }
+                }
+                finally
+                {
+                    OnGameClientDisconnected?.Invoke(this, EventArgs.Empty);
+                }
             }
-
         }
 
         private async Task HandleIncomingPacket(PacketAsync packet)

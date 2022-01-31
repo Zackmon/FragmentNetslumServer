@@ -29,10 +29,10 @@ namespace FragmentNetslumServer.Services
 
         
 
-        public GameClientService(ILogger logger, IServiceProvider provider)
+        public GameClientService(ILogger logger,ILobbyChatService lobbyChatService ,IServiceProvider provider)
         {
             this.logger = logger;
-            this.lobbyChatService = provider.GetRequiredService<ILobbyChatService>();
+            this.lobbyChatService = lobbyChatService;
             this.provider = provider;
             this.clients = new List<GameClientAsync>();
             this.ServiceStatus = ServiceStatusEnum.Active;
@@ -50,9 +50,10 @@ namespace FragmentNetslumServer.Services
         public void AddClient(GameClientAsync client)
         {
             this.logger.Information($"Client {client.ClientIndex} has connected");
+            client.OnGameClientDisconnected += Client_OnGameClientDisconnected;
             this.clients.Add(client);
             this.logger.Information($"There are {clients.Count:N0} connected clients");
-            client.OnGameClientDisconnected += Client_OnGameClientDisconnected;
+            
         }
 
         public void RemoveClient(uint index) => this.RemoveClient(clients.Find(c => c.ClientIndex == (int)index));

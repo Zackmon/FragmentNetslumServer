@@ -13,12 +13,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-    <PackageReference Include="MySql.Data" Version="8.0.26" />
-    <PackageReference Include="NHibernate" Version="5.3.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="MySql.Data" Version="8.0.28" />
+    <PackageReference Include="NHibernate" Version="5.3.10" />
     <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Unity" Version="5.11.10" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Models\BbsCategoryModel.hbm.xml" />

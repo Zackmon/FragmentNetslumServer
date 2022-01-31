@@ -20,8 +20,14 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.AreaServer
                 externalIpAddress = Helpers.IPAddressHelpers.GetLocalIPAddress2();
             }
             var ipAddress = externalIpAddress.Split('.');
-            var ipAddressBytes = ipAddress.Reverse().Select(c => byte.Parse(c)).ToArray();
-            request.Client.externalIPAddress = ipAddressBytes;
+           // var ipAddressBytes = ipAddress.Reverse().Select(c => byte.Parse(c)).ToArray();
+           
+           request.Data[3] = byte.Parse(ipAddress[0]);
+           request.Data[2] = byte.Parse(ipAddress[1]);
+           request.Data[1] = byte.Parse(ipAddress[2]);
+           request.Data[0] = byte.Parse(ipAddress[3]);
+           
+            request.Client.externalIPAddress = request.Data;
             return base.HandleIncomingRequestAsync(request);
         }
     }
