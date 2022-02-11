@@ -14,7 +14,8 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Guild
         {
             var responses = new List<ResponseContent>();
             var ms = new MemoryStream();
-            await ms.WriteAsync(new byte[] { 0x76, 0xB0, 0x54, 0x45, 0x53, 0x54, 0x00 });
+            await ms.WriteAsync(new byte[] { 0x76, 0x0B});
+            
             if (request.Data[1] == 0x08) //accepted the invitation
             {
                 DBAccess.getInstance().EnrollPlayerInGuild(request.Client.currentGuildInvitaionSelection, request.Client._characterPlayerID, false);
