@@ -304,6 +304,13 @@ namespace FragmentNetslumServer.Services
 
             return classList;
         }
+        
+        public static int ReadAccountId(byte[] data, int pos)
+        {
+            byte[] accountID = new byte[4];
+            Buffer.BlockCopy(data, pos, accountID, 0, 4);
+            return (int)swap32(BitConverter.ToUInt32(accountID));
+        }
 
     }
 }

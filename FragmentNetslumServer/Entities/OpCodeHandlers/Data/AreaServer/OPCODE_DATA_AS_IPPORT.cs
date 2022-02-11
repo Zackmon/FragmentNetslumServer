@@ -1,11 +1,10 @@
-﻿using FragmentNetslumServer.Entities.Attributes;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using FragmentNetslumServer.Entities.Attributes;
 
-namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
+namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.AreaServer
 {
     [OpCodeData(OpCodes.OPCODE_DATA_AS_IPPORT), Description("Determines the external IP address for the Client. This does also attempt to handle rewriting 127.0.0.1 to a 'more correct' IP address")]
     public sealed class OPCODE_DATA_AS_IPPORT : SimpleResponseOpCodeHandler
@@ -21,8 +20,14 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
                 externalIpAddress = Helpers.IPAddressHelpers.GetLocalIPAddress2();
             }
             var ipAddress = externalIpAddress.Split('.');
-            var ipAddressBytes = ipAddress.Reverse().Select(c => byte.Parse(c)).ToArray();
-            request.Client.externalIPAddress = ipAddressBytes;
+           // var ipAddressBytes = ipAddress.Reverse().Select(c => byte.Parse(c)).ToArray();
+           
+           request.Data[3] = byte.Parse(ipAddress[0]);
+           request.Data[2] = byte.Parse(ipAddress[1]);
+           request.Data[1] = byte.Parse(ipAddress[2]);
+           request.Data[0] = byte.Parse(ipAddress[3]);
+           
+            request.Client.externalIPAddress = request.Data;
             return base.HandleIncomingRequestAsync(request);
         }
     }

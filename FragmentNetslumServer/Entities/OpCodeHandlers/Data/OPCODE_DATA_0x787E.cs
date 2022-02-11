@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data
 {
     [OpCodeData(0x787E)]
-    public sealed class OPCODE_DATA_0x787E : IOpCodeHandler
+    public sealed class OPCODE_DATA_0x787E : SimpleResponseOpCodeHandler
     {
-        public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
+        public OPCODE_DATA_0x787E() : base(0x787F,new byte[] { 0x00, 0x00 })
         {
-            throw new NotImplementedException();
         }
     }
 }

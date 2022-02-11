@@ -99,6 +99,7 @@ namespace FragmentNetslumServer.Services
                     var key = (OpCodes.OPCODE_DATA, requestContent.DataOpCode ?? throw new InvalidOperationException());
                     if (opCodeDataProviders.ContainsKey(key))
                     {
+                        logger.LogData(packet.Data, (ushort)requestContent.DataOpCode, (int)gameClient.ClientIndex, nameof(HandlePacketAsync), packet.ChecksumInPacket, packet.ChecksumOfPacket);
                         handler = ActivatorUtilities.CreateInstance(serviceProvider, opCodeDataProviders[key]) as IOpCodeHandler;
                     }
                     break;

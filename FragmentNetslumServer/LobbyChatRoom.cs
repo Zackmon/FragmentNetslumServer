@@ -65,6 +65,23 @@ namespace FragmentNetslumServer
             }
             this.clients.AddOrUpdate(client.ClientIndex, client, (index, existing) => client);
         }
+        
+        /// <summary>
+        /// Sends all the currently logged in clients information to the newly joined client (Aggregate Response for packet handler)
+        /// </summary>
+        /// <param name="client">The client that is joining</param>
+        /// <returns>A promise to submit all information to the client</returns>
+        public IEnumerable<ResponseContent> ClientJoinedLobbyPacketHandler(GameClientAsync client, RequestContent request)
+        {
+            List<ResponseContent> responseContents = new List<ResponseContent>();
+            // Tell the incoming client who all is in the lobby
+            foreach (var existing in this.clients)
+            {
+                responseContents.Add(request.CreateResponse(OpCodes.OPCODE_DATA_LOBBY_STATUS_UPDATE, existing.Value.last_status ?? new byte[0]));
+            }
+            this.clients.AddOrUpdate(client.ClientIndex, client, (index, existing) => client);
+            return responseContents;
+        }
 
         /// <summary>
         /// Updates all clients in the lobby room with the incoming client's new status

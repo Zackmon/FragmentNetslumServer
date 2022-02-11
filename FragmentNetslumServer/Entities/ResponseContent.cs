@@ -126,7 +126,7 @@ namespace FragmentNetslumServer.Entities
             data ??= this.Data;
 
             var responseStream = new MemoryStream();
-            responseStream.Write(BitConverter.GetBytes(swap32(Request.Client.server_seq_nr)), 0, 4);
+            responseStream.Write(BitConverter.GetBytes(swap32(Request.Client.server_seq_nr++)), 0, 4);
             var len = (ushort)(data.Length + 2);
             responseStream.Write(BitConverter.GetBytes(swap16(len)), 0, 2);
             responseStream.Write(BitConverter.GetBytes(swap16(code)), 0, 2);

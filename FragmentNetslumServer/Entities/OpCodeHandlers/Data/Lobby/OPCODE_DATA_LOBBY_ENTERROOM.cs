@@ -22,8 +22,9 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
+        public Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
+            List<ResponseContent> responseList = new List<ResponseContent>();
             LobbyChatRoom room;
             var currentLobbyIndex = (short)swap16(BitConverter.ToUInt16(request.Data, 0));
             var currentLobbyType = swap16(BitConverter.ToUInt16(request.Data, 2));
@@ -40,10 +41,10 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Lobby
                 lobbyChatService.TryGetLobby((ushort)currentLobbyIndex, out room);
             }
 
-            var response = request.CreateResponse(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Clients.Count)));
-            await room.ClientJoinedLobbyAsync(request.Client);
-            logger.Information("Client #{@clientIndex} has joined Lobby {@lobbyName}. There are now {@lobbySize} client(s) in the room", new { clientIndex = request.Client.ClientIndex, lobbyName = room.Name, lobbySize = room.Clients.Count });
-            return new[] { response };
+            responseList.Add(request.CreateResponse(OpCodes.OPCODE_DATA_LOBBY_ENTERROOM_OK, BitConverter.GetBytes(swap16((ushort)room.Clients.Count))));
+            responseList.AddRange(room.ClientJoinedLobbyPacketHandler(request.Client,request));
+            logger.Information("Client #{0} has joined Lobby {1}. There are now {2} client(s) in the room", request.Client.ClientIndex, room.Name, room.Clients.Count );
+            return Task.FromResult<IEnumerable<ResponseContent>>(responseList);
         }
     }
 }
