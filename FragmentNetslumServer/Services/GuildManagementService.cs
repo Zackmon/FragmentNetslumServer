@@ -593,13 +593,16 @@ namespace FragmentNetslumServer.Services
             }
         }
 
-        public byte[] LeaveGuildAndAssignMaster(ushort guildID, uint playerToAssign)
+        public byte[] LeaveGuildAndAssignMaster(ushort guildId, uint playerToAssign)
         {
             lock (this)
             {
                 CharacterRepositoryModel characterRepositoryModel = DBAccess.getInstance().GetCharacterInfo(playerToAssign);
                 characterRepositoryModel.GuildMaster = 1;
                 DBAccess.getInstance().updatePlayerInfo(characterRepositoryModel);
+                GuildRepositoryModel guildInfo = DBAccess.getInstance().GetGuildInfo(guildId);
+                guildInfo.MasterPlayerID = (int)playerToAssign;
+                DBAccess.getInstance().UpdateGuildInfo(guildInfo);
                 return new byte[] { 0x00, 0x00 };
             }
         }

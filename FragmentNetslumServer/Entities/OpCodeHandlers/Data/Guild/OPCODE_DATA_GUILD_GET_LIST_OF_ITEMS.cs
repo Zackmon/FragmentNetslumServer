@@ -21,7 +21,9 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.Guild
         {
             var responses = new List<ResponseContent>();
             var guildId = swap16(BitConverter.ToUInt16(request.Data, 0));
-            var listOfItemsForGeneralStore = guildManagementService.GetGuildItems(guildId, true);
+            bool isGeneral = guildId != request.Client._guildID;
+
+            var listOfItemsForGeneralStore = guildManagementService.GetGuildItems(guildId, isGeneral);
             responses.Add(request.CreateResponse(OpCodes.OPCODE_DATA_GUILD_ITEMS_COUNT, BitConverter.GetBytes(swap16((ushort)listOfItemsForGeneralStore.Count))));
 
             foreach (var item in listOfItemsForGeneralStore)
