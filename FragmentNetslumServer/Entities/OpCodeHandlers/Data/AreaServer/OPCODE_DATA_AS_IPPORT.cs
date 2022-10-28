@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FragmentNetslumServer.Entities.Attributes;
@@ -13,14 +14,18 @@ namespace FragmentNetslumServer.Entities.OpCodeHandlers.Data.AreaServer
 
         public override Task<IEnumerable<ResponseContent>> HandleIncomingRequestAsync(RequestContent request)
         {
-            request.Client.ipdata = request.Data;
-            var externalIpAddress = request.Client.ipEndPoint.Address.ToString();
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                memoryStream.Write(request.Data);
+                request.Client.ipdata = memoryStream.ToArray(); // local ip coming from Area Server
+            }
+            var externalIpAddress = request.Client.ipEndPoint.Address.ToString(); // Capturing the external IP from ipEndpoint
             if (externalIpAddress == Helpers.IPAddressHelpers.LOOPBACK_IP_ADDRESS)
             {
                 externalIpAddress = Helpers.IPAddressHelpers.GetLocalIPAddress2();
             }
             var ipAddress = externalIpAddress.Split('.');
-           // var ipAddressBytes = ipAddress.Reverse().Select(c => byte.Parse(c)).ToArray();
+            // var ipAddressBytes = ipAddress.Reverse().Select(c => byte.Parse(c)).ToArray();
            
            request.Data[3] = byte.Parse(ipAddress[0]);
            request.Data[2] = byte.Parse(ipAddress[1]);
